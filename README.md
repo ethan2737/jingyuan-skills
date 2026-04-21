@@ -49,8 +49,15 @@ JingYuan 是面向 Codex 的 Windows-first 工作流插件，把产品、设计�
 默认安装到：
 
 ```text
-$HOME\plugins\jingyuan
-$HOME\.agents\plugins\marketplace.json
+$env:CODEX_HOME\plugins\jingyuan
+$env:CODEX_HOME\.agents\plugins\marketplace.json
+```
+
+如未设置 `CODEX_HOME`，脚本默认使用：
+
+```text
+$HOME\.codex\plugins\jingyuan
+$HOME\.codex\.agents\plugins\marketplace.json
 ```
 
 默认不覆盖已有插件。需要覆盖本机 JingYuan 插件时：
@@ -75,6 +82,8 @@ Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
 .\install\install-local.ps1 -WhatIf
 .\install\install-local.ps1 -HomeRoot "$env:TEMP\jingyuan-codex-test" -Force
 ```
+
+`-HomeRoot` 仅用于测试或高级场景；正常安装不需要传参。
 
 ## 安全说明
 

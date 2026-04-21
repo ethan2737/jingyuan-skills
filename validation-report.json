@@ -1,10 +1,11 @@
-﻿{
-    "generatedAt":  "2026-04-21T15:45:18+08:00",
+{
+    "generatedAt":  "2026-04-21T16:30:11+08:00",
     "status":  "passed",
     "pluginMode":  "complete-plugin",
     "targetPlatform":  "Windows",
     "defaultShell":  "PowerShell",
     "pluginRoot":  "plugins/jingyuan",
+    "defaultInstallRoot":  "$env:CODEX_HOME or $HOME\\.codex",
     "marketplace":  {
                         "path":  ".agents/plugins/marketplace.json",
                         "hasJingYuanEntry":  true,
@@ -45,11 +46,12 @@
     "validation":  {
                        "script":  "scripts/validate-plugin.ps1",
                        "result":  "passed",
-                       "installWhatIf":  "passed",
+                       "installWhatIf":  "passed: defaults to Codex home plugins directory",
                        "tempInstall":  "passed"
                    },
     "notes":  [
                   "The previous skills-only installer was replaced with a complete-plugin installer.",
+                  "The local installer defaults to the Codex home directory rather than the user home directory.",
                   "Shared assets and references are kept under plugins/jingyuan and are installed with the plugin.",
                   "Unix command examples were removed from primary skill flows; historical Claude references remain under references/claude-original."
               ]

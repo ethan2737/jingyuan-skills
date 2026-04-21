@@ -47,7 +47,8 @@ if (-not (Test-Path -LiteralPath $sourcePlugin)) {
   throw "Source plugin directory not found: $sourcePlugin"
 }
 
-$installRoot = if ([string]::IsNullOrWhiteSpace($HomeRoot)) { $HOME } else { $HomeRoot }
+$defaultCodexRoot = if ($env:CODEX_HOME) { $env:CODEX_HOME } else { Join-Path $HOME '.codex' }
+$installRoot = if ([string]::IsNullOrWhiteSpace($HomeRoot)) { $defaultCodexRoot } else { $HomeRoot }
 $installRoot = Get-FullPath -Path $installRoot
 $targetPlugin = Join-Path $installRoot 'plugins\jingyuan'
 $expectedPlugin = Join-Path $installRoot 'plugins\jingyuan'
