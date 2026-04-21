@@ -51,6 +51,7 @@ JingYuan 是面向 Codex 的 Windows-first 工作流插件，把产品、设计�
 ```text
 $env:CODEX_HOME\plugins\jingyuan
 $env:CODEX_HOME\.agents\plugins\marketplace.json
+$env:CODEX_HOME\config.toml
 ```
 
 如未设置 `CODEX_HOME`，脚本默认使用：
@@ -58,6 +59,7 @@ $env:CODEX_HOME\.agents\plugins\marketplace.json
 ```text
 $HOME\.codex\plugins\jingyuan
 $HOME\.codex\.agents\plugins\marketplace.json
+$HOME\.codex\config.toml
 ```
 
 默认不覆盖已有插件。需要覆盖本机 JingYuan 插件时：
@@ -75,12 +77,22 @@ Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
 
 安装完成后，重启或刷新 Codex，然后使用 `$jingyuan-pm`、`$jingyuan-dev-builder` 等入口调用。
 
-安装脚本会做两件事：
+安装脚本会做三件事：
 
 1. 安装完整插件到 `$HOME\.codex\plugins\jingyuan`
-2. 清理旧版安装遗留的 `$HOME\.codex\skills\jingyuan-*` 和 `$HOME\.agents\skills\jingyuan`
+2. 写入本地 marketplace，并在 `config.toml` 中启用 `[plugins."jingyuan@local"]`
+3. 清理旧版安装遗留的 `$HOME\.codex\skills\jingyuan-*` 和 `$HOME\.agents\skills\jingyuan`
 
 Codex CLI 会从 `.codex\plugins\jingyuan\skills` 读取技能。在 `$...` 候选里输入 `$jingyuan` 前缀时，应能匹配出各个 `$jingyuan-*` 子技能。
+
+如果安装后 `$jingyuan` 仍无匹配，先完全退出并重新启动 Codex CLI，再检查：
+
+```powershell
+Select-String -Path "$HOME\.codex\config.toml" -Pattern 'jingyuan@local'
+codex plugin marketplace add "$HOME\.codex"
+```
+
+第二条命令应输出 marketplace `local` 已从 `$HOME\.codex` 添加；如果报告 marketplace JSON 解析失败，通常是旧安装写出了非 UTF-8 无 BOM 文件，重新执行 `.\install\install-local.ps1 -Force` 即可修复。
 
 ## 验证
 

@@ -26,9 +26,22 @@ function Test-RelativeReference {
   }
 }
 
+function Test-Utf8JsonStartsClean {
+  param(
+    [Parameter(Mandatory = $true)][string]$Path,
+    [Parameter(Mandatory = $true)][string]$Label
+  )
+
+  $bytes = [System.IO.File]::ReadAllBytes($Path)
+  if ($bytes.Length -lt 1 -or ($bytes[0] -ne 0x7B -and $bytes[0] -ne 0x5B)) {
+    Add-Error "$Label must be UTF-8 JSON without BOM and start with '{' or '[': $Path"
+  }
+}
+
 if (-not (Test-Path -LiteralPath $manifestPath)) {
   Add-Error "Missing plugin manifest: $manifestPath"
 } else {
+  Test-Utf8JsonStartsClean -Path $manifestPath -Label 'plugin.json'
   $manifest = Get-Content -Raw -Encoding UTF8 -LiteralPath $manifestPath | ConvertFrom-Json
   if ($manifest.name -ne 'jingyuan') { Add-Error "plugin.json name must be 'jingyuan'." }
   if ($manifest.skills -ne './skills/') { Add-Error "plugin.json skills must be './skills/'." }
@@ -43,7 +56,9 @@ if (-not (Test-Path -LiteralPath $manifestPath)) {
 if (-not (Test-Path -LiteralPath $marketplacePath)) {
   Add-Error "Missing marketplace file: $marketplacePath"
 } else {
+  Test-Utf8JsonStartsClean -Path $marketplacePath -Label 'marketplace.json'
   $marketplace = Get-Content -Raw -Encoding UTF8 -LiteralPath $marketplacePath | ConvertFrom-Json
+  if ($marketplace.name -ne 'local') { Add-Error "marketplace name must be 'local'." }
   $entry = @($marketplace.plugins | Where-Object { $_.name -eq 'jingyuan' })
   if ($entry.Count -ne 1) { Add-Error 'marketplace must contain exactly one jingyuan entry.' }
   elseif ($entry[0].source.path -ne './plugins/jingyuan') { Add-Error "marketplace jingyuan source.path must be './plugins/jingyuan'." }

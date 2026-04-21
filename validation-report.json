@@ -1,5 +1,5 @@
-﻿{
-    "generatedAt":  "2026-04-21T17:04:24+08:00",
+{
+    "generatedAt":  "2026-04-21T17:17:48+08:00",
     "status":  "passed",
     "pluginMode":  "complete-plugin",
     "targetPlatform":  "Windows",
@@ -8,6 +8,7 @@
     "defaultInstallRoot":  "$env:CODEX_HOME or $HOME\\.codex",
     "marketplace":  {
                         "path":  ".agents/plugins/marketplace.json",
+                        "name":  "local",
                         "hasJingYuanEntry":  true,
                         "sourcePath":  "./plugins/jingyuan",
                         "installation":  "AVAILABLE",
@@ -42,19 +43,22 @@
                                         "fileScan":  "Get-ChildItem -Recurse",
                                         "contentScan":  "Select-String",
                                         "sideEffectGate":  "git push, deploy, GitHub Release, npm publish, npm unpublish require explicit confirmation",
-                                        "skillDiscovery":  "Codex CLI discovers jingyuan-* from the complete plugin skills directory; installer removes obsolete flat skill copies and native junctions"
+                                        "skillDiscovery":  "Codex CLI discovers jingyuan-* from the enabled complete plugin skills directory; installer writes [plugins.\"jingyuan@local\"] and removes obsolete flat skill copies and native junctions"
                                     },
     "validation":  {
                        "script":  "scripts/validate-plugin.ps1",
                        "result":  "passed",
                        "installWhatIf":  "passed: installs only complete plugin and removes obsolete flat skill copies",
                        "tempInstall":  "passed",
-                       "bomCheck":  "passed: all plugin SKILL.md files start with raw --- bytes"
+                       "bomCheck":  "passed: all plugin SKILL.md files start with raw --- bytes",
+                       "marketplaceEncoding":  "passed: marketplace.json is UTF-8 JSON without BOM",
+                       "configEnablement":  "passed: installer enables jingyuan@local in Codex config"
                    },
     "notes":  [
                   "The previous skills-only installer was replaced with a complete-plugin installer.",
                   "The local installer defaults to the Codex home directory rather than the user home directory.",
                   "The installer keeps the complete plugin under plugins/jingyuan and removes obsolete flat skill discovery entries to avoid duplicate loading.",
+                  "The installer writes the local marketplace and Codex config with UTF-8 without BOM where applicable.",
                   "Shared assets and references are kept under plugins/jingyuan and are installed with the plugin.",
                   "Unix command examples were removed from primary skill flows; historical Claude references remain under references/claude-original."
               ]
