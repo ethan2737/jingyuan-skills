@@ -1,5 +1,5 @@
 ---
-name: jingyuan-skill-builder
+name: skill-builder
 description: 景元 Skill 创建工作流。Use when Codex needs to create or maintain JingYuan skills using the established workflow and templates.
 ---
 
@@ -7,7 +7,7 @@ description: 景元 Skill 创建工作流。Use when Codex needs to create or ma
 
 - 本 Skill 从原 skill-builder 迁移而来，正文保留原工作流内容并按 Codex 规则调整入口、路径和产物命名。
 - 所有产品、设计、开发计划、反馈和进化类文档必须写入目标项目的 `docs/` 目录；不得在目标项目根目录直接生成旧文件名。
-- 新入口使用 `$` + `jingyuan-skill-builder`；旧斜杠命令仅作为历史语义参考。
+- 新入口使用 `$jingyuan:skill-builder`；旧斜杠命令仅作为历史语义参考。
 - Claude 专属的 hooks/sub-agent 描述在 Codex 中按 `<JINGYUAN_PLUGIN_ROOT>/references/workflow/hooks-adapter.md` 和 `<JINGYUAN_PLUGIN_ROOT>/references/workflow/sub-agent-adapter.md` 执行。
 - 执行前优先读取本插件的共享参考：`<JINGYUAN_PLUGIN_ROOT>/references/workflow/document-conventions.md`、`<JINGYUAN_PLUGIN_ROOT>/references/workflow/hooks-adapter.md`、`<JINGYUAN_PLUGIN_ROOT>/references/workflow/sub-agent-adapter.md`、`<JINGYUAN_PLUGIN_ROOT>/references/workflow/windows-powershell.md`。
 - 本插件面向 Windows 用户，命令示例默认使用 PowerShell；除用户明确要求外，不使用 Unix 命令作为主流程。
@@ -37,7 +37,7 @@ description: 景元 Skill 创建工作流。Use when Codex needs to create or ma
 
 [文件结构]
     ```
-    jingyuan-skill-builder/
+    skill-builder/
     ├── SKILL.md                           # 主 Skill 定义（本文件）
     └── templates/
         └── jingyuan-skill-template.md              # 新 Skill 的骨架模板
@@ -84,7 +84,7 @@ description: 景元 Skill 创建工作流。Use when Codex needs to create or ma
         - 多模式工作流程 — 有多种执行模式的 Skill
 
     [命名规范]
-        - Skill 名：kebab-case（如 jingyuan-skill-builder、jingyuan-dev-plan）
+        - Skill 名：kebab-case（如 skill-builder、dev-plan）
         - 目录：`plugins/jingyuan/skills/[skill-name]/`，由完整插件安装后通过 marketplace 发现
         - 主文件：SKILL.md
         - 模板文件（如有）：templates/ 子目录
@@ -106,10 +106,10 @@ description: 景元 Skill 创建工作流。Use when Codex needs to create or ma
 
     [第二步：参照现有]
         按交互模式（不是领域）找 1-2 个最接近的已有 Skill 作为参照：
-        - **对话采集型**（需要和用户多轮对话收集信息）→ 参照 jingyuan-pm、jingyuan-design
-        - **自主分析型**（读取输入自主分析输出结果）→ 参照 jingyuan-dev-plan、jingyuan-code-review
-        - **执行操作型**（直接执行具体操作产出成果）→ 参照 jingyuan-dev-builder、jingyuan-release-builder
-        - **诊断修复型**（先诊断问题再执行修复）→ 参照 jingyuan-bug-fixer
+        - **对话采集型**（需要和用户多轮对话收集信息）→ 参照 pm、design
+        - **自主分析型**（读取输入自主分析输出结果）→ 参照 dev-plan、review
+        - **执行操作型**（直接执行具体操作产出成果）→ 参照 dev-builder、release
+        - **诊断修复型**（先诊断问题再执行修复）→ 参照 fix
         新 Skill 可能是任何领域——不一定是软件开发，可能是内容写作、数据分析、竞品调研等。
         按交互模式匹配参照，不按领域匹配。
         了解参照 Skill 的结构、维度命名、策略风格、输出格式

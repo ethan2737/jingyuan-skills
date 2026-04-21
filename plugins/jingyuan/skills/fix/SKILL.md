@@ -1,5 +1,5 @@
 ---
-name: jingyuan-bug-fixer
+name: fix
 description: 景元 Bug 修复工作流。Use when Codex needs to investigate, root-cause, and fix bugs against docs/PRD.md, docs/Development-Plan.md, and current code.
 ---
 
@@ -7,7 +7,7 @@ description: 景元 Bug 修复工作流。Use when Codex needs to investigate, r
 
 - 本 Skill 从原 bug-fixer 迁移而来，正文保留原工作流内容并按 Codex 规则调整入口、路径和产物命名。
 - 所有产品、设计、开发计划、反馈和进化类文档必须写入目标项目的 `docs/` 目录；不得在目标项目根目录直接生成旧文件名。
-- 新入口使用 `$` + `jingyuan-bug-fixer`；旧斜杠命令仅作为历史语义参考。
+- 新入口使用 `$jingyuan:fix`；旧斜杠命令仅作为历史语义参考。
 - Claude 专属的 hooks/sub-agent 描述在 Codex 中按 `<JINGYUAN_PLUGIN_ROOT>/references/workflow/hooks-adapter.md` 和 `<JINGYUAN_PLUGIN_ROOT>/references/workflow/sub-agent-adapter.md` 执行。
 - 执行前优先读取本插件的共享参考：`<JINGYUAN_PLUGIN_ROOT>/references/workflow/document-conventions.md`、`<JINGYUAN_PLUGIN_ROOT>/references/workflow/hooks-adapter.md`、`<JINGYUAN_PLUGIN_ROOT>/references/workflow/sub-agent-adapter.md`、`<JINGYUAN_PLUGIN_ROOT>/references/workflow/windows-powershell.md`。
 - 本插件面向 Windows 用户，命令示例默认使用 PowerShell；除用户明确要求外，不使用 Unix 命令作为主流程。
@@ -21,16 +21,16 @@ description: 景元 Bug 修复工作流。Use when Codex needs to investigate, r
     一次只改一个问题，每次修改前评估影响范围，修复后回归验证。
 
 [调用上下文]
-    jingyuan-bug-fixer 可能在两个场景被调用：
-    1. 用户直接报告 bug → 主 Agent 调用 jingyuan-bug-fixer → 修复后建议用户 $jingyuan-code-review 验证
-    2. jingyuan-code-review Stage 2 失败（代码质量问题）→ 主 Agent 调用 jingyuan-bug-fixer，传入 jingyuan-code-review 报告中的失败项 → 修复后主 Agent 重新派发 jingyuan-code-review 从 Stage 1 开始审查
+    fix 可能在两个场景被调用：
+    1. 用户直接报告 bug → 主 Agent 调用 fix → 修复后建议用户 $jingyuan:review 验证
+    2. review Stage 2 失败（代码质量问题）→ 主 Agent 调用 fix，传入 review 报告中的失败项 → 修复后主 Agent 重新派发 review 从 Stage 1 开始审查
 
 [依赖检测]
     Skill 启动时第一步自动执行：
 
     必需：
-    - 项目代码已存在 → 无代码则提示先调用 $jingyuan-dev-builder
-    - bug 描述 → 用户提供症状，或 jingyuan-code-review 报告中的失败项描述
+    - 项目代码已存在 → 无代码则提示先调用 $jingyuan:dev-builder
+    - bug 描述 → 用户提供症状，或 review 报告中的失败项描述
 
     可选（增强调试能力）：
     - docs/PRD.md → 有则可对照预期行为判断是 bug 还是 feature
@@ -66,7 +66,7 @@ description: 景元 Bug 修复工作流。Use when Codex needs to investigate, r
 
 [文件结构]
     ```
-    jingyuan-bug-fixer/
+    fix/
     └── SKILL.md                           # 主 Skill 定义（本文件）
     ```
 
@@ -88,7 +88,7 @@ description: 景元 Bug 修复工作流。Use when Codex needs to investigate, r
 
     [修复规则]
         - 一次只改一个文件/一个逻辑点
-        - 改之前评估影响范围（同 jingyuan-dev-builder 的修改纪律）
+        - 改之前评估影响范围（同 dev-builder 的修改纪律）
         - 改完后编译验证（tsc --noEmit）
         - 改完后功能验证（复现步骤不再触发 bug）
         - 改完后回归验证（相关的现有功能仍正常）

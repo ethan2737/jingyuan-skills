@@ -1,5 +1,5 @@
 ---
-name: jingyuan-dev-builder
+name: dev-builder
 description: 景元开发实现工作流。Use when Codex needs to build or continue a project from docs/PRD.md and docs/Development-Plan.md with review, testing, security, and performance gates.
 ---
 
@@ -7,7 +7,7 @@ description: 景元开发实现工作流。Use when Codex needs to build or cont
 
 - 本 Skill 从原 dev-builder 迁移而来，正文保留原工作流内容并按 Codex 规则调整入口、路径和产物命名。
 - 所有产品、设计、开发计划、反馈和进化类文档必须写入目标项目的 `docs/` 目录；不得在目标项目根目录直接生成旧文件名。
-- 新入口使用 `$` + `jingyuan-dev-builder`；旧斜杠命令仅作为历史语义参考。
+- 新入口使用 `$jingyuan:dev-builder`；旧斜杠命令仅作为历史语义参考。
 - Claude 专属的 hooks/sub-agent 描述在 Codex 中按 `<JINGYUAN_PLUGIN_ROOT>/references/workflow/hooks-adapter.md` 和 `<JINGYUAN_PLUGIN_ROOT>/references/workflow/sub-agent-adapter.md` 执行。
 - 执行前优先读取本插件的共享参考：`<JINGYUAN_PLUGIN_ROOT>/references/workflow/document-conventions.md`、`<JINGYUAN_PLUGIN_ROOT>/references/workflow/hooks-adapter.md`、`<JINGYUAN_PLUGIN_ROOT>/references/workflow/sub-agent-adapter.md`、`<JINGYUAN_PLUGIN_ROOT>/references/workflow/windows-powershell.md`。
 - 本插件面向 Windows 用户，命令示例默认使用 PowerShell；除用户明确要求外，不使用 Unix 命令作为主流程。
@@ -25,8 +25,8 @@ description: 景元开发实现工作流。Use when Codex needs to build or cont
     Skill 启动时第一步自动执行。
 
     必需：
-    - docs/PRD.md → 缺失则提示先调用 $jingyuan-pm
-    - docs/Development-Plan.md → 缺失则提示先调用 $jingyuan-dev-plan
+    - docs/PRD.md → 缺失则提示先调用 $jingyuan:pm
+    - docs/Development-Plan.md → 缺失则提示先调用 $jingyuan:dev-plan
     - Development Plan 技术栈表中列出的所有系统工具和运行时环境
 
     可选：
@@ -70,7 +70,7 @@ description: 景元开发实现工作流。Use when Codex needs to build or cont
 
 [文件结构]
     ```
-    jingyuan-dev-builder/
+    dev-builder/
     └── SKILL.md                           # 主 Skill 定义（本文件）
     ```
 
@@ -464,9 +464,9 @@ description: 景元开发实现工作流。Use when Codex needs to build or cont
             开发后——对照验证 + Review 循环：
             7. 读取代码实际值，逐项与设计数值核对，有偏差则修正
             8. 对照 docs/PRD.md 确认功能行为符合描述
-            9. 运行 `$jingyuan-code-review` 执行两阶段审查；审查必须同样对照 docs/PRD.md、docs/Design-Document.md、docs/Development-Plan.md 和设计稿
-            10. Stage 1 失败（功能缺失）→ 补实现 → 重新运行 `$jingyuan-code-review`
-            11. Stage 2 失败（代码质量）→ 调用 jingyuan-bug-fixer 修复 → 重新运行 `$jingyuan-code-review`
+            9. 运行 `$jingyuan:review` 执行两阶段审查；审查必须同样对照 docs/PRD.md、docs/Design-Document.md、docs/Development-Plan.md 和设计稿
+            10. Stage 1 失败（功能缺失）→ 补实现 → 重新运行 `$jingyuan:review`
+            11. Stage 2 失败（代码质量）→ 调用 fix 修复 → 重新运行 `$jingyuan:review`
             12. 两个 Stage 都通过 → 将任务标记完成 → 将 `.jingyuan/needs-review` 写为 `clean` 或删除以清除 review 状态 → commit
             13. 进入下一个 Task
 
@@ -494,8 +494,8 @@ description: 景元开发实现工作流。Use when Codex needs to build or cont
     检测项目状态，路由到对应模式：
     - 无代码 + 有 docs/Development-Plan.md → 初始化模式
     - 有代码 + 有 docs/Development-Plan.md → 持续开发模式
-    - 无 docs/Development-Plan.md → 提示先调用 $jingyuan-dev-plan
-    - 无 docs/PRD.md → 提示先调用 $jingyuan-pm
+    - 无 docs/Development-Plan.md → 提示先调用 $jingyuan:dev-plan
+    - 无 docs/PRD.md → 提示先调用 $jingyuan:pm
 
 
 

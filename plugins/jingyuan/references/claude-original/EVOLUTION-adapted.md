@@ -1,8 +1,8 @@
 [职责]
     本文件描述进化引擎的概念和层级。具体执行由两个 sub-agent 负责：
 
-    - **jingyuan-feedback-observer-role**：记录用户反馈和经验教训（使用 jingyuan-feedback-writer skill）
-    - **jingyuan-evolution-runner-role**：扫描 feedback 积累，生成进化建议（使用 jingyuan-evolution-engine skill）
+    - **jingyuan-feedback-observer-role**：记录用户反馈和经验教训（使用 feedback skill）
+    - **jingyuan-evolution-runner-role**：扫描 feedback 积累，生成进化建议（使用 evolution skill）
 
 [进化层级]
     四层进化路径，逐层递进：

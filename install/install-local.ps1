@@ -285,4 +285,4 @@ if ($WhatIfPreference) {
   Write-Host "Marketplace updated at: $marketplacePath"
   Write-Host "Codex config updated at: $configPath"
 }
-Write-Host 'Restart or refresh Codex, then invoke skills with $jingyuan-*.' 
+Write-Host 'Restart or refresh Codex, then invoke skills with jingyuan:*.'

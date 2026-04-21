@@ -1,5 +1,5 @@
 ---
-name: jingyuan-design-mockup
+name: mockup
 description: 景元设计稿/原型工作流。Use when Codex needs to create design mockup instructions or design-tool output from docs/PRD.md and docs/Design-Document.md, writing docs/Design-Mockup.md.
 ---
 
@@ -7,7 +7,7 @@ description: 景元设计稿/原型工作流。Use when Codex needs to create de
 
 - 本 Skill 从原 design-maker 迁移而来，正文保留原工作流内容并按 Codex 规则调整入口、路径和产物命名。
 - 所有产品、设计、开发计划、反馈和进化类文档必须写入目标项目的 `docs/` 目录；不得在目标项目根目录直接生成旧文件名。
-- 新入口使用 `$` + `jingyuan-design-mockup`；旧斜杠命令仅作为历史语义参考。
+- 新入口使用 `$jingyuan:mockup`；旧斜杠命令仅作为历史语义参考。
 - Claude 专属的 hooks/sub-agent 描述在 Codex 中按 `<JINGYUAN_PLUGIN_ROOT>/references/workflow/hooks-adapter.md` 和 `<JINGYUAN_PLUGIN_ROOT>/references/workflow/sub-agent-adapter.md` 执行。
 - 执行前优先读取本插件的共享参考：`<JINGYUAN_PLUGIN_ROOT>/references/workflow/document-conventions.md`、`<JINGYUAN_PLUGIN_ROOT>/references/workflow/hooks-adapter.md`、`<JINGYUAN_PLUGIN_ROOT>/references/workflow/sub-agent-adapter.md`、`<JINGYUAN_PLUGIN_ROOT>/references/workflow/windows-powershell.md`。
 - 本插件面向 Windows 用户，命令示例默认使用 PowerShell；除用户明确要求外，不使用 Unix 命令作为主流程。
@@ -23,8 +23,8 @@ description: 景元设计稿/原型工作流。Use when Codex needs to create de
     Skill 启动时第一步自动执行。
 
     必需：
-    - docs/PRD.md → 缺失则提示先调用 $jingyuan-pm
-    - docs/Design-Document.md → 缺失则提示先调用 $jingyuan-design
+    - docs/PRD.md → 缺失则提示先调用 $jingyuan:pm
+    - docs/Design-Document.md → 缺失则提示先调用 $jingyuan:design
     - 设计工具 MCP → 见下方设计工具检测流程
 
     设计工具检测流程：
@@ -33,7 +33,7 @@ description: 景元设计稿/原型工作流。Use when Codex needs to create de
     3. 已连接 → 继续
     4. 未连接 → 尝试连接 MCP，或提示用户连接
     5. 用户未安装对应设计软件 → 提示用户安装后重新调用
-    6. 用户选择跳过 → 退出 jingyuan-design-mockup，后续流程按无设计稿模式继续
+    6. 用户选择跳过 → 退出 mockup，后续流程按无设计稿模式继续
 
 [第一性原则]
     **完整覆盖原则**：PRD 中每个有 UI 的功能都必须有设计页面。漏一个页面，开发时就少一个参照，后果是开发靠猜。
@@ -162,7 +162,7 @@ description: 景元设计稿/原型工作流。Use when Codex needs to create de
             "设计稿已完成。
 
              接下来：
-             - 调用 $jingyuan-dev-plan 制定开发计划（会参照设计稿）
+             - 调用 $jingyuan:dev-plan 制定开发计划（会参照设计稿）
              - 或直接对话调整设计细节"
 
 

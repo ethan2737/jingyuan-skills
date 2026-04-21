@@ -1,5 +1,5 @@
 ---
-name: jingyuan-evolution-engine
+name: evolution
 description: 景元进化引擎工作流。Use when Codex should scan docs/feedback/ and docs/Feedback-Index.md for repeated patterns and propose workflow, rule, or skill improvements.
 ---
 
@@ -7,7 +7,7 @@ description: 景元进化引擎工作流。Use when Codex should scan docs/feedb
 
 - 本 Skill 从原 evolution-engine 迁移而来，正文保留原工作流内容并按 Codex 规则调整入口、路径和产物命名。
 - 所有产品、设计、开发计划、反馈和进化类文档必须写入目标项目的 `docs/` 目录；不得在目标项目根目录直接生成旧文件名。
-- 新入口使用 `$` + `jingyuan-evolution-engine`；旧斜杠命令仅作为历史语义参考。
+- 新入口使用 `$jingyuan:evolution`；旧斜杠命令仅作为历史语义参考。
 - Claude 专属的 hooks/sub-agent 描述在 Codex 中按 `<JINGYUAN_PLUGIN_ROOT>/references/workflow/hooks-adapter.md` 和 `<JINGYUAN_PLUGIN_ROOT>/references/workflow/sub-agent-adapter.md` 执行。
 - 执行前优先读取本插件的共享参考：`<JINGYUAN_PLUGIN_ROOT>/references/workflow/document-conventions.md`、`<JINGYUAN_PLUGIN_ROOT>/references/workflow/hooks-adapter.md`、`<JINGYUAN_PLUGIN_ROOT>/references/workflow/sub-agent-adapter.md`、`<JINGYUAN_PLUGIN_ROOT>/references/workflow/windows-powershell.md`。
 - 本插件面向 Windows 用户，命令示例默认使用 PowerShell；除用户明确要求外，不使用 Unix 命令作为主流程。
@@ -72,7 +72,7 @@ description: 景元进化引擎工作流。Use when Codex should scan docs/feedb
     用户逐条确认或跳过：
     - 规则毕业 → 将 feedback 内容写入目标 `SKILL.md` 或 `<JINGYUAN_PLUGIN_ROOT>/references/workflow/*.md`，标记 graduated: true
     - Skill 优化 → 修改对应 SKILL.md
-    - 新 Skill → 调用 jingyuan-skill-builder 创建
+    - 新 Skill → 调用 skill-builder 创建
     - 跳过 → 标记 skipped: true，不再重复提议
 
 [返回格式]

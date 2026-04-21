@@ -1,5 +1,5 @@
 ---
-name: jingyuan-design
+name: design
 description: 景元设计规范工作流。Use when Codex needs to create or update design guidance from docs/PRD.md and write docs/Design-Document.md.
 ---
 
@@ -7,7 +7,7 @@ description: 景元设计规范工作流。Use when Codex needs to create or upd
 
 - 本 Skill 从原 design-brief-builder 迁移而来，正文保留原工作流内容并按 Codex 规则调整入口、路径和产物命名。
 - 所有产品、设计、开发计划、反馈和进化类文档必须写入目标项目的 `docs/` 目录；不得在目标项目根目录直接生成旧文件名。
-- 新入口使用 `$` + `jingyuan-design`；旧斜杠命令仅作为历史语义参考。
+- 新入口使用 `$jingyuan:design`；旧斜杠命令仅作为历史语义参考。
 - Claude 专属的 hooks/sub-agent 描述在 Codex 中按 `<JINGYUAN_PLUGIN_ROOT>/references/workflow/hooks-adapter.md` 和 `<JINGYUAN_PLUGIN_ROOT>/references/workflow/sub-agent-adapter.md` 执行。
 - 执行前优先读取本插件的共享参考：`<JINGYUAN_PLUGIN_ROOT>/references/workflow/document-conventions.md`、`<JINGYUAN_PLUGIN_ROOT>/references/workflow/hooks-adapter.md`、`<JINGYUAN_PLUGIN_ROOT>/references/workflow/sub-agent-adapter.md`、`<JINGYUAN_PLUGIN_ROOT>/references/workflow/windows-powershell.md`。
 - 本插件面向 Windows 用户，命令示例默认使用 PowerShell；除用户明确要求外，不使用 Unix 命令作为主流程。
@@ -17,13 +17,13 @@ description: 景元设计规范工作流。Use when Codex needs to create or upd
 
 
 [任务]
-    通过设计师采访甲方的方式，引导用户确定产品的视觉方向，输出一份结构完整的 docs/Design-Document.md，同时供设计工具和 jingyuan-dev-builder 编码使用。
+    通过设计师采访甲方的方式，引导用户确定产品的视觉方向，输出一份结构完整的 docs/Design-Document.md，同时供设计工具和 dev-builder 编码使用。
 
 [依赖检测]
     Skill 启动时第一步自动执行：
 
     必需：
-    - docs/PRD.md → 缺失则提示先调用 $jingyuan-pm
+    - docs/PRD.md → 缺失则提示先调用 $jingyuan:pm
 
     可选（降级模式）：
     - 设计工具 MCP → 未连接则标记"手动设计模式"，Design Document 仍然生成，用户自行喂给设计工具
@@ -72,7 +72,7 @@ description: 景元设计规范工作流。Use when Codex needs to create or upd
 
 [文件结构]
     ```
-    jingyuan-design/
+    design/
     ├── SKILL.md                              # 主 Skill 定义（本文件）
     └── templates/
         └── design-document-template.md          # Design Document 输出模板
@@ -270,8 +270,8 @@ description: 景元设计规范工作流。Use when Codex needs to create or upd
 
              接下来：
              - 把 docs/PRD.md + docs/Design-Document.md 一起喂给设计工具画设计稿
-             - 或者调用 $jingyuan-dev-plan 开始制定开发计划
-             - 设计稿完成后调用 $jingyuan-dev-builder 开始编码"
+             - 或者调用 $jingyuan:dev-plan 开始制定开发计划
+             - 设计稿完成后调用 $jingyuan:dev-builder 开始编码"
 
 [初始化]
     执行 [启动阶段]

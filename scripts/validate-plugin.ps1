@@ -47,7 +47,10 @@ if (-not (Test-Path -LiteralPath $manifestPath)) {
   if ($manifest.name -ne 'jingyuan') { Add-Error "plugin.json name must be 'jingyuan'." }
   if ($manifest.skills -ne './skills/') { Add-Error "plugin.json skills must be './skills/'." }
   if (-not (Test-Path -LiteralPath (Join-Path $pluginRoot 'skills'))) { Add-Error 'plugin skills path does not exist.' }
-  $prompts = @($manifest.interface.defaultPrompt)
+  $prompts = @()
+  if ($null -ne $manifest.interface.defaultPrompt) {
+    $prompts = @($manifest.interface.defaultPrompt)
+  }
   if ($prompts.Count -gt 3) { Add-Error 'defaultPrompt has more than 3 entries.' }
   foreach ($prompt in $prompts) {
     if ($prompt.Length -gt 128) { Add-Error "defaultPrompt entry exceeds 128 characters: $prompt" }
@@ -76,12 +79,29 @@ if (-not (Test-Path -LiteralPath $marketplacePath)) {
 
 $skillRoot = Join-Path $pluginRoot 'skills'
 if (Test-Path -LiteralPath (Join-Path $skillRoot 'jingyuan')) {
-  Add-Error "Unexpected root skill directory exists: $(Join-Path $skillRoot 'jingyuan'). JingYuan should expose only jingyuan-* skills."
+  Add-Error "Unexpected root skill directory exists: $(Join-Path $skillRoot 'jingyuan'). JingYuan should expose only short child skills under the jingyuan plugin namespace."
 }
 
-$skills = Get-ChildItem -Directory -LiteralPath $skillRoot | Where-Object { $_.Name -like 'jingyuan-*' }
-if ($skills.Count -ne 11) {
-  Add-Error "Expected 11 jingyuan skills, found $($skills.Count)."
+$expectedSkills = @(
+  'pm',
+  'design',
+  'mockup',
+  'dev-plan',
+  'dev-builder',
+  'review',
+  'fix',
+  'release',
+  'feedback',
+  'evolution',
+  'skill-builder'
+)
+
+$skills = Get-ChildItem -Directory -LiteralPath $skillRoot
+$actualSkillNames = @($skills | ForEach-Object { $_.Name } | Sort-Object)
+$expectedSkillNames = @($expectedSkills | Sort-Object)
+$skillNameDiff = Compare-Object -ReferenceObject $expectedSkillNames -DifferenceObject $actualSkillNames
+if ($actualSkillNames.Count -ne $expectedSkillNames.Count -or $skillNameDiff) {
+  Add-Error "Expected JingYuan skills: $($expectedSkillNames -join ', '); found: $($actualSkillNames -join ', ')."
 }
 
 foreach ($skill in $skills) {

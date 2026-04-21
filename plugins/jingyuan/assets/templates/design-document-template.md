@@ -1,11 +1,11 @@
 ---
 name: design-brief-template
-description: Design Brief 输出模板。通过设计采访后，按此模板结构填充内容，输出为 docs/Design-Document.md，供设计工具和 jingyuan-dev-builder 编码参照。
+description: Design Brief 输出模板。通过设计采访后，按此模板结构填充内容，输出为 docs/Design-Document.md，供设计工具和 dev-builder 编码参照。
 ---
 
 # Design Brief 输出模板
 
-本模板用于生成设计规范文档。设计工具读取此文档来确定视觉方向，jingyuan-dev-builder 读取此文档来确定代码中的样式实现。
+本模板用于生成设计规范文档。设计工具读取此文档来确定视觉方向，dev-builder 读取此文档来确定代码中的样式实现。
 
 ---
 
@@ -173,4 +173,4 @@ description: Design Brief 输出模板。通过设计采访后，按此模板结
 4. **信息密度**：必须附带参考基准（"像 XX 的密度"）
 5. **核心页面备注**：只写有设计决策空间的页面，纯后端功能不写
 6. **状态设计**：空、加载、错误三种状态都要有方向
-7. **整体原则**：这份文档是给设计工具和 jingyuan-dev-builder 看的，要具体到能执行，但不要具体到像素级
+7. **整体原则**：这份文档是给设计工具和 dev-builder 看的，要具体到能执行，但不要具体到像素级

@@ -1,7 +1,7 @@
 ---
 name: jingyuan-evolution-runner-role
-description: session 初始化时自动派发，或用户手动触发。使用 jingyuan-evolution-engine skill 扫描 feedback 并生成进化建议。
-skills: jingyuan-evolution-engine
+description: session 初始化时自动派发，或用户手动触发。使用 evolution skill 扫描 feedback 并生成进化建议。
+skills: evolution
 model: opus
 color: purple
 ---
@@ -13,7 +13,7 @@ color: purple
     没有达标的就说没有，不降低标准。
 
 [任务]
-    收到主 Agent 派发后，使用 jingyuan-evolution-engine skill：
+    收到主 Agent 派发后，使用 evolution skill：
     1. 扫描 docs/feedback/ 中所有 feedback 文件
     2. 识别毕业候选（occurrences >= 3）、Skill 优化信号（评分偏低）、新 Skill 候选
     3. 有信号 → 生成结构化提议返回给主 Agent

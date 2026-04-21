@@ -1,5 +1,5 @@
 {
-    "generatedAt":  "2026-04-21T17:17:48+08:00",
+    "generatedAt":  "2026-04-21T17:48:14+08:00",
     "status":  "passed",
     "pluginMode":  "complete-plugin",
     "targetPlatform":  "Windows",
@@ -21,21 +21,21 @@
                      "jsonValid":  true,
                      "name":  "jingyuan",
                      "skillsPath":  "./skills/",
-                     "defaultPromptCount":  3
+                     "defaultPromptCount":  0
                  },
     "skillCount":  11,
     "skills":  [
-                   "jingyuan-bug-fixer",
-                   "jingyuan-code-review",
-                   "jingyuan-design",
-                   "jingyuan-design-mockup",
-                   "jingyuan-dev-builder",
-                   "jingyuan-dev-plan",
-                   "jingyuan-evolution-engine",
-                   "jingyuan-feedback-writer",
-                   "jingyuan-pm",
-                   "jingyuan-release-builder",
-                   "jingyuan-skill-builder"
+                   "fix",
+                   "review",
+                   "design",
+                   "mockup",
+                   "dev-builder",
+                   "dev-plan",
+                   "evolution",
+                   "feedback",
+                   "pm",
+                   "release",
+                   "skill-builder"
                ],
     "windowsPowerShellAdaptation":  {
                                         "reference":  "plugins/jingyuan/references/workflow/windows-powershell.md",
@@ -44,7 +44,7 @@
                                         "fileScan":  "Get-ChildItem -Recurse",
                                         "contentScan":  "Select-String",
                                         "sideEffectGate":  "git push, deploy, GitHub Release, npm publish, npm unpublish require explicit confirmation",
-                                        "skillDiscovery":  "Codex CLI discovers jingyuan-* from plugins/cache/local/jingyuan/local after [plugins.\"jingyuan@local\"] is enabled; installer writes both the source copy and cache copy"
+                                        "skillDiscovery":  "Codex CLI discovers short skills as jingyuan:<skill> from plugins/cache/local/jingyuan/local after [plugins.\"jingyuan@local\"] is enabled; installer writes both the source copy and cache copy"
                                     },
     "validation":  {
                        "script":  "scripts/validate-plugin.ps1",

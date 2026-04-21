@@ -1,11 +1,11 @@
 ---
 name: dev-plan-template
-description: docs/Development-Plan.md 输出模板。分析 Product Spec 后，按此模板结构填充内容，输出为 docs/Development-Plan.md，供 jingyuan-dev-builder 按 Phase 逐步开发。
+description: docs/Development-Plan.md 输出模板。分析 Product Spec 后，按此模板结构填充内容，输出为 docs/Development-Plan.md，供 dev-builder 按 Phase 逐步开发。
 ---
 
 # DEV-PLAN 输出模板
 
-本模板用于生成分阶段开发计划。jingyuan-dev-builder 读取此文档按 Phase 逐步实现代码。
+本模板用于生成分阶段开发计划。dev-builder 读取此文档按 Phase 逐步实现代码。
 
 ---
 

@@ -1,5 +1,5 @@
 ---
-name: jingyuan-pm
+name: pm
 description: 景元产品经理工作流。Use when Codex needs to collect, challenge, generate, or update product requirements and write all outputs to docs/PRD.md and docs/PRD-CHANGELOG.md.
 ---
 
@@ -7,7 +7,7 @@ description: 景元产品经理工作流。Use when Codex needs to collect, chal
 
 - 本 Skill 从原 product-spec-builder 迁移而来，正文保留原工作流内容并按 Codex 规则调整入口、路径和产物命名。
 - 所有产品、设计、开发计划、反馈和进化类文档必须写入目标项目的 `docs/` 目录；不得在目标项目根目录直接生成旧文件名。
-- 新入口使用 `$` + `jingyuan-pm`；旧斜杠命令仅作为历史语义参考。
+- 新入口使用 `$jingyuan:pm`；旧斜杠命令仅作为历史语义参考。
 - Claude 专属的 hooks/sub-agent 描述在 Codex 中按 `<JINGYUAN_PLUGIN_ROOT>/references/workflow/hooks-adapter.md` 和 `<JINGYUAN_PLUGIN_ROOT>/references/workflow/sub-agent-adapter.md` 执行。
 - 执行前优先读取本插件的共享参考：`<JINGYUAN_PLUGIN_ROOT>/references/workflow/document-conventions.md`、`<JINGYUAN_PLUGIN_ROOT>/references/workflow/hooks-adapter.md`、`<JINGYUAN_PLUGIN_ROOT>/references/workflow/sub-agent-adapter.md`、`<JINGYUAN_PLUGIN_ROOT>/references/workflow/windows-powershell.md`。
 - 本插件面向 Windows 用户，命令示例默认使用 PowerShell；除用户明确要求外，不使用 Unix 命令作为主流程。
@@ -65,7 +65,7 @@ description: 景元产品经理工作流。Use when Codex needs to collect, chal
 
 [文件结构]
     ```
-    jingyuan-pm/
+    pm/
     ├── SKILL.md                           # 主 Skill 定义（本文件）
     └── templates/
         ├── prd-template.md       # PRD 输出模板

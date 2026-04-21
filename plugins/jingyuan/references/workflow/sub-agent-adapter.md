@@ -8,10 +8,10 @@ Codex 中不直接照搬 Claude 的“自动派发 sub-agent”语义。默认�
 
 | 原 Agent | 原触发 | 原职责 | Codex 适配 |
 |---|---|---|---|
-| implementer | 主 Agent 将 Phase 拆成独立 Task 时 | 编码实现、编译验证、自检 | 并入 `jingyuan-dev-builder` 的 Task 执行角色；默认当前 Codex 执行，允许时可委派 worker |
-| code-reviewer | Task 完成后、手动审查、Phase 完成前 | 两阶段审查：Spec Compliance 和 Code Quality | 并入 `jingyuan-code-review`；也是 `jingyuan-dev-builder` 的强制门禁 |
-| feedback-observer | 用户修正/反馈信号，或 hook 注入 additionalContext | 使用 feedback writer 记录 feedback | 并入 `jingyuan-feedback-writer`；由 feedback hook 自动触发，写入 `docs/feedback/` |
-| evolution-runner | session 初始化或用户手动触发 | 扫描 feedback，生成进化建议 | 并入 `jingyuan-evolution-engine`；可自动扫描，执行变更必须用户确认 |
+| implementer | 主 Agent 将 Phase 拆成独立 Task 时 | 编码实现、编译验证、自检 | 并入 `dev-builder` 的 Task 执行角色；默认当前 Codex 执行，允许时可委派 worker |
+| code-reviewer | Task 完成后、手动审查、Phase 完成前 | 两阶段审查：Spec Compliance 和 Code Quality | 并入 `review`；也是 `dev-builder` 的强制门禁 |
+| feedback-observer | 用户修正/反馈信号，或 hook 注入 additionalContext | 使用 feedback writer 记录 feedback | 并入 `feedback`；由 feedback hook 自动触发，写入 `docs/feedback/` |
+| evolution-runner | session 初始化或用户手动触发 | 扫描 feedback，生成进化建议 | 并入 `evolution`；可自动扫描，执行变更必须用户确认 |
 
 ## 委派规则
 
@@ -19,4 +19,4 @@ Codex 中不直接照搬 Claude 的“自动派发 sub-agent”语义。默认�
 - 主 Agent 必须提供完整任务上下文：PRD 条目、Development-Plan 条目、涉及文件、项目结构、交付标准。
 - 不并行修改同一文件。
 - 子任务不得 commit；commit 和最终验证由主 Agent 控制。
-- 审查任务只报告，不修复；修复走 `jingyuan-bug-fixer` 或 `jingyuan-dev-builder`。
+- 审查任务只报告，不修复；修复走 `fix` 或 `dev-builder`。

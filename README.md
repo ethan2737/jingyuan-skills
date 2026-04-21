@@ -1,6 +1,6 @@
 # JingYuan-Skill
 
-JingYuan 是面向 Codex 的 Windows-first 工作流插件，把产品、设计、开发计划、实现、审查、修复、发布、反馈和进化流程收口为一组 `$jingyuan-*` skills。
+JingYuan 是面向 Codex 的 Windows-first 工作流插件，把产品、设计、开发计划、实现、审查、修复、发布、反馈和进化流程收口为一组 `jingyuan:*` skills。
 
 ## 支持环境
 
@@ -12,17 +12,19 @@ JingYuan 是面向 Codex 的 Windows-first 工作流插件，把产品、设计�
 
 ## 调用入口
 
-- `$jingyuan-pm`：生成或更新 `docs/PRD.md`
-- `$jingyuan-design`：生成 `docs/Design-Document.md`
-- `$jingyuan-design-mockup`：生成 `docs/Design-Mockup.md`
-- `$jingyuan-dev-plan`：生成 `docs/Development-Plan.md`
-- `$jingyuan-dev-builder`：按开发计划实现项目
-- `$jingyuan-code-review`：审查代码
-- `$jingyuan-bug-fixer`：修复 Bug
-- `$jingyuan-release-builder`：构建发布
-- `$jingyuan-feedback-writer`：记录反馈
-- `$jingyuan-evolution-engine`：扫描反馈并提出进化建议
-- `$jingyuan-skill-builder`：创建或维护 JingYuan skill
+Codex 补全列表中会显示为 `jingyuan:<skill>`。输入 `$jingyuan` 搜索即可看到以下子技能：
+
+- `$jingyuan:pm`：生成或更新 `docs/PRD.md`
+- `$jingyuan:design`：生成 `docs/Design-Document.md`
+- `$jingyuan:mockup`：生成 `docs/Design-Mockup.md`
+- `$jingyuan:dev-plan`：生成 `docs/Development-Plan.md`
+- `$jingyuan:dev-builder`：按开发计划实现项目
+- `$jingyuan:review`：审查代码
+- `$jingyuan:fix`：修复 Bug
+- `$jingyuan:release`：构建发布
+- `$jingyuan:feedback`：记录反馈
+- `$jingyuan:evolution`：扫描反馈并提出进化建议
+- `$jingyuan:skill-builder`：创建或维护 JingYuan skill
 
 ## 文档收口
 
@@ -77,22 +79,22 @@ Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
 .\install\install-local.ps1
 ```
 
-安装完成后，重启或刷新 Codex，然后使用 `$jingyuan-pm`、`$jingyuan-dev-builder` 等入口调用。
+安装完成后，重启或刷新 Codex，然后使用 `$jingyuan:pm`、`$jingyuan:dev-builder` 等入口调用。
 
-安装脚本会做三件事：
+安装脚本会做四件事：
 
 1. 安装完整插件到 `$HOME\.codex\plugins\jingyuan`
 2. 同步 Codex 启用插件时读取的缓存目录 `$HOME\.codex\plugins\cache\local\jingyuan\local`
 3. 写入本地 marketplace，并在 `config.toml` 中启用 `[plugins."jingyuan@local"]`
 4. 清理旧版安装遗留的 `$HOME\.codex\skills\jingyuan-*` 和 `$HOME\.agents\skills\jingyuan`
 
-Codex CLI 启用 `jingyuan@local` 后，会从 `.codex\plugins\cache\local\jingyuan\local\skills` 读取技能。在 `$...` 候选里输入 `$jingyuan` 前缀时，应能匹配出各个 `$jingyuan-*` 子技能。
+Codex CLI 启用 `jingyuan@local` 后，会从 `.codex\plugins\cache\local\jingyuan\local\skills` 读取技能。在 `$...` 候选里输入 `$jingyuan` 前缀时，应能匹配出各个 `jingyuan:*` 子技能。
 
 如果安装后 `$jingyuan` 仍无匹配，先完全退出并重新启动 Codex CLI，再检查：
 
 ```powershell
 Select-String -Path "$HOME\.codex\config.toml" -Pattern 'jingyuan@local'
-Test-Path "$HOME\.codex\plugins\cache\local\jingyuan\local\skills\jingyuan-pm\SKILL.md"
+Test-Path "$HOME\.codex\plugins\cache\local\jingyuan\local\skills\pm\SKILL.md"
 codex plugin marketplace add "$HOME\.codex"
 ```
 

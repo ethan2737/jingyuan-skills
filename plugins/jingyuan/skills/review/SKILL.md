@@ -1,5 +1,5 @@
 ---
-name: jingyuan-code-review
+name: review
 description: 景元代码审查工作流。Use when Codex needs to review code for spec compliance, design compliance, code quality, safety, performance, and test coverage.
 ---
 
@@ -7,7 +7,7 @@ description: 景元代码审查工作流。Use when Codex needs to review code f
 
 - 本 Skill 从原 code-review 迁移而来，正文保留原工作流内容并按 Codex 规则调整入口、路径和产物命名。
 - 所有产品、设计、开发计划、反馈和进化类文档必须写入目标项目的 `docs/` 目录；不得在目标项目根目录直接生成旧文件名。
-- 新入口使用 `$` + `jingyuan-code-review`；旧斜杠命令仅作为历史语义参考。
+- 新入口使用 `$jingyuan:review`；旧斜杠命令仅作为历史语义参考。
 - Claude 专属的 hooks/sub-agent 描述在 Codex 中按 `<JINGYUAN_PLUGIN_ROOT>/references/workflow/hooks-adapter.md` 和 `<JINGYUAN_PLUGIN_ROOT>/references/workflow/sub-agent-adapter.md` 执行。
 - 执行前优先读取本插件的共享参考：`<JINGYUAN_PLUGIN_ROOT>/references/workflow/document-conventions.md`、`<JINGYUAN_PLUGIN_ROOT>/references/workflow/hooks-adapter.md`、`<JINGYUAN_PLUGIN_ROOT>/references/workflow/sub-agent-adapter.md`、`<JINGYUAN_PLUGIN_ROOT>/references/workflow/windows-powershell.md`。
 - 本插件面向 Windows 用户，命令示例默认使用 PowerShell；除用户明确要求外，不使用 Unix 命令作为主流程。
@@ -18,14 +18,14 @@ description: 景元代码审查工作流。Use when Codex needs to review code f
 
 [任务]
     对照 docs/PRD.md 和设计稿，审查代码实现的完整度和质量。
-    输出结构化审查报告。修复由主 Agent 拿到报告后使用 jingyuan-dev-builder 或 jingyuan-bug-fixer skill 执行。
+    输出结构化审查报告。修复由主 Agent 拿到报告后使用 dev-builder 或 fix skill 执行。
 
 [依赖检测]
     Skill 启动时第一步自动执行：
 
     必需：
-    - docs/PRD.md → 缺失则提示先调用 $jingyuan-pm
-    - 项目代码已存在 → 无代码则提示先调用 $jingyuan-dev-builder
+    - docs/PRD.md → 缺失则提示先调用 $jingyuan:pm
+    - 项目代码已存在 → 无代码则提示先调用 $jingyuan:dev-builder
 
     可选（增强审查能力）：
     - docs/Development-Plan.md → 有则可对照 Phase 交付清单检查
@@ -60,7 +60,7 @@ description: 景元代码审查工作流。Use when Codex needs to review code f
 
 [文件结构]
     ```
-    jingyuan-code-review/
+    review/
     └── SKILL.md                           # 主 Skill 定义（本文件）
     ```
 
@@ -162,9 +162,9 @@ description: 景元代码审查工作流。Use when Codex needs to review code f
         如有 docs/Design-Document.md → 读取审查范围内涉及的视觉方向和页面备注
         如有设计工具 MCP → 通过设计工具找到审查范围对应的设计页面，读取这些页面及其组件的精确数值，作为 UI 一致性比对的基准
         确定审查范围：
-        - 全量审查（$jingyuan-code-review）→ Spec 所有功能
-        - Phase 审查（jingyuan-dev-builder Phase 完成验证触发）→ 当前 Phase 的交付清单
-        - Task 审查（jingyuan-dev-builder per-Task review 触发）→ 当前 Task 的交付清单
+        - 全量审查（$jingyuan:review）→ Spec 所有功能
+        - Phase 审查（dev-builder Phase 完成验证触发）→ 当前 Phase 的交付清单
+        - Task 审查（dev-builder per-Task review 触发）→ 当前 Task 的交付清单
 
     [第二步：扫描代码实现]
         遍历项目代码目录
@@ -218,9 +218,9 @@ description: 景元代码审查工作流。Use when Codex needs to review code f
          🟢 Low：[增强建议、可选优化]"
 
     注意：本 Skill 范围到输出报告为止。修复由主 Agent 拿到报告后路由执行：
-    - Stage 1 失败（功能缺失/不符合 Spec）→ 主 Agent 调用 jingyuan-dev-builder 补实现
-    - Stage 2 失败（代码质量/安全问题）→ 主 Agent 调用 jingyuan-bug-fixer 修复
-    - 修复完成后主 Agent 重新派发 jingyuan-code-review，从 Stage 1 开始审查
+    - Stage 1 失败（功能缺失/不符合 Spec）→ 主 Agent 调用 dev-builder 补实现
+    - Stage 2 失败（代码质量/安全问题）→ 主 Agent 调用 fix 修复
+    - 修复完成后主 Agent 重新派发 review，从 Stage 1 开始审查
 
 [初始化]
     执行 [第一步：加载比对基准]

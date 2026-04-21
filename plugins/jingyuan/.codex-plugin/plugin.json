@@ -10,7 +10,7 @@
                      "jingyuan"
                  ],
     "name":  "jingyuan",
-    "description":  "JingYuan product-to-release workflow for Codex, with PM, design, development planning, build, review, bug fixing, release, feedback, and evolution skills.",
+    "description":  "JingYuan workflow skills for Codex.",
     "interface":  {
                       "capabilities":  [
                                            "Interactive",
@@ -21,13 +21,8 @@
                       "developerName":  "JingYuan",
                       "category":  "Productivity",
                       "brandColor":  "#0F766E",
-                      "longDescription":  "JingYuan provides a structured Codex-native workflow from PRD, design, development planning, implementation, testing, review, bug fixing, release, feedback, and workflow evolution.",
-                      "defaultPrompt":  [
-                                            "使用 $jingyuan-pm 帮我整理 docs/PRD.md",
-                                            "使用 $jingyuan-dev-plan 基于 PRD 生成开发计划",
-                                            "使用 $jingyuan-dev-builder 按 Development-Plan 开始开发"
-                                        ],
-                      "shortDescription":  "产品到发布的 Codex 工作流"
+                      "longDescription":  "Use concise JingYuan workflow skills such as jingyuan:pm, jingyuan:dev-plan, and jingyuan:dev-builder.",
+                      "shortDescription":  "Use jingyuan:* workflow skills"
                   },
     "author":  {
                    "email":  "",

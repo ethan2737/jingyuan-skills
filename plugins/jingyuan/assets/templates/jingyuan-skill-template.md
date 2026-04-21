@@ -1,4 +1,4 @@
-﻿---
+---
 name: skill-template
 description: 新 Skill 的骨架模板。创建新 Skill 时，复制此模板并替换 [占位符] 为实际内容。必须有的 Section 不可删除，推荐有的根据需要保留或删除，按需有的按实际情况添加。
 ---
@@ -114,7 +114,7 @@ description: [一句话描述：什么时候用、做什么、产出什么]
 
 | 项 | 规范 |
 |----|------|
-| Skill 名 | kebab-case（如 jingyuan-skill-builder、jingyuan-dev-plan） |
+| Skill 名 | kebab-case（如 skill-builder、dev-plan） |
 | 目录位置 | plugins/jingyuan/skills/[skill-name]/ |
 | 主文件 | SKILL.md |
 | 模板文件 | templates/ 子目录（如有） |

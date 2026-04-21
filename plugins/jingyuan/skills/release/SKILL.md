@@ -1,5 +1,5 @@
 ---
-name: jingyuan-release-builder
+name: release
 description: 景元发布构建工作流。Use when Codex needs to package, build, release, or deploy a project after implementation and verification.
 ---
 
@@ -7,7 +7,7 @@ description: 景元发布构建工作流。Use when Codex needs to package, buil
 
 - 本 Skill 从原 release-builder 迁移而来，正文保留原工作流内容并按 Codex 规则调整入口、路径和产物命名。
 - 所有产品、设计、开发计划、反馈和进化类文档必须写入目标项目的 `docs/` 目录；不得在目标项目根目录直接生成旧文件名。
-- 新入口使用 `$` + `jingyuan-release-builder`；旧斜杠命令仅作为历史语义参考。
+- 新入口使用 `$jingyuan:release`；旧斜杠命令仅作为历史语义参考。
 - Claude 专属的 hooks/sub-agent 描述在 Codex 中按 `<JINGYUAN_PLUGIN_ROOT>/references/workflow/hooks-adapter.md` 和 `<JINGYUAN_PLUGIN_ROOT>/references/workflow/sub-agent-adapter.md` 执行。
 - 执行前优先读取本插件的共享参考：`<JINGYUAN_PLUGIN_ROOT>/references/workflow/document-conventions.md`、`<JINGYUAN_PLUGIN_ROOT>/references/workflow/hooks-adapter.md`、`<JINGYUAN_PLUGIN_ROOT>/references/workflow/sub-agent-adapter.md`、`<JINGYUAN_PLUGIN_ROOT>/references/workflow/windows-powershell.md`。
 - 本插件面向 Windows 用户，命令示例默认使用 PowerShell；除用户明确要求外，不使用 Unix 命令作为主流程。
@@ -24,7 +24,7 @@ description: 景元发布构建工作流。Use when Codex needs to package, buil
     在需求收集之后、根据用户选择的发布渠道按需执行。
 
     基础检测：
-    - 项目代码已存在 → 无代码则提示先调用 $jingyuan-dev-builder
+    - 项目代码已存在 → 无代码则提示先调用 $jingyuan:dev-builder
     - git 可用
     - 构建工具可用
     - package.json 存在
@@ -66,7 +66,7 @@ description: 景元发布构建工作流。Use when Codex needs to package, buil
 
 [文件结构]
     ```
-    jingyuan-release-builder/
+    release/
     └── SKILL.md                           # 主 Skill 定义（本文件）
     ```
 

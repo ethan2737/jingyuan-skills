@@ -4,14 +4,14 @@
 
 [任务]
     引导用户完成产品开发的完整流程：
-    1. **需求收集** → 调用 jingyuan-pm，生成 docs/PRD.md
-        2. **设计规范** → 调用 jingyuan-design，生成 docs/Design-Document.md（可选）
-        3. **设计图制作** → 调用 jingyuan-design-mockup，通过设计工具生成完整设计稿（可选）
-        4. **开发计划** → 调用 jingyuan-dev-plan，生成 docs/Development-Plan.md
-        5. **项目开发** → 调用 jingyuan-dev-builder，实现项目代码
-        6. **Bug 修复** → 调用 jingyuan-bug-fixer，定位并修复问题（按需）
-        7. **代码审查** → 调用 jingyuan-code-review，审查质量并修复（按需）
-        8. **构建发布** → 调用 jingyuan-release-builder，打包或部署上线（按需）
+    1. **需求收集** → 调用 pm，生成 docs/PRD.md
+        2. **设计规范** → 调用 design，生成 docs/Design-Document.md（可选）
+        3. **设计图制作** → 调用 mockup，通过设计工具生成完整设计稿（可选）
+        4. **开发计划** → 调用 dev-plan，生成 docs/Development-Plan.md
+        5. **项目开发** → 调用 dev-builder，实现项目代码
+        6. **Bug 修复** → 调用 fix，定位并修复问题（按需）
+        7. **代码审查** → 调用 review，审查质量并修复（按需）
+        8. **构建发布** → 调用 release，打包或部署上线（按需）
 
 [文件结构]
     project/
@@ -28,23 +28,23 @@
         ├── CLAUDE.md                      # 主控（本文件）
         ├── agents/
         │   ├── jingyuan-implementer-role.md             # 实现者 Sub-Agent
-        │   ├── jingyuan-jingyuan-code-reviewer-role.md           # 审查者 Sub-Agent
+        │   ├── jingyuan-reviewer-role.md           # 审查者 Sub-Agent
         │   ├── jingyuan-feedback-observer-role.md       # 反馈观察 Sub-Agent
         │   └── jingyuan-evolution-runner-role.md        # 进化引擎 Sub-Agent
         ├── EVOLUTION.md                   # 进化引擎
         ├── feedback/                      # 经验教训
         └── skills/
-            ├── jingyuan-pm/      # 需求收集
-            ├── jingyuan-design/      # 设计规范
-            ├── jingyuan-design-mockup/              # 设计图制作
-            ├── jingyuan-dev-plan/               # 开发计划
-            ├── jingyuan-dev-builder/               # 项目开发
-            ├── jingyuan-bug-fixer/                 # Bug 修复
-            ├── jingyuan-code-review/               # 代码审查
-            ├── jingyuan-release-builder/           # 构建发布
-            ├── jingyuan-skill-builder/             # 创建新 Skill
-            ├── jingyuan-feedback-writer/           # 记录用户反馈
-            └── jingyuan-evolution-engine/          # 进化引擎扫描
+            ├── pm/      # 需求收集
+            ├── design/      # 设计规范
+            ├── mockup/              # 设计图制作
+            ├── dev-plan/               # 开发计划
+            ├── dev-builder/               # 项目开发
+            ├── fix/                 # Bug 修复
+            ├── review/               # 代码审查
+            ├── release/           # 构建发布
+            ├── skill-builder/             # 创建新 Skill
+            ├── feedback/           # 记录用户反馈
+            └── evolution/          # 进化引擎扫描
 
 [总体规则]
     - 无论用户如何打断或提出新问题，完成当前回答后始终引导用户进入下一步
@@ -58,68 +58,68 @@
     匹配触发条件时，必须先调用 Skill 再输出响应。不要先回复再调用。
 
     当用户输入可能同时匹配多个 Skill 时，优先级：
-    1. 用户直接调用了具体 Skill（如 $jingyuan-jingyuan-bug-fixer）→ 直接执行
+    1. 用户直接调用了具体 Skill（如 jingyuan:fix）→ 直接执行
     2. 根据上下文判断最匹配的 Skill
     3. 不确定时 → 询问用户意图
     
-    [jingyuan-pm]
+    [pm]
         **自动调用**：
         - 用户表达想要开发产品、应用、工具时
         - 用户描述产品想法、功能需求时
         - 用户要修改 UI、改界面、调整布局时（迭代模式）
         - 用户要增加功能、新增功能时（迭代模式）
         - 用户要改需求、调整功能、修改逻辑时（迭代模式）
-        **手动调用**：$jingyuan-pm
+        **手动调用**：$jingyuan:pm
     
-    [jingyuan-design]
-        **手动调用**：$jingyuan-design
+    [design]
+        **手动调用**：$jingyuan:design
         前置条件：docs/PRD.md 必须存在
     
-    [jingyuan-design-mockup]
-        **手动调用**：$jingyuan-design-mockup
+    [mockup]
+        **手动调用**：$jingyuan:mockup
         前置条件：docs/PRD.md 和 docs/Design-Document.md 必须存在
     
-    [jingyuan-dev-plan]
-        **手动调用**：$jingyuan-dev-plan
+    [dev-plan]
+        **手动调用**：$jingyuan:dev-plan
         前置条件：docs/PRD.md 必须存在
     
-    [jingyuan-dev-builder]
-        **手动调用**：$jingyuan-jingyuan-dev-builder
+    [dev-builder]
+        **手动调用**：jingyuan:dev-builder
         前置条件：docs/PRD.md 和 docs/Development-Plan.md 必须存在
     
-    [jingyuan-bug-fixer]
+    [fix]
         **自动调用**：
-        - jingyuan-code-review 发现问题后，自动调用修复（review → fix 闭环的一部分）
+        - review 发现问题后，自动调用修复（review → fix 闭环的一部分）
         - 用户报告 bug、功能异常、编译错误、运行时错误时
         - 用户说"这个功能坏了"、"报错了"、"不正常"时
-        **手动调用**：$jingyuan-jingyuan-bug-fixer
+        **手动调用**：jingyuan:fix
         前置条件：项目代码已创建
     
-    [jingyuan-code-review]
+    [review]
         **自动调用**：
         - 每个功能开发完成后，自动进入 review → fix 闭环
         - 用户要求代码审查、检查代码质量时
-        **手动调用**：$jingyuan-jingyuan-code-review
+        **手动调用**：jingyuan:review
         前置条件：docs/PRD.md 必须存在，项目代码已创建
-        执行方式：永远通过派发 jingyuan-jingyuan-code-reviewer-role Sub-Agent 执行（见 [Sub-Agent 调度规则]）
+        执行方式：永远通过派发 jingyuan-reviewer-role Sub-Agent 执行（见 [Sub-Agent 调度规则]）
     
-    [jingyuan-release-builder]
-        **手动调用**：$jingyuan-jingyuan-release-builder
+    [release]
+        **手动调用**：jingyuan:release
         前置条件：项目代码已创建
     
-    [jingyuan-skill-builder]
+    [skill-builder]
         **自动调用**：
         - EVOLUTION.md 第四层提议创建新 Skill，用户确认后
-        **手动调用**：$jingyuan-jingyuan-skill-builder
+        **手动调用**：jingyuan:skill-builder
         前置条件：无
     
-    [jingyuan-feedback-writer]
+    [feedback]
         由 jingyuan-feedback-observer-role sub-agent 调用，不由用户直接触发
         执行方式：永远通过 jingyuan-feedback-observer-role sub-agent 执行
     
-    [jingyuan-evolution-engine]
+    [evolution]
         **自动调用**：session 初始化时自动派发 jingyuan-evolution-runner-role sub-agent
-        **手动调用**：$jingyuan-jingyuan-evolution-engine
+        **手动调用**：jingyuan:evolution
         执行方式：永远通过 jingyuan-evolution-runner-role sub-agent 执行
 
 [Sub-Agent 调度规则]
@@ -127,10 +127,10 @@
 
     | Agent | 文件 | 使用的 Skill | 职责 |
     |-------|------|-------------|------|
-    | jingyuan-jingyuan-code-reviewer-role | .claude/agents$jingyuan-jingyuan-jingyuan-code-reviewer-role.md | jingyuan-code-review | 审查代码 + 输出报告 |
-    | jingyuan-implementer-role | .claude/agents/jingyuan-implementer-role.md | jingyuan-dev-builder | 编码实现 + 编译验证 + 自检 |
-    | jingyuan-feedback-observer-role | .claude/agents/jingyuan-feedback-observer-role.md | jingyuan-feedback-writer | 记录用户反馈 |
-    | jingyuan-evolution-runner-role | .claude/agents/jingyuan-evolution-runner-role.md | jingyuan-evolution-engine | 扫描 feedback + 生成进化建议 |
+    | jingyuan-reviewer-role | .claude/agents/jingyuan-reviewer-role.md | review | 审查代码 + 输出报告 |
+    | jingyuan-implementer-role | .claude/agents/jingyuan-implementer-role.md | dev-builder | 编码实现 + 编译验证 + 自检 |
+    | jingyuan-feedback-observer-role | .claude/agents/jingyuan-feedback-observer-role.md | feedback | 记录用户反馈 |
+    | jingyuan-evolution-runner-role | .claude/agents/jingyuan-evolution-runner-role.md | evolution | 扫描 feedback + 生成进化建议 |
     
     各 Agent 的派发时机和流程见对应的工作流程章节和 Skill 调用规则。
     jingyuan-evolution-runner-role 返回的进化建议需展示给用户逐条确认/跳过后再执行。
@@ -142,17 +142,17 @@
     - 这不是可选的最佳实践，是隔离保证：防止 Task A 的错误假设污染 Task B
     
     **⚠️ feedback 和 memory 是两套不同的系统，不能混淆：**
-    - feedback 记录到 docs/feedback/ 目录，由 jingyuan-evolution-engine 扫描并生成进化建议，用于改进 Skill 和规则
+    - feedback 记录到 docs/feedback/ 目录，由 evolution 扫描并生成进化建议，用于改进 Skill 和规则
     - memory 记录到用户的 memory/ 目录，用于跨 session 记住用户偏好和项目上下文
     - 用户修正 AI 行为时，必须走 feedback 流程（派发 jingyuan-feedback-observer-role），不能只写 memory
 
 [项目状态检测与路由]
     初始化时自动检测项目进度，路由到对应阶段：
     检测逻辑：
-        - 无 docs/PRD.md → 全新项目 → 引导用户描述想法或调用 $jingyuan-pm
+        - 无 docs/PRD.md → 全新项目 → 引导用户描述想法或调用 $jingyuan:pm
         - 有 docs/PRD.md，无 docs/Development-Plan.md，无代码 → Spec 已完成 → 输出交付指南
-        - 有 docs/PRD.md + docs/Development-Plan.md，无代码 → Plan 已完成 → 引导调用 $jingyuan-jingyuan-dev-builder
-        - 有 docs/PRD.md + 代码，无 docs/Development-Plan.md → 建议调用 $jingyuan-dev-plan 生成计划
+        - 有 docs/PRD.md + docs/Development-Plan.md，无代码 → Plan 已完成 → 引导调用 jingyuan:dev-builder
+        - 有 docs/PRD.md + 代码，无 docs/Development-Plan.md → 建议调用 $jingyuan:dev-plan 生成计划
         - 有 docs/PRD.md + docs/Development-Plan.md + 代码 → 项目开发中 → 可继续开发、审查、修复或发布
     
     显示格式：
@@ -168,9 +168,9 @@
 
 [工作流程]
     [需求收集阶段]
-        触发：用户表达产品想法（自动）或调用 $jingyuan-pm（手动）
+        触发：用户表达产品想法（自动）或调用 $jingyuan:pm（手动）
         
-        执行：调用 jingyuan-pm skill
+        执行：调用 pm skill
         
         完成后：输出交付指南，引导下一步
     
@@ -186,15 +186,15 @@
             
             ## 📘 接下来
             
-            - 调用 $jingyuan-design 确定视觉方向（可选）
-            - 调用 $jingyuan-design-mockup 生成完整设计稿（可选，需先完成 Design Brief）
-            - 调用 $jingyuan-dev-plan 制定开发计划
+            - 调用 $jingyuan:design 确定视觉方向（可选）
+            - 调用 $jingyuan:mockup 生成完整设计稿（可选，需先完成 Design Brief）
+            - 调用 $jingyuan:dev-plan 制定开发计划
             - 直接对话可以改 UI、加功能"
     
     [设计规范阶段]
-        触发：用户调用 $jingyuan-design
+        触发：用户调用 $jingyuan:design
         
-        执行：调用 jingyuan-design skill
+        执行：调用 design skill
         
         完成后：
             "✅ **Design Brief 已生成！**
@@ -202,26 +202,26 @@
             文件：docs/Design-Document.md
             
             接下来：
-            - 调用 $jingyuan-design-mockup 生成完整设计稿（可选）
-            - 调用 $jingyuan-dev-plan 制定开发计划
+            - 调用 $jingyuan:mockup 生成完整设计稿（可选）
+            - 调用 $jingyuan:dev-plan 制定开发计划
             - 跳过设计稿也可以，后续按文字描述开发"
     
     [设计图制作阶段]
-        触发：用户调用 $jingyuan-design-mockup
+        触发：用户调用 $jingyuan:mockup
         
-        执行：调用 jingyuan-design-mockup skill
+        执行：调用 mockup skill
         
         完成后：
             "✅ **设计稿已完成！**
             
             设计文件已通过设计工具生成，覆盖所有页面和状态变体。
             
-            调用 $jingyuan-dev-plan 制定开发计划。设计稿会作为 Phase 拆分和编码实现的核心参照。"
+            调用 $jingyuan:dev-plan 制定开发计划。设计稿会作为 Phase 拆分和编码实现的核心参照。"
     
     [开发计划阶段]
-        触发：用户调用 $jingyuan-dev-plan
+        触发：用户调用 $jingyuan:dev-plan
         
-        执行：调用 jingyuan-dev-plan skill
+        执行：调用 dev-plan skill
         
         完成后：
             "✅ **DEV-PLAN 已生成！**
@@ -229,10 +229,10 @@
             文件：docs/Development-Plan.md
             共 N 个 Phase。
             
-            调用 $jingyuan-jingyuan-dev-builder 开始开发。"
+            调用 jingyuan:dev-builder 开始开发。"
     
     [项目开发阶段]
-        触发：用户调用 $jingyuan-jingyuan-dev-builder
+        触发：用户调用 jingyuan:dev-builder
     
         第一步：询问设计稿
             询问用户："有设计稿吗？有的话发给我参考。"
@@ -240,7 +240,7 @@
             用户说没有 → 继续
     
         第二步：进入开发
-            调用 jingyuan-dev-builder skill，进入 Plan Mode，列出当前 Phase 的 TaskList
+            调用 dev-builder skill，进入 Plan Mode，列出当前 Phase 的 TaskList
             Agent 根据 Phase 的 Task 数量和复杂度自主判断：
                 → 主 Agent 直接开发
                 → 或派发 jingyuan-implementer-role Sub-Agent：每个 Task 一个 fresh 实例，有依赖顺序执行，无依赖可并行，不并行修改同一文件，并行 Task 各自独立完成 review → fix 循环后再 commit，如有文件冲突由主 Agent 合并解决
@@ -249,17 +249,17 @@
     
             对 Phase 中的每个 Task，执行以下循环：
     
-            编码（执行规则见 jingyuan-dev-builder SKILL.md）
+            编码（执行规则见 dev-builder SKILL.md）
                 ↓
-            派发 jingyuan-jingyuan-code-reviewer-role 两阶段审查
+            派发 jingyuan-reviewer-role 两阶段审查
                 ↓
             Stage 1 Spec Compliance 结果：
                 → 通过 → 进入 Stage 2
-                → 失败 → 补实现 → 重新派发 jingyuan-jingyuan-code-reviewer-role
+                → 失败 → 补实现 → 重新派发 jingyuan-reviewer-role
                 ↓
             Stage 2 Code Quality 结果：
                 → 通过 → 执行 echo clean > .jingyuan/needs-review → commit → Task 完成 → 进入下一个 Task
-                → 失败 → 调用 jingyuan-bug-fixer 修复 → 重新派发 jingyuan-jingyuan-code-reviewer-role（从 Stage 1 开始）
+                → 失败 → 调用 fix 修复 → 重新派发 jingyuan-reviewer-role（从 Stage 1 开始）
     
             循环直到两个 Stage 都通过。
     
@@ -268,22 +268,22 @@
             用户可随时介入切换为手动模式
     
         第四步：Phase 级别最终验证
-            执行 jingyuan-dev-builder SKILL.md [Phase 完成度判断] 的四步走验证。
+            执行 dev-builder SKILL.md [Phase 完成度判断] 的四步走验证。
             重点关注跨 Task 的集成问题——导入关系、文件依赖、命名一致性。
-            如发现问题 → 调用 jingyuan-bug-fixer 修复 → 用 fix: commit message 提交 → 重新验证
+            如发现问题 → 调用 fix 修复 → 用 fix: commit message 提交 → 重新验证
     
         第五步：用户确认 Phase 完成
     
-        第六步：引导进入下一个 Phase，或提示可调用 $jingyuan-jingyuan-release-builder 发布
+        第六步：引导进入下一个 Phase，或提示可调用 jingyuan:release 发布
     
         补充——手动触发入口：
-        - 用户调用 $jingyuan-jingyuan-code-review → 派发 jingyuan-jingyuan-code-reviewer-role 两阶段审查 → 展示报告给用户 → 用户决定修复范围和下一步
-        - 用户调用 $jingyuan-jingyuan-bug-fixer 或报告 bug → 调用 jingyuan-bug-fixer skill 修复 → 修完后建议 $jingyuan-jingyuan-code-review 验证
+        - 用户调用 jingyuan:review → 派发 jingyuan-reviewer-role 两阶段审查 → 展示报告给用户 → 用户决定修复范围和下一步
+        - 用户调用 jingyuan:fix 或报告 bug → 调用 fix skill 修复 → 修完后建议 jingyuan:review 验证
     
     [发布阶段]
-        触发：用户调用 $jingyuan-jingyuan-release-builder
+        触发：用户调用 jingyuan:release
     
-        执行：调用 jingyuan-release-builder skill
+        执行：调用 release skill
     
         完成后：展示发布结果
     
@@ -296,48 +296,48 @@
         当用户提出修改意见时：
     
         第一步：明确变更内容
-            调用 jingyuan-pm（迭代模式）
+            调用 pm（迭代模式）
                 ↓
             通过追问明确变更内容 → 更新 docs/PRD.md → 更新 docs/PRD-CHANGELOG.md
     
         第二步：更新开发计划
-            调用 jingyuan-dev-plan（迭代模式）
+            调用 dev-plan（迭代模式）
                 ↓
             更新 docs/Development-Plan.md（如不存在则创建）→ 明确变更影响哪些 Phase / Task
     
         第三步：执行代码变更
             Agent 根据变更的 Task 数量和复杂度自主判断：
-                → 主 Agent 直接使用 jingyuan-dev-builder skill
+                → 主 Agent 直接使用 dev-builder skill
                 → 或派发 jingyuan-implementer-role Sub-Agent
     
         第四步：review → fix 循环
             执行 [项目开发阶段] 第三步同样的 review → fix 循环。
     
         第五步：验证 → 用户确认
-            执行 jingyuan-dev-builder SKILL.md [Phase 完成度判断] 的四步走验证。
+            执行 dev-builder SKILL.md [Phase 完成度判断] 的四步走验证。
             如验证中发现问题并修复，修复的 commit 已在修复时提交。
             用户确认 → 完成
     
-        完成后引导：如有更多修改继续对话。如之前已打包发布过，提醒用户输入 $jingyuan-jingyuan-release-builder 重新打包。
+        完成后引导：如有更多修改继续对话。如之前已打包发布过，提醒用户输入 jingyuan:release 重新打包。
 
 [开发测试规则]
     每完成一个 Phase 必须通过四步走验证（Code Review → 测试完整性 → 编译验证 → 功能测试），全部通过才能确认 Phase 完成。
 
-    四步走的具体操作和证据要求见 jingyuan-dev-builder SKILL.md [Phase 完成度判断]。
-    Git 工作流规则见 jingyuan-dev-builder SKILL.md [开发规则清单]。
+    四步走的具体操作和证据要求见 dev-builder SKILL.md [Phase 完成度判断]。
+    Git 工作流规则见 dev-builder SKILL.md [开发规则清单]。
 
 [可用技能]
-    $jingyuan-pm   - 需求收集，生成 Product Spec
-    $jingyuan-design   - 设计规范，生成 Design Brief
-    $jingyuan-design-mockup           - 设计图制作，通过设计工具生成完整设计稿（可选）
-    $jingyuan-dev-plan            - 开发计划，生成 DEV-PLAN
-    $jingyuan-jingyuan-dev-builder            - 开发项目代码
-    $jingyuan-jingyuan-bug-fixer              - Bug 修复
-    $jingyuan-jingyuan-code-review            - 对照 Spec + 设计稿做 Code Review
-    $jingyuan-jingyuan-release-builder        - 构建打包或部署发布
-    $jingyuan-jingyuan-skill-builder          - 创建新的 Skill
-    $jingyuan-jingyuan-feedback-writer        - 记录用户反馈（由 jingyuan-feedback-observer-role sub-agent 调用）
-    $jingyuan-jingyuan-evolution-engine       - 扫描 feedback，生成进化建议（由 jingyuan-evolution-runner-role sub-agent 调用）
+    $jingyuan:pm   - 需求收集，生成 Product Spec
+    $jingyuan:design   - 设计规范，生成 Design Brief
+    $jingyuan:mockup           - 设计图制作，通过设计工具生成完整设计稿（可选）
+    $jingyuan:dev-plan            - 开发计划，生成 DEV-PLAN
+    jingyuan:dev-builder            - 开发项目代码
+    jingyuan:fix              - Bug 修复
+    jingyuan:review            - 对照 Spec + 设计稿做 Code Review
+    jingyuan:release        - 构建打包或部署发布
+    jingyuan:skill-builder          - 创建新的 Skill
+    jingyuan:feedback        - 记录用户反馈（由 jingyuan-feedback-observer-role sub-agent 调用）
+    jingyuan:evolution       - 扫描 feedback，生成进化建议（由 jingyuan-evolution-runner-role sub-agent 调用）
 
 [初始化]
     以下ASCII艺术应该显示"JINGYUAN"字样。如果您看到乱码或显示异常，请帮忙纠正，使用ASCII艺术生成显示"JINGYUAN"

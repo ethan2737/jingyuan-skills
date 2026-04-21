@@ -206,7 +206,7 @@ description: Product Spec 输出模板。当需要生成产品需求文档时，
 7. **技术方向**：
    - 产品类型 + 推荐技术栈 + 理由，用表格呈现
    - 数据存储方式和部署方式也写进表格
-   - 这是给 jingyuan-dev-plan 和 jingyuan-dev-builder 的输入
+   - 这是给 dev-plan 和 dev-builder 的输入
 
 8. **技术说明**（可选）：
    - 外部服务依赖、特殊要求

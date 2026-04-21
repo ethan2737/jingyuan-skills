@@ -1,5 +1,5 @@
 ---
-name: jingyuan-dev-plan
+name: dev-plan
 description: 景元开发计划工作流。Use when Codex needs to create or update docs/Development-Plan.md from docs/PRD.md and optional docs/Design-Document.md.
 ---
 
@@ -7,7 +7,7 @@ description: 景元开发计划工作流。Use when Codex needs to create or upd
 
 - 本 Skill 从原 dev-planner 迁移而来，正文保留原工作流内容并按 Codex 规则调整入口、路径和产物命名。
 - 所有产品、设计、开发计划、反馈和进化类文档必须写入目标项目的 `docs/` 目录；不得在目标项目根目录直接生成旧文件名。
-- 新入口使用 `$` + `jingyuan-dev-plan`；旧斜杠命令仅作为历史语义参考。
+- 新入口使用 `$jingyuan:dev-plan`；旧斜杠命令仅作为历史语义参考。
 - Claude 专属的 hooks/sub-agent 描述在 Codex 中按 `<JINGYUAN_PLUGIN_ROOT>/references/workflow/hooks-adapter.md` 和 `<JINGYUAN_PLUGIN_ROOT>/references/workflow/sub-agent-adapter.md` 执行。
 - 执行前优先读取本插件的共享参考：`<JINGYUAN_PLUGIN_ROOT>/references/workflow/document-conventions.md`、`<JINGYUAN_PLUGIN_ROOT>/references/workflow/hooks-adapter.md`、`<JINGYUAN_PLUGIN_ROOT>/references/workflow/sub-agent-adapter.md`、`<JINGYUAN_PLUGIN_ROOT>/references/workflow/windows-powershell.md`。
 - 本插件面向 Windows 用户，命令示例默认使用 PowerShell；除用户明确要求外，不使用 Unix 命令作为主流程。
@@ -25,7 +25,7 @@ description: 景元开发计划工作流。Use when Codex needs to create or upd
     Skill 启动时第一步自动执行：
 
     必需：
-    - docs/PRD.md → 缺失则提示先调用 $jingyuan-pm
+    - docs/PRD.md → 缺失则提示先调用 $jingyuan:pm
 
     可选（降级模式）：
     - docs/Design-Document.md → 缺失则标记"无设计规范模式"，视觉相关细节标注 [待 Design Document 补充]
@@ -55,7 +55,7 @@ description: 景元开发计划工作流。Use when Codex needs to create or upd
 
 [文件结构]
     ```
-    jingyuan-dev-plan/
+    dev-plan/
     ├── SKILL.md                           # 主 Skill 定义（本文件）
     └── templates/
         └── development-plan-template.md           # docs/Development-Plan.md 输出模板
@@ -98,7 +98,7 @@ description: 景元开发计划工作流。Use when Codex needs to create or upd
     - 已知风险与限制：标注某些 Phase 中预期会有的技术风险或已知限制。
       - 例："Phase 4 只实现 UI 配置界面，IM 实际连接引擎在 Phase 10"
 
-    **不需要分析**（交给 jingyuan-dev-builder 决定）：
+    **不需要分析**（交给 dev-builder 决定）：
     - 具体的代码实现细节（函数签名、类接口）
     - 具体的 CSS 样式方案
     - 测试用例设计
@@ -141,7 +141,7 @@ description: 景元开发计划工作流。Use when Codex needs to create or upd
     验证结果影响技术栈表和 Phase 安排。
 
     **确认策略**
-    jingyuan-dev-plan 不像 jingyuan-pm 那样需要大量对话。只在以下情况向用户确认：
+    dev-plan 不像 pm 那样需要大量对话。只在以下情况向用户确认：
     - 技术栈有多个合理选项时 → 给 2-3 个方案让用户选
     - Phase 粒度偏好 → "你想要粗粒度（6-8 个 Phase）还是细粒度（10-15 个 Phase）？"
     - 功能优先级有歧义时 → "先做 A 还是先做 B？"
@@ -270,8 +270,8 @@ description: 景元开发计划工作流。Use when Codex needs to create or upd
              共 N 个 Phase，覆盖 Spec 中的全部 X 个功能。
 
              接下来：
-             - 调用 $jingyuan-dev-builder 按 Phase 开始开发
-             - 或先调用 $jingyuan-design 确定视觉方向（如还没做）
+             - 调用 $jingyuan:dev-builder 按 Phase 开始开发
+             - 或先调用 $jingyuan:design 确定视觉方向（如还没做）
              - 想调整 Phase 粒度或顺序？直接告诉我。"
 
 [工作流程（迭代模式）]

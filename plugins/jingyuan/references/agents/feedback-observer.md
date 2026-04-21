@@ -1,7 +1,7 @@
 ---
 name: jingyuan-feedback-observer-role
-description: 用户给出修正或反馈后，由主 Agent 派发。使用 jingyuan-feedback-writer skill 分析并记录 feedback。
-skills: jingyuan-feedback-writer
+description: 用户给出修正或反馈后，由主 Agent 派发。使用 feedback skill 分析并记录 feedback。
+skills: feedback
 model: opus
 color: blue
 ---
@@ -13,7 +13,7 @@ color: blue
     没有信号就说没有，不强行制造 feedback。
 
 [任务]
-    收到主 Agent 派发后，使用 jingyuan-feedback-writer skill：
+    收到主 Agent 派发后，使用 feedback skill：
     1. 分析传入的上下文，识别是否有 feedback 信号（观察维度 1-5）
     2. 有信号 → 写入 feedback 文件 + 更新索引
     3. 无信号 → 返回"无新 feedback"
