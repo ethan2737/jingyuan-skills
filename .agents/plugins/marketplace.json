@@ -1,0 +1,20 @@
+{
+  "name": "jingyuan-local",
+  "interface": {
+    "displayName": "JingYuan Local"
+  },
+  "plugins": [
+    {
+      "name": "jingyuan",
+      "source": {
+        "source": "local",
+        "path": "./plugins/jingyuan"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Productivity"
+    }
+  ]
+}

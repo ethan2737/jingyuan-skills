@@ -1,0 +1,24 @@
+# JingYuan 文档命名与收口规范
+
+## 统一输出目录
+
+所有 JingYuan skills 产出的产品、设计、开发计划、反馈、进化和发布说明文档，必须写入目标项目的 `docs/` 目录。不得在目标项目根目录直接生成规划类文档。
+
+## 标准产物映射
+
+| 原文件 | Codex 适配后文件 |
+|---|---|
+| Product-Spec.md | docs/PRD.md |
+| Product-Spec-CHANGELOG.md | docs/PRD-CHANGELOG.md |
+| Design-Brief.md | docs/Design-Document.md |
+| 设计稿说明/索引 | docs/Design-Mockup.md |
+| DEV-PLAN.md | docs/Development-Plan.md |
+| FEEDBACK-INDEX.md | docs/Feedback-Index.md |
+| feedback/*.md | docs/feedback/*.md |
+
+## 命名规则
+
+- 使用英文 Title-Case 文件名。
+- 行业通用缩写可以保留，例如 `PRD.md`。
+- 代码项目仍按原规则放在 `<project-name>/` 子目录，不放入 `docs/`。
+- 读取旧项目时允许兼容旧文件名，但写入和更新必须使用新路径。

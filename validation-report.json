@@ -1,0 +1,56 @@
+﻿{
+    "generatedAt":  "2026-04-21T15:45:18+08:00",
+    "status":  "passed",
+    "pluginMode":  "complete-plugin",
+    "targetPlatform":  "Windows",
+    "defaultShell":  "PowerShell",
+    "pluginRoot":  "plugins/jingyuan",
+    "marketplace":  {
+                        "path":  ".agents/plugins/marketplace.json",
+                        "hasJingYuanEntry":  true,
+                        "sourcePath":  "./plugins/jingyuan",
+                        "installation":  "AVAILABLE",
+                        "authentication":  "ON_INSTALL",
+                        "category":  "Productivity"
+                    },
+    "manifest":  {
+                     "path":  "plugins/jingyuan/.codex-plugin/plugin.json",
+                     "jsonValid":  true,
+                     "name":  "jingyuan",
+                     "skillsPath":  "./skills/",
+                     "defaultPromptCount":  3
+                 },
+    "skillCount":  11,
+    "skills":  [
+                   "jingyuan-bug-fixer",
+                   "jingyuan-code-review",
+                   "jingyuan-design",
+                   "jingyuan-design-mockup",
+                   "jingyuan-dev-builder",
+                   "jingyuan-dev-plan",
+                   "jingyuan-evolution-engine",
+                   "jingyuan-feedback-writer",
+                   "jingyuan-pm",
+                   "jingyuan-release-builder",
+                   "jingyuan-skill-builder"
+               ],
+    "windowsPowerShellAdaptation":  {
+                                        "reference":  "plugins/jingyuan/references/workflow/windows-powershell.md",
+                                        "processInterruption":  "PowerShell Get-NetTCPConnection + Stop-Process; Ctrl+C preferred for foreground services",
+                                        "httpCheck":  "Invoke-WebRequest -UseBasicParsing",
+                                        "fileScan":  "Get-ChildItem -Recurse",
+                                        "contentScan":  "Select-String",
+                                        "sideEffectGate":  "git push, deploy, GitHub Release, npm publish, npm unpublish require explicit confirmation"
+                                    },
+    "validation":  {
+                       "script":  "scripts/validate-plugin.ps1",
+                       "result":  "passed",
+                       "installWhatIf":  "passed",
+                       "tempInstall":  "passed"
+                   },
+    "notes":  [
+                  "The previous skills-only installer was replaced with a complete-plugin installer.",
+                  "Shared assets and references are kept under plugins/jingyuan and are installed with the plugin.",
+                  "Unix command examples were removed from primary skill flows; historical Claude references remain under references/claude-original."
+              ]
+}
