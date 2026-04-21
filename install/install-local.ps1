@@ -73,7 +73,7 @@ function Remove-TomlTableBlock {
   return [regex]::Replace($Content, $pattern, '').TrimEnd()
 }
 
-function Update-CodexPluginConfig {
+function Update-CodexConfig {
   param(
     [Parameter(Mandatory = $true)][string]$InstallRoot
   )
@@ -101,9 +101,6 @@ function Update-CodexPluginConfig {
   $timestamp = (Get-Date).ToUniversalTime().ToString('yyyy-MM-ddTHH:mm:ssZ')
   $block = @"
 
-[plugins."jingyuan@local"]
-enabled = true
-
 [marketplaces.local]
 last_updated = "$timestamp"
 source_type = "local"
@@ -111,7 +108,7 @@ source = $source
 "@
 
   $nextContent = ($content.TrimEnd() + $block + [Environment]::NewLine).TrimStart()
-  if ($PSCmdlet.ShouldProcess($configPath, 'Enable JingYuan plugin in Codex config')) {
+  if ($PSCmdlet.ShouldProcess($configPath, 'Update Codex local marketplace config')) {
     Write-Utf8NoBomFile -Path $configPath -Value $nextContent
   }
 
@@ -136,13 +133,18 @@ function New-MarketplaceEntry {
 function Remove-ObsoleteSkillDiscoveryEntries {
   param(
     [Parameter(Mandatory = $true)][string]$CodexRoot,
-    [Parameter(Mandatory = $true)][string]$UserHome
+    [Parameter(Mandatory = $true)][string]$UserHome,
+    [Parameter(Mandatory = $true)][string[]]$MirrorSkillDirs
   )
 
   $codexSkills = Join-Path $CodexRoot 'skills'
   if (Test-Path -LiteralPath $codexSkills) {
     Get-ChildItem -Directory -LiteralPath $codexSkills |
-      Where-Object { $_.Name -eq 'jingyuan' -or $_.Name -like 'jingyuan-*' } |
+      Where-Object {
+        $_.Name -eq 'jingyuan' -or
+        $_.Name -like 'jingyuan-*' -or
+        $MirrorSkillDirs -contains $_.Name
+      } |
       ForEach-Object {
         if ($PSCmdlet.ShouldProcess($_.FullName, 'Remove obsolete flat JingYuan skill discovery entry')) {
           Remove-Item -LiteralPath $_.FullName -Recurse -Force
@@ -154,6 +156,38 @@ function Remove-ObsoleteSkillDiscoveryEntries {
   if (Test-Path -LiteralPath $nativeGroup) {
     if ($PSCmdlet.ShouldProcess($nativeGroup, 'Remove obsolete native JingYuan skill group')) {
       Remove-Item -LiteralPath $nativeGroup -Recurse -Force
+    }
+  }
+}
+
+function Install-JingYuanSkillMirror {
+  param(
+    [Parameter(Mandatory = $true)][string]$SourceSkillRoot,
+    [Parameter(Mandatory = $true)][string]$TargetSkillRoot,
+    [Parameter(Mandatory = $true)][string[]]$SkillNames
+  )
+
+  if (-not (Test-Path -LiteralPath $TargetSkillRoot)) {
+    if ($PSCmdlet.ShouldProcess($TargetSkillRoot, 'Create Codex skill directory')) {
+      New-Item -ItemType Directory -Path $TargetSkillRoot -Force | Out-Null
+    }
+  }
+
+  foreach ($skillName in $SkillNames) {
+    $sourceSkill = Join-Path $SourceSkillRoot $skillName
+    $targetSkill = Join-Path $TargetSkillRoot "jy-$skillName"
+    if (-not (Test-Path -LiteralPath $sourceSkill)) {
+      throw "Source skill directory not found: $sourceSkill"
+    }
+
+    if ($PSCmdlet.ShouldProcess($targetSkill, "Install JingYuan skill mirror jingyuan:$skillName")) {
+      Copy-Item -LiteralPath $sourceSkill -Destination $targetSkill -Recurse
+      $skillFile = Join-Path $targetSkill 'SKILL.md'
+      $content = Read-TextFile -Path $skillFile
+      $content = [regex]::Replace($content, '(?m)^name:\s*.+$', "name: `"jingyuan:$skillName`"")
+      $content = $content.Replace('../../assets/', '../../plugins/jingyuan/assets/')
+      $content = $content.Replace('../../references/', '../../plugins/jingyuan/references/')
+      Write-Utf8NoBomFile -Path $skillFile -Value $content
     }
   }
 }
@@ -179,6 +213,21 @@ $cachePlugin = Join-Path $cachePluginParent 'local'
 $expectedCachePlugin = Join-Path $installRoot 'plugins\cache\local\jingyuan\local'
 $marketplacePath = Join-Path $installRoot '.agents\plugins\marketplace.json'
 $configPath = Join-Path $installRoot 'config.toml'
+$skillMirrorRoot = Join-Path $installRoot 'skills'
+$jingyuanSkillNames = @(
+  'pm',
+  'design',
+  'mockup',
+  'dev-plan',
+  'dev-builder',
+  'review',
+  'fix',
+  'release',
+  'feedback',
+  'evolution',
+  'skill-builder'
+)
+$mirrorSkillDirs = @($jingyuanSkillNames | ForEach-Object { "jy-$_" })
 
 Assert-ExpectedPath -Actual $targetPlugin -Expected $expectedPlugin
 Assert-ExpectedPath -Actual $cachePluginParent -Expected $expectedCachePluginParent
@@ -216,7 +265,7 @@ if (-not (Test-Path -LiteralPath $cachePluginContainer)) {
   }
 }
 
-Remove-ObsoleteSkillDiscoveryEntries -CodexRoot $installRoot -UserHome $cleanupUserHome
+Remove-ObsoleteSkillDiscoveryEntries -CodexRoot $installRoot -UserHome $cleanupUserHome -MirrorSkillDirs $mirrorSkillDirs
 
 if ($PSCmdlet.ShouldProcess($targetPlugin, 'Install JingYuan plugin')) {
   Copy-Item -LiteralPath $sourcePlugin -Destination $targetPlugin -Recurse
@@ -225,6 +274,8 @@ if ($PSCmdlet.ShouldProcess($targetPlugin, 'Install JingYuan plugin')) {
 if ($PSCmdlet.ShouldProcess($cachePlugin, 'Install JingYuan plugin cache')) {
   Copy-Item -LiteralPath $sourcePlugin -Destination $cachePlugin -Recurse
 }
+
+Install-JingYuanSkillMirror -SourceSkillRoot (Join-Path $sourcePlugin 'skills') -TargetSkillRoot $skillMirrorRoot -SkillNames $jingyuanSkillNames
 
 $marketplaceDir = Split-Path -Parent $marketplacePath
 if (-not (Test-Path -LiteralPath $marketplaceDir)) {
@@ -272,17 +323,19 @@ if ($PSCmdlet.ShouldProcess($marketplacePath, 'Create or update JingYuan marketp
   Write-Utf8NoBomFile -Path $marketplacePath -Value $json
 }
 
-$configPath = Update-CodexPluginConfig -InstallRoot $installRoot
+$configPath = Update-CodexConfig -InstallRoot $installRoot
 
 if ($WhatIfPreference) {
   Write-Host "JingYuan plugin install planned for: $targetPlugin"
   Write-Host "JingYuan plugin cache install planned for: $cachePlugin"
+  Write-Host "JingYuan skill mirror install planned for: $skillMirrorRoot\jy-*"
   Write-Host "Marketplace update planned for: $marketplacePath"
   Write-Host "Codex config update planned for: $configPath"
 } else {
   Write-Host "JingYuan plugin installed to: $targetPlugin"
   Write-Host "JingYuan plugin cache installed to: $cachePlugin"
+  Write-Host "JingYuan skill mirror installed to: $skillMirrorRoot\jy-*"
   Write-Host "Marketplace updated at: $marketplacePath"
   Write-Host "Codex config updated at: $configPath"
 }
-Write-Host 'Restart or refresh Codex, then invoke skills with jingyuan:*.'
+Write-Host 'Restart or refresh Codex, then invoke skills with jingyuan:* without a plugin-only completion row.'

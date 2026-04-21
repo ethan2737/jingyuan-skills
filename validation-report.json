@@ -1,7 +1,7 @@
 {
-    "generatedAt":  "2026-04-21T17:48:14+08:00",
+    "generatedAt":  "2026-04-21T17:58:43+08:00",
     "status":  "passed",
-    "pluginMode":  "complete-plugin",
+    "pluginMode":  "complete-plugin-payload-with-flat-skill-discovery",
     "targetPlatform":  "Windows",
     "defaultShell":  "PowerShell",
     "pluginRoot":  "plugins/jingyuan",
@@ -44,22 +44,24 @@
                                         "fileScan":  "Get-ChildItem -Recurse",
                                         "contentScan":  "Select-String",
                                         "sideEffectGate":  "git push, deploy, GitHub Release, npm publish, npm unpublish require explicit confirmation",
-                                        "skillDiscovery":  "Codex CLI discovers short skills as jingyuan:<skill> from plugins/cache/local/jingyuan/local after [plugins.\"jingyuan@local\"] is enabled; installer writes both the source copy and cache copy"
+                                        "skillDiscovery":  "Codex CLI discovers short skills as jingyuan:<skill> from flat skill mirrors under skills/jy-*; the complete plugin remains installed under plugins/jingyuan for shared assets and references.",
+                                        "pluginCompletionRow":  "Avoided by removing [plugins.\"jingyuan@local\"] from config.toml; enabled plugins are shown by Codex as plugin-only completion rows."
                                     },
     "validation":  {
                        "script":  "scripts/validate-plugin.ps1",
                        "result":  "passed",
-                       "installWhatIf":  "passed: installs only complete plugin and removes obsolete flat skill copies",
-                       "tempInstall":  "passed",
+                       "installWhatIf":  "passed: installs complete plugin plus flat jingyuan:* skill mirrors and removes obsolete flat skill copies",
+                       "tempInstall":  "passed: plugins/jingyuan, plugins/cache/local/jingyuan/local, and skills/jy-pm exist",
                        "bomCheck":  "passed: all plugin SKILL.md files start with raw --- bytes",
                        "marketplaceEncoding":  "passed: marketplace.json is UTF-8 JSON without BOM",
-                       "configEnablement":  "passed: installer enables jingyuan@local in Codex config",
-                       "cacheInstall":  "passed: installer syncs plugins/cache/local/jingyuan/local for Codex plugin loading"
+                       "configEnablement":  "passed: installer removes jingyuan@local enablement to avoid plugin-only completion row",
+                       "cacheInstall":  "passed: installer syncs plugins/cache/local/jingyuan/local as a plugin payload cache",
+                       "promptInput":  "passed: codex debug prompt-input reports jingyuan:pm skill and no JingYuan/jingyuan plugin entry"
                    },
     "notes":  [
-                  "The previous skills-only installer was replaced with a complete-plugin installer.",
+                  "Codex v0.122 shows every enabled plugin as a plugin-only completion row; JingYuan therefore uses flat skill mirrors for discovery while keeping the complete plugin payload installed.",
                   "The local installer defaults to the Codex home directory rather than the user home directory.",
-                  "The installer keeps the complete plugin under plugins/jingyuan, syncs plugins/cache/local/jingyuan/local, and removes obsolete flat skill discovery entries to avoid duplicate loading.",
+                  "The installer keeps the complete plugin under plugins/jingyuan, syncs plugins/cache/local/jingyuan/local, creates skills/jy-* mirrors with name: \"jingyuan:<skill>\", and removes obsolete flat skill discovery entries to avoid duplicate loading.",
                   "The installer writes the local marketplace and Codex config with UTF-8 without BOM where applicable.",
                   "Shared assets and references are kept under plugins/jingyuan and are installed with the plugin.",
                   "Unix command examples were removed from primary skill flows; historical Claude references remain under references/claude-original."

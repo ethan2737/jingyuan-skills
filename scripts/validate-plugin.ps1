@@ -64,6 +64,12 @@ if (-not (Test-Path -LiteralPath $installerPath)) {
   if ($installerContent -notmatch [regex]::Escape("plugins\cache\local\jingyuan\local")) {
     Add-Error 'Installer must sync the Codex local plugin cache path plugins\cache\local\jingyuan\local.'
   }
+  if ($installerContent -notmatch 'Install-JingYuanSkillMirror') {
+    Add-Error 'Installer must create flat Codex skill mirrors for jingyuan:* discovery.'
+  }
+  if ($installerContent -match '\[plugins\."jingyuan@local"\]\s*\r?\n\s*enabled\s*=\s*true') {
+    Add-Error 'Installer must not enable jingyuan@local by default because Codex shows enabled plugins as plugin-only completion rows.'
+  }
 }
 
 if (-not (Test-Path -LiteralPath $marketplacePath)) {
