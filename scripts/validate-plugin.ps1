@@ -66,6 +66,12 @@ foreach ($skill in $skills) {
     continue
   }
 
+  $bytes = [System.IO.File]::ReadAllBytes($skillFile)
+  if ($bytes.Length -lt 3 -or $bytes[0] -ne 0x2D -or $bytes[1] -ne 0x2D -or $bytes[2] -ne 0x2D) {
+    Add-Error "SKILL.md must start with raw --- bytes and no UTF-8 BOM: $skillFile"
+    continue
+  }
+
   $content = Get-Content -Raw -Encoding UTF8 -LiteralPath $skillFile
   if ($content -notmatch '(?s)^---\r?\n(.*?)\r?\n---') {
     Add-Error "Invalid frontmatter in $skillFile."

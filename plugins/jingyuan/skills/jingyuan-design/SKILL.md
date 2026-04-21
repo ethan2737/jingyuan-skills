@@ -1,4 +1,4 @@
-﻿---
+---
 name: jingyuan-design
 description: 景元设计规范工作流。Use when Codex needs to create or update design guidance from docs/PRD.md and write docs/Design-Document.md.
 ---

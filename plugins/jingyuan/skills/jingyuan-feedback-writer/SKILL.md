@@ -1,4 +1,4 @@
-﻿---
+---
 name: jingyuan-feedback-writer
 description: 景元反馈记录工作流。Use when Codex detects user correction, dissatisfaction, workflow feedback, or improvement signals and should write docs/feedback/ plus docs/Feedback-Index.md.
 ---

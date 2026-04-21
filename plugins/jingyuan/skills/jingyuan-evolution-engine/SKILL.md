@@ -1,4 +1,4 @@
-﻿---
+---
 name: jingyuan-evolution-engine
 description: 景元进化引擎工作流。Use when Codex should scan docs/feedback/ and docs/Feedback-Index.md for repeated patterns and propose workflow, rule, or skill improvements.
 ---

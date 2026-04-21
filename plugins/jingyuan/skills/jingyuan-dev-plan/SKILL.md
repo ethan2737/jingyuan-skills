@@ -1,4 +1,4 @@
-﻿---
+---
 name: jingyuan-dev-plan
 description: 景元开发计划工作流。Use when Codex needs to create or update docs/Development-Plan.md from docs/PRD.md and optional docs/Design-Document.md.
 ---

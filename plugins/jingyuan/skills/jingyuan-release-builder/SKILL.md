@@ -1,4 +1,4 @@
-﻿---
+---
 name: jingyuan-release-builder
 description: 景元发布构建工作流。Use when Codex needs to package, build, release, or deploy a project after implementation and verification.
 ---

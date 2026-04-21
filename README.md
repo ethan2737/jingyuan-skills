@@ -75,13 +75,12 @@ Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
 
 安装完成后，重启或刷新 Codex，然后使用 `$jingyuan-pm`、`$jingyuan-dev-builder` 等入口调用。
 
-安装脚本会同时做两件事：
+安装脚本会做两件事：
 
 1. 安装完整插件到 `$HOME\.codex\plugins\jingyuan`
-2. 同步技能发现入口到 `$HOME\.codex\skills\jingyuan-*`
-3. 创建 CLI 原生发现入口 `$HOME\.agents\skills\jingyuan`，指向完整插件的 `skills` 目录
+2. 清理旧版安装遗留的 `$HOME\.codex\skills\jingyuan-*` 和 `$HOME\.agents\skills\jingyuan`
 
-这样在 Codex CLI 的 `$...` 候选里输入 `$jingyuan` 前缀时，应能匹配出各个 `$jingyuan-*` 子技能。
+Codex CLI 会从 `.codex\plugins\jingyuan\skills` 读取技能。在 `$...` 候选里输入 `$jingyuan` 前缀时，应能匹配出各个 `$jingyuan-*` 子技能。
 
 ## 验证
 

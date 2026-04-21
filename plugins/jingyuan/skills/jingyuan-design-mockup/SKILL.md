@@ -1,4 +1,4 @@
-﻿---
+---
 name: jingyuan-design-mockup
 description: 景元设计稿/原型工作流。Use when Codex needs to create design mockup instructions or design-tool output from docs/PRD.md and docs/Design-Document.md, writing docs/Design-Mockup.md.
 ---

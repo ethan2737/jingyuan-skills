@@ -1,4 +1,4 @@
-﻿---
+---
 name: jingyuan-dev-builder
 description: 景元开发实现工作流。Use when Codex needs to build or continue a project from docs/PRD.md and docs/Development-Plan.md with review, testing, security, and performance gates.
 ---

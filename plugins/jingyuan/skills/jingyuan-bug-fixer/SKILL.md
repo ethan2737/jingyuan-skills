@@ -1,4 +1,4 @@
-﻿---
+---
 name: jingyuan-bug-fixer
 description: 景元 Bug 修复工作流。Use when Codex needs to investigate, root-cause, and fix bugs against docs/PRD.md, docs/Development-Plan.md, and current code.
 ---

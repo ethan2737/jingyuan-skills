@@ -1,4 +1,4 @@
-﻿---
+---
 name: jingyuan-pm
 description: 景元产品经理工作流。Use when Codex needs to collect, challenge, generate, or update product requirements and write all outputs to docs/PRD.md and docs/PRD-CHANGELOG.md.
 ---
