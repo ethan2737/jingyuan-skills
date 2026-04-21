@@ -50,6 +50,7 @@ JingYuan 是面向 Codex 的 Windows-first 工作流插件，把产品、设计�
 
 ```text
 $env:CODEX_HOME\plugins\jingyuan
+$env:CODEX_HOME\plugins\cache\local\jingyuan\local
 $env:CODEX_HOME\.agents\plugins\marketplace.json
 $env:CODEX_HOME\config.toml
 ```
@@ -58,6 +59,7 @@ $env:CODEX_HOME\config.toml
 
 ```text
 $HOME\.codex\plugins\jingyuan
+$HOME\.codex\plugins\cache\local\jingyuan\local
 $HOME\.codex\.agents\plugins\marketplace.json
 $HOME\.codex\config.toml
 ```
@@ -80,15 +82,17 @@ Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
 安装脚本会做三件事：
 
 1. 安装完整插件到 `$HOME\.codex\plugins\jingyuan`
-2. 写入本地 marketplace，并在 `config.toml` 中启用 `[plugins."jingyuan@local"]`
-3. 清理旧版安装遗留的 `$HOME\.codex\skills\jingyuan-*` 和 `$HOME\.agents\skills\jingyuan`
+2. 同步 Codex 启用插件时读取的缓存目录 `$HOME\.codex\plugins\cache\local\jingyuan\local`
+3. 写入本地 marketplace，并在 `config.toml` 中启用 `[plugins."jingyuan@local"]`
+4. 清理旧版安装遗留的 `$HOME\.codex\skills\jingyuan-*` 和 `$HOME\.agents\skills\jingyuan`
 
-Codex CLI 会从 `.codex\plugins\jingyuan\skills` 读取技能。在 `$...` 候选里输入 `$jingyuan` 前缀时，应能匹配出各个 `$jingyuan-*` 子技能。
+Codex CLI 启用 `jingyuan@local` 后，会从 `.codex\plugins\cache\local\jingyuan\local\skills` 读取技能。在 `$...` 候选里输入 `$jingyuan` 前缀时，应能匹配出各个 `$jingyuan-*` 子技能。
 
 如果安装后 `$jingyuan` 仍无匹配，先完全退出并重新启动 Codex CLI，再检查：
 
 ```powershell
 Select-String -Path "$HOME\.codex\config.toml" -Pattern 'jingyuan@local'
+Test-Path "$HOME\.codex\plugins\cache\local\jingyuan\local\skills\jingyuan-pm\SKILL.md"
 codex plugin marketplace add "$HOME\.codex"
 ```
 

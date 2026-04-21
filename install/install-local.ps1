@@ -173,10 +173,16 @@ $installRoot = Get-FullPath -Path $installRoot
 $cleanupUserHome = Get-FullPath -Path $cleanupUserHome
 $targetPlugin = Join-Path $installRoot 'plugins\jingyuan'
 $expectedPlugin = Join-Path $installRoot 'plugins\jingyuan'
+$cachePluginParent = Join-Path $installRoot 'plugins\cache\local\jingyuan'
+$expectedCachePluginParent = Join-Path $installRoot 'plugins\cache\local\jingyuan'
+$cachePlugin = Join-Path $cachePluginParent 'local'
+$expectedCachePlugin = Join-Path $installRoot 'plugins\cache\local\jingyuan\local'
 $marketplacePath = Join-Path $installRoot '.agents\plugins\marketplace.json'
 $configPath = Join-Path $installRoot 'config.toml'
 
 Assert-ExpectedPath -Actual $targetPlugin -Expected $expectedPlugin
+Assert-ExpectedPath -Actual $cachePluginParent -Expected $expectedCachePluginParent
+Assert-ExpectedPath -Actual $cachePlugin -Expected $expectedCachePlugin
 
 if (Test-Path -LiteralPath $targetPlugin) {
   if (-not $Force) {
@@ -187,6 +193,15 @@ if (Test-Path -LiteralPath $targetPlugin) {
   }
 }
 
+if (Test-Path -LiteralPath $cachePluginParent) {
+  if (-not $Force) {
+    throw "Target plugin cache already exists: $cachePluginParent. Use -Force to replace JingYuan."
+  }
+  if ($PSCmdlet.ShouldProcess($cachePluginParent, 'Remove existing JingYuan plugin cache')) {
+    Remove-Item -LiteralPath $cachePluginParent -Recurse -Force
+  }
+}
+
 $targetParent = Split-Path -Parent $targetPlugin
 if (-not (Test-Path -LiteralPath $targetParent)) {
   if ($PSCmdlet.ShouldProcess($targetParent, 'Create plugin parent directory')) {
@@ -194,10 +209,21 @@ if (-not (Test-Path -LiteralPath $targetParent)) {
   }
 }
 
+$cachePluginContainer = Split-Path -Parent $cachePlugin
+if (-not (Test-Path -LiteralPath $cachePluginContainer)) {
+  if ($PSCmdlet.ShouldProcess($cachePluginContainer, 'Create plugin cache directory')) {
+    New-Item -ItemType Directory -Path $cachePluginContainer -Force | Out-Null
+  }
+}
+
 Remove-ObsoleteSkillDiscoveryEntries -CodexRoot $installRoot -UserHome $cleanupUserHome
 
 if ($PSCmdlet.ShouldProcess($targetPlugin, 'Install JingYuan plugin')) {
   Copy-Item -LiteralPath $sourcePlugin -Destination $targetPlugin -Recurse
+}
+
+if ($PSCmdlet.ShouldProcess($cachePlugin, 'Install JingYuan plugin cache')) {
+  Copy-Item -LiteralPath $sourcePlugin -Destination $cachePlugin -Recurse
 }
 
 $marketplaceDir = Split-Path -Parent $marketplacePath
@@ -250,10 +276,12 @@ $configPath = Update-CodexPluginConfig -InstallRoot $installRoot
 
 if ($WhatIfPreference) {
   Write-Host "JingYuan plugin install planned for: $targetPlugin"
+  Write-Host "JingYuan plugin cache install planned for: $cachePlugin"
   Write-Host "Marketplace update planned for: $marketplacePath"
   Write-Host "Codex config update planned for: $configPath"
 } else {
   Write-Host "JingYuan plugin installed to: $targetPlugin"
+  Write-Host "JingYuan plugin cache installed to: $cachePlugin"
   Write-Host "Marketplace updated at: $marketplacePath"
   Write-Host "Codex config updated at: $configPath"
 }

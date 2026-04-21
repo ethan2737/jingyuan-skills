@@ -7,6 +7,7 @@ $root = Split-Path -Parent $PSScriptRoot
 $pluginRoot = Join-Path $root 'plugins\jingyuan'
 $manifestPath = Join-Path $pluginRoot '.codex-plugin\plugin.json'
 $marketplacePath = Join-Path $root '.agents\plugins\marketplace.json'
+$installerPath = Join-Path $root 'install\install-local.ps1'
 $errors = New-Object System.Collections.Generic.List[string]
 
 function Add-Error {
@@ -50,6 +51,15 @@ if (-not (Test-Path -LiteralPath $manifestPath)) {
   if ($prompts.Count -gt 3) { Add-Error 'defaultPrompt has more than 3 entries.' }
   foreach ($prompt in $prompts) {
     if ($prompt.Length -gt 128) { Add-Error "defaultPrompt entry exceeds 128 characters: $prompt" }
+  }
+}
+
+if (-not (Test-Path -LiteralPath $installerPath)) {
+  Add-Error "Missing installer: $installerPath"
+} else {
+  $installerContent = Get-Content -Raw -Encoding UTF8 -LiteralPath $installerPath
+  if ($installerContent -notmatch [regex]::Escape("plugins\cache\local\jingyuan\local")) {
+    Add-Error 'Installer must sync the Codex local plugin cache path plugins\cache\local\jingyuan\local.'
   }
 }
 
