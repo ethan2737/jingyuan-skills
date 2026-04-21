@@ -8,9 +8,10 @@ description: 景元 Skill 创建工作流。Use when Codex needs to create or ma
 - 本 Skill 从原 skill-builder 迁移而来，正文保留原工作流内容并按 Codex 规则调整入口、路径和产物命名。
 - 所有产品、设计、开发计划、反馈和进化类文档必须写入目标项目的 `docs/` 目录；不得在目标项目根目录直接生成旧文件名。
 - 新入口使用 `$` + `jingyuan-skill-builder`；旧斜杠命令仅作为历史语义参考。
-- Claude 专属的 hooks/sub-agent 描述在 Codex 中按 `../../references/workflow/hooks-adapter.md` 和 `../../references/workflow/sub-agent-adapter.md` 执行。
-- 执行前优先读取本插件的共享参考：`../../references/workflow/document-conventions.md`、`../../references/workflow/hooks-adapter.md`、`../../references/workflow/sub-agent-adapter.md`、`../../references/workflow/windows-powershell.md`。
+- Claude 专属的 hooks/sub-agent 描述在 Codex 中按 `<JINGYUAN_PLUGIN_ROOT>/references/workflow/hooks-adapter.md` 和 `<JINGYUAN_PLUGIN_ROOT>/references/workflow/sub-agent-adapter.md` 执行。
+- 执行前优先读取本插件的共享参考：`<JINGYUAN_PLUGIN_ROOT>/references/workflow/document-conventions.md`、`<JINGYUAN_PLUGIN_ROOT>/references/workflow/hooks-adapter.md`、`<JINGYUAN_PLUGIN_ROOT>/references/workflow/sub-agent-adapter.md`、`<JINGYUAN_PLUGIN_ROOT>/references/workflow/windows-powershell.md`。
 - 本插件面向 Windows 用户，命令示例默认使用 PowerShell；除用户明确要求外，不使用 Unix 命令作为主流程。
+- 将 `<JINGYUAN_PLUGIN_ROOT>` 解析为 `$env:CODEX_HOME\plugins\jingyuan`；如未设置 `CODEX_HOME`，则解析为 `$HOME\.codex\plugins\jingyuan`。
 
 # 原工作流正文（Codex 路径适配版）
 
@@ -26,7 +27,7 @@ description: 景元 Skill 创建工作流。Use when Codex needs to create or ma
     - docs/feedback/ 中的相关记录 → 如来自 EVOLUTION.md 提议，读取原始 feedback 了解需求背景
 
 [第一性原则]
-    **模板优先**：先读 `../../assets/templates/jingyuan-skill-template.md` 骨架，按结构填充。不从零开始写。
+    **模板优先**：先读 `<JINGYUAN_PLUGIN_ROOT>/assets/templates/jingyuan-skill-template.md` 骨架，按结构填充。不从零开始写。
 
     **参照现有**：创建前先读 1-2 个已有 Skill 作为参考，保持风格一致。不发明新的格式。
 
@@ -60,7 +61,7 @@ description: 景元 Skill 创建工作流。Use when Codex needs to create or ma
         改一个 Skill 不影响其他 Skill。
 
         **第三层：工作流（Codex plugin references）**
-        `../../references/workflow/core-workflow.md` 和各 `SKILL.md` description 编排多个 Skill 的执行顺序和触发条件。
+        `<JINGYUAN_PLUGIN_ROOT>/references/workflow/core-workflow.md` 和各 `SKILL.md` description 编排多个 Skill 的执行顺序和触发条件。
         改工作流不需要改 Skill 内容。
 
     [Section 分类]
@@ -114,7 +115,7 @@ description: 景元 Skill 创建工作流。Use when Codex needs to create or ma
         了解参照 Skill 的结构、维度命名、策略风格、输出格式
 
     [第三步：确定结构]
-        读取 `../../assets/templates/jingyuan-skill-template.md` 骨架
+        读取 `<JINGYUAN_PLUGIN_ROOT>/assets/templates/jingyuan-skill-template.md` 骨架
         确定需要哪些 Section：
         - 必须有的 5 个 → 全部保留
         - 推荐有的 → 根据领域判断是否需要
@@ -149,6 +150,8 @@ description: 景元 Skill 创建工作流。Use when Codex needs to create or ma
 
 [初始化]
     执行 [第一步：需求收集]
+
+
 
 
 

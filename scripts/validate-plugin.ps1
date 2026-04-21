@@ -50,6 +50,10 @@ if (-not (Test-Path -LiteralPath $marketplacePath)) {
 }
 
 $skillRoot = Join-Path $pluginRoot 'skills'
+if (Test-Path -LiteralPath (Join-Path $skillRoot 'jingyuan')) {
+  Add-Error "Unexpected root skill directory exists: $(Join-Path $skillRoot 'jingyuan'). JingYuan should expose only jingyuan-* skills."
+}
+
 $skills = Get-ChildItem -Directory -LiteralPath $skillRoot | Where-Object { $_.Name -like 'jingyuan-*' }
 if ($skills.Count -ne 11) {
   Add-Error "Expected 11 jingyuan skills, found $($skills.Count)."
@@ -82,6 +86,16 @@ foreach ($skill in $skills) {
     $relative = $match.Value.Replace('/', '\')
     if ($relative.Contains('*')) { continue }
     Test-RelativeReference -SkillDir $skill.FullName -RelativePath $relative -SourceFile $skillFile
+  }
+
+  $pluginRootMatches = [regex]::Matches($content, '<JINGYUAN_PLUGIN_ROOT>/(?:assets|references)/[A-Za-z0-9_./*-]+')
+  foreach ($match in $pluginRootMatches) {
+    $relative = $match.Value.Replace('<JINGYUAN_PLUGIN_ROOT>/', '').Replace('/', '\')
+    if ($relative.Contains('*')) { continue }
+    $target = Join-Path $pluginRoot $relative
+    if (-not (Test-Path -LiteralPath $target)) {
+      Add-Error "Missing plugin-root referenced file from ${skillFile}: $($match.Value)"
+    }
   }
 }
 

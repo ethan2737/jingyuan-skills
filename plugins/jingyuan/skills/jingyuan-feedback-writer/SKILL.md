@@ -8,9 +8,10 @@ description: 景元反馈记录工作流。Use when Codex detects user correctio
 - 本 Skill 从原 feedback-writer 迁移而来，正文保留原工作流内容并按 Codex 规则调整入口、路径和产物命名。
 - 所有产品、设计、开发计划、反馈和进化类文档必须写入目标项目的 `docs/` 目录；不得在目标项目根目录直接生成旧文件名。
 - 新入口使用 `$` + `jingyuan-feedback-writer`；旧斜杠命令仅作为历史语义参考。
-- Claude 专属的 hooks/sub-agent 描述在 Codex 中按 `../../references/workflow/hooks-adapter.md` 和 `../../references/workflow/sub-agent-adapter.md` 执行。
-- 执行前优先读取本插件的共享参考：`../../references/workflow/document-conventions.md`、`../../references/workflow/hooks-adapter.md`、`../../references/workflow/sub-agent-adapter.md`、`../../references/workflow/windows-powershell.md`。
+- Claude 专属的 hooks/sub-agent 描述在 Codex 中按 `<JINGYUAN_PLUGIN_ROOT>/references/workflow/hooks-adapter.md` 和 `<JINGYUAN_PLUGIN_ROOT>/references/workflow/sub-agent-adapter.md` 执行。
+- 执行前优先读取本插件的共享参考：`<JINGYUAN_PLUGIN_ROOT>/references/workflow/document-conventions.md`、`<JINGYUAN_PLUGIN_ROOT>/references/workflow/hooks-adapter.md`、`<JINGYUAN_PLUGIN_ROOT>/references/workflow/sub-agent-adapter.md`、`<JINGYUAN_PLUGIN_ROOT>/references/workflow/windows-powershell.md`。
 - 本插件面向 Windows 用户，命令示例默认使用 PowerShell；除用户明确要求外，不使用 Unix 命令作为主流程。
+- 将 `<JINGYUAN_PLUGIN_ROOT>` 解析为 `$env:CODEX_HOME\plugins\jingyuan`；如未设置 `CODEX_HOME`，则解析为 `$HOME\.codex\plugins\jingyuan`。
 
 # 原工作流正文（Codex 路径适配版）
 
@@ -69,16 +70,18 @@ description: 景元反馈记录工作流。Use when Codex detects user correctio
 与项目无关 → 不写，让 Codex 默认行为处理
 不重复写 — 同一条信息只进一个系统
 
-[写入流程] 1. 读取 docs/Feedback-Index.md（如不存在，从 `../../assets/templates/feedback-index-template.md` 创建）2. 检查是否已有同主题 feedback（去重）- 已有 → 更新内容 + occurrences +1 + 更新 updated - 没有 → 创建新文件 + 更新索引 3. 文件名用 kebab-case，简短描述主题 4. 按 `../../assets/templates/feedback-topic-template.md` 格式写入 5. 更新 docs/Feedback-Index.md
+[写入流程] 1. 读取 docs/Feedback-Index.md（如不存在，从 `<JINGYUAN_PLUGIN_ROOT>/assets/templates/feedback-index-template.md` 创建）2. 检查是否已有同主题 feedback（去重）- 已有 → 更新内容 + occurrences +1 + 更新 updated - 没有 → 创建新文件 + 更新索引 3. 文件名用 kebab-case，简短描述主题 4. 按 `<JINGYUAN_PLUGIN_ROOT>/assets/templates/feedback-topic-template.md` 格式写入 5. 更新 docs/Feedback-Index.md
 
 [文件规范]
 存放位置：docs/feedback/
 索引文件：docs/Feedback-Index.md
-索引模板：`../../assets/templates/feedback-index-template.md`
-内容模板：`../../assets/templates/feedback-topic-template.md`
+索引模板：`<JINGYUAN_PLUGIN_ROOT>/assets/templates/feedback-index-template.md`
+内容模板：`<JINGYUAN_PLUGIN_ROOT>/assets/templates/feedback-topic-template.md`
 
 [返回格式]
 执行完毕后返回给主 Agent：- 有新记录："记录了 1 条 feedback：[标题]（[文件名]）" - 更新已有："更新了 [文件名]，occurrences: N → N+1" - 无信号："无新 feedback"
+
+
 
 
 

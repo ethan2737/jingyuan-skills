@@ -1,5 +1,5 @@
-{
-    "generatedAt":  "2026-04-21T16:30:11+08:00",
+﻿{
+    "generatedAt":  "2026-04-21T16:43:18+08:00",
     "status":  "passed",
     "pluginMode":  "complete-plugin",
     "targetPlatform":  "Windows",
@@ -41,17 +41,19 @@
                                         "httpCheck":  "Invoke-WebRequest -UseBasicParsing",
                                         "fileScan":  "Get-ChildItem -Recurse",
                                         "contentScan":  "Select-String",
-                                        "sideEffectGate":  "git push, deploy, GitHub Release, npm publish, npm unpublish require explicit confirmation"
+                                        "sideEffectGate":  "git push, deploy, GitHub Release, npm publish, npm unpublish require explicit confirmation",
+                                        "skillDiscovery":  "installer syncs jingyuan-* entries to Codex home skills directory and creates a native CLI skill group at $HOME\\.agents\\skills\\jingyuan"
                                     },
     "validation":  {
                        "script":  "scripts/validate-plugin.ps1",
                        "result":  "passed",
-                       "installWhatIf":  "passed: defaults to Codex home plugins directory",
+                       "installWhatIf":  "passed: syncs jingyuan-* to Codex skills and creates native CLI skill group junction",
                        "tempInstall":  "passed"
                    },
     "notes":  [
                   "The previous skills-only installer was replaced with a complete-plugin installer.",
                   "The local installer defaults to the Codex home directory rather than the user home directory.",
+                  "The installer keeps the complete plugin under plugins/jingyuan, copies jingyuan-* skill discovery entries into the Codex skills directory, and creates a native CLI skill group junction.",
                   "Shared assets and references are kept under plugins/jingyuan and are installed with the plugin.",
                   "Unix command examples were removed from primary skill flows; historical Claude references remain under references/claude-original."
               ]

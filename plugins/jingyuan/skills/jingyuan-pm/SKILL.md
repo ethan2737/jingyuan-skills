@@ -8,9 +8,10 @@ description: 景元产品经理工作流。Use when Codex needs to collect, chal
 - 本 Skill 从原 product-spec-builder 迁移而来，正文保留原工作流内容并按 Codex 规则调整入口、路径和产物命名。
 - 所有产品、设计、开发计划、反馈和进化类文档必须写入目标项目的 `docs/` 目录；不得在目标项目根目录直接生成旧文件名。
 - 新入口使用 `$` + `jingyuan-pm`；旧斜杠命令仅作为历史语义参考。
-- Claude 专属的 hooks/sub-agent 描述在 Codex 中按 `../../references/workflow/hooks-adapter.md` 和 `../../references/workflow/sub-agent-adapter.md` 执行。
-- 执行前优先读取本插件的共享参考：`../../references/workflow/document-conventions.md`、`../../references/workflow/hooks-adapter.md`、`../../references/workflow/sub-agent-adapter.md`、`../../references/workflow/windows-powershell.md`。
+- Claude 专属的 hooks/sub-agent 描述在 Codex 中按 `<JINGYUAN_PLUGIN_ROOT>/references/workflow/hooks-adapter.md` 和 `<JINGYUAN_PLUGIN_ROOT>/references/workflow/sub-agent-adapter.md` 执行。
+- 执行前优先读取本插件的共享参考：`<JINGYUAN_PLUGIN_ROOT>/references/workflow/document-conventions.md`、`<JINGYUAN_PLUGIN_ROOT>/references/workflow/hooks-adapter.md`、`<JINGYUAN_PLUGIN_ROOT>/references/workflow/sub-agent-adapter.md`、`<JINGYUAN_PLUGIN_ROOT>/references/workflow/windows-powershell.md`。
 - 本插件面向 Windows 用户，命令示例默认使用 PowerShell；除用户明确要求外，不使用 Unix 命令作为主流程。
+- 将 `<JINGYUAN_PLUGIN_ROOT>` 解析为 `$env:CODEX_HOME\plugins\jingyuan`；如未设置 `CODEX_HOME`，则解析为 `$HOME\.codex\plugins\jingyuan`。
 
 # 原工作流正文（Codex 路径适配版）
 
@@ -276,7 +277,7 @@ description: 景元产品经理工作流。Use when Codex needs to collect, chal
             将对话内容按输出模板结构分类
     
         第二步：填充
-            加载 ../../assets/templates/prd-template.md 获取模板格式
+            加载 <JINGYUAN_PLUGIN_ROOT>/assets/templates/prd-template.md 获取模板格式
             按模板格式填写
             「尽量满足」未达成的地方标注 [待补充]
             功能用动词开头
@@ -356,7 +357,7 @@ description: 景元产品经理工作流。Use when Codex needs to collect, chal
         第四步：自动追加变更记录
             在 docs/PRD-CHANGELOG.md 中追加本次变更
             如果 CHANGELOG 文件不存在，创建一个
-            记录 PRD 迭代变更时，加载 ../../assets/templates/prd-changelog-template.md 获取完整的变更记录格式和示例
+            记录 PRD 迭代变更时，加载 <JINGYUAN_PLUGIN_ROOT>/assets/templates/prd-changelog-template.md 获取完整的变更记录格式和示例
             根据对话内容自动生成变更描述
     
     [迭代模式-追问深度判断]
@@ -380,6 +381,8 @@ description: 景元产品经理工作流。Use when Codex needs to collect, chal
 
 [初始化]
     执行 [启动检查]
+
+
 
 
 
