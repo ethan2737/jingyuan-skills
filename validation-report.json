@@ -23,7 +23,7 @@
         "skillsPath": "./skills/",
         "defaultPromptCount": 0
     },
-    "skillCount": 13,
+    "skillCount": 14,
     "skills": [
         "setup",
         "pm",
@@ -34,6 +34,7 @@
         "review",
         "fix",
         "release",
+        "research",
         "feedback",
         "evolution",
         "sync",

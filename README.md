@@ -23,6 +23,7 @@ Codex 补全列表中显示为 `jingyuan:<skill>`。输入 `$jingyuan` 可看到
 - `$jingyuan:review`：审查代码、文档一致性、质量、安全、性能和测试覆盖
 - `$jingyuan:fix`：建立复现/验证循环后修复 Bug
 - `$jingyuan:release`：构建、打包和发布检查
+- `$jingyuan:research`：使用横纵分析法产出产品、公司、技术概念或人物的深度调研报告
 - `$jingyuan:feedback`：记录反馈到 `docs/feedback/`
 - `$jingyuan:evolution`：扫描反馈并提出进化建议
 - `$jingyuan:sync`：同步代码、PRD、设计、设计稿、开发计划和交接文档
@@ -43,6 +44,7 @@ Codex 补全列表中显示为 `jingyuan:<skill>`。输入 `$jingyuan` 可看到
 <target-project>/docs/changes/<change-id>/spec.md
 <target-project>/docs/changes/<change-id>/design.md
 <target-project>/docs/changes/<change-id>/tasks.md
+<target-project>/docs/research/<research-id>.md
 <target-project>/docs/feedback/index.md
 <target-project>/docs/feedback/
 <target-project>/docs/context.md

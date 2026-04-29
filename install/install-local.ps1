@@ -224,6 +224,7 @@ $jingyuanSkillNames = @(
   'review',
   'fix',
   'release',
+  'research',
   'feedback',
   'evolution',
   'sync',
