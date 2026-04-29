@@ -24,6 +24,7 @@ Codex 补全列表中会显示为 `jingyuan:<skill>`。输入 `$jingyuan` 搜索
 - `$jingyuan:release`：构建发布
 - `$jingyuan:feedback`：记录反馈
 - `$jingyuan:evolution`：扫描反馈并提出进化建议
+- `$jingyuan:sync`：同步代码、PRD、设计文档、设计稿说明和开发计划
 - `$jingyuan:skill-builder`：创建或维护 JingYuan skill
 
 ## 文档收口

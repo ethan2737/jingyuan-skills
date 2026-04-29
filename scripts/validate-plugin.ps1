@@ -99,6 +99,7 @@ $expectedSkills = @(
   'release',
   'feedback',
   'evolution',
+  'sync',
   'skill-builder'
 )
 
