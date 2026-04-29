@@ -11,6 +11,7 @@ description: 景元代码审查工作流。Use when Codex needs to review code f
 - Claude 专属的 hooks/sub-agent 描述在 Codex 中按 `<JINGYUAN_PLUGIN_ROOT>/references/workflow/hooks-adapter.md` 和 `<JINGYUAN_PLUGIN_ROOT>/references/workflow/sub-agent-adapter.md` 执行。
 - 执行前优先读取本插件的共享参考：`<JINGYUAN_PLUGIN_ROOT>/references/workflow/document-conventions.md`、`<JINGYUAN_PLUGIN_ROOT>/references/workflow/hooks-adapter.md`、`<JINGYUAN_PLUGIN_ROOT>/references/workflow/sub-agent-adapter.md`、`<JINGYUAN_PLUGIN_ROOT>/references/workflow/windows-powershell.md`。
 - 同时读取 `<JINGYUAN_PLUGIN_ROOT>/references/workflow/project-memory.md` 和 `<JINGYUAN_PLUGIN_ROOT>/references/workflow/dependency-policy.md`；审查时必须尊重 `docs/context.md`、`docs/adr/`、`docs/out-of-scope/`。
+- 审查准备、测试覆盖和完成声明必须同时对照 `<JINGYUAN_PLUGIN_ROOT>/references/workflow/review-readiness.md`、`<JINGYUAN_PLUGIN_ROOT>/references/workflow/testing-policy.md`、`<JINGYUAN_PLUGIN_ROOT>/references/workflow/verification-gates.md`。
 - 本插件面向 Windows 用户，命令示例默认使用 PowerShell；除用户明确要求外，不使用 Unix 命令作为主流程。
 - 将 `<JINGYUAN_PLUGIN_ROOT>` 解析为 `$env:CODEX_HOME\plugins\jingyuan`；如未设置 `CODEX_HOME`，则解析为 `$HOME\.codex\plugins\jingyuan`。
 
@@ -39,6 +40,8 @@ description: 景元代码审查工作流。Use when Codex needs to review code f
     **不信任声明**：不接受"已实现"、"大致匹配"这种模糊结论。每个功能要么有代码实现（附文件路径和行号），要么没有。
     **证据为王**：说"通过"必须附编译输出、API 响应或数值对比结果。没有证据的"通过"等于没审查。
     **不放过**：Spec 里的每一条功能需求都必须被检查到。不允许"其余功能看起来正常"这种笼统结论。
+    **意图优先**：先明确本次变更想完成什么，再审 diff 是否少做、多做、偏离或引入 Spec 漂移。
+    **新鲜审查**：HEAD、目标文件、PRD/design/ADR/out-of-scope、测试命令或依赖变化后，旧审查结论过期，必须重新审。
     **联网优先**：审查中发现的可疑代码模式或安全隐患，先 WebSearch 确认是否是已知问题再下结论。
 
 [输出风格]
@@ -50,8 +53,10 @@ description: 景元代码审查工作流。Use when Codex needs to review code f
     - × 绝不说"大致匹配"、"基本完成"——要么匹配要么不匹配
     - × 绝不跳过任何 Spec 条目
     - × 绝不信任自己的上一次审查结论（每次重新验证）
+    - × 绝不用"测试通过"替代功能、设计、安全或性能证据
     - ✓ 每个 ✅ 都附具体证据
     - ✓ 每个 ❌ 都引用 Spec 原文 + 实际代码差异
+    - ✓ 每个阻塞问题都写清文件:行号、问题、影响、修复建议和是否阻塞合并
     - ✓ 安全问题单独高亮，不混在功能问题里
 
     **典型表达**：
@@ -82,6 +87,19 @@ description: 景元代码审查工作流。Use when Codex needs to review code f
         - ⚠️ 部分实现 — 缺失的具体内容
         - ❌ 未实现 — Spec 原文引用
 
+    [意图与变更范围]
+        对照本次变更的真实范围：
+        - 如果是分支/PR 审查 → 读取 base/head、git diff --stat、commit message、PR body、计划文档或 TODO
+        - 如果是 Phase/Task 审查 → 读取 docs/development/plan.md 中对应交付清单
+        - 判断每项工作状态：DONE、PARTIAL、NOT DONE、CHANGED
+        - 标记范围问题：少做、误做、计划外新增、违反 out-of-scope、文档未同步
+
+    [变更包/契约一致性]（如项目有变更包或 delta spec）
+        - proposal / Why / What Changes 是否解释本次改动意图
+        - delta spec 是否说明 ADDED / MODIFIED / REMOVED / RENAMED 行为
+        - tasks 是否可追踪到实现和验证结果
+        - 审查发现应映射到 requirement、scenario 或 task，区分违反契约、缺测试、实现偏离设计或普通风格建议
+
     [UI 一致性]（如有设计稿）
     对照设计稿检查 UI 实现：
     - 如有设计工具 MCP → 提取设计数值，与代码中的 Tailwind class / style 逐项比对
@@ -101,6 +119,15 @@ description: 景元代码审查工作流。Use when Codex needs to review code f
         - 单一职责：一个文件是否做了太多事
         - 重复代码：是否有可以提取的公共逻辑
         - 错误处理：异步操作有没有 catch、用户操作有没有错误提示
+        - 架构 seam：关键行为是否能通过公开接口测试；是否存在过浅模块、隐藏耦合、难以隔离的状态边界
+        - 兼容性：API 契约、数据迁移、跨平台路径/换行、非交互/CI 行为是否稳定
+
+    [测试质量]（必须）
+        - 测试是否覆盖用户可见行为、公共 API、CLI 命令、服务接口、持久化结果或页面交互
+        - 是否覆盖 happy path、error path、empty/loading state、关键回归
+        - 是否避免只测私有函数、内部调用次数、内部 mock 或实现细节
+        - bugfix 是否有红绿回归证据；性能变更是否有 baseline 和前后对比
+        - 无法测试时是否写明 seam 限制、风险和替代验证
 
     [安全扫描]（必须）
         默认使用 PowerShell `Select-String` 检查以下模式：
@@ -110,6 +137,20 @@ description: 景元代码审查工作流。Use when Codex needs to review code f
         - 路径泄露：代码中包含绝对路径（如 `C:\Users\`、`E:\`、`/Users/`）
         - 环境变量：VITE_ 前缀变量是否暴露了敏感信息
         - 依赖漏洞：npm audit 结果
+
+    [Critical Pass]（必须优先）
+        在普通代码质量前先检查阻塞级问题：
+        - 数据安全：数据丢失、静默损坏、迁移不可逆、事务/并发竞态
+        - 命令与路径安全：shell 注入、路径穿越、任意文件读写、绝对路径泄露
+        - 信任边界：LLM/用户输入/外部 API 输出是否未经校验进入执行、HTML、SQL 或文件系统
+        - 权限边界：认证、授权、租户隔离、敏感环境变量暴露
+        - 枚举完整性：新增状态/类型/错误码是否覆盖所有分支和默认处理
+        Critical 问题阻塞合并，必须先修复再继续生产判断。
+
+    [性能门禁]
+        - 性能敏感路径是否有基线：耗时、资源、吞吐、查询计划或浏览器性能记录
+        - 是否存在 N+1、重复渲染、无界循环、无分页大查询、同步阻塞 I/O、缓存失效风险
+        - 优化是否有前后对比数据；复杂度增加是否有收益说明
 
     [Spec 漂移检测]（必须）
         检查代码中是否存在 Spec 没有描述的功能：
@@ -128,6 +169,12 @@ description: 景元代码审查工作流。Use when Codex needs to review code f
     2. 搜索代码中的相关文件/函数/组件
     3. 验证行为是否匹配
     4. 记录证据（文件路径:行号）
+
+    **Diff 聚焦法**
+    1. 明确审查范围：全量、Phase、Task、PR/diff
+    2. 读取 base/head 和 diff stat（如可用），列出本次实际改动文件
+    3. 对每个改动文件回答：为什么改、对应哪条需求、有哪些测试/验证、是否同步文档
+    4. 对未改但应改的文件标记为缺口，对改了但无需求依据的内容标记为 scope drift
 
     **设计数值对比法**（如有设计工具）
     1. 通过设计工具 API 提取设计稿各页面的精确数值
@@ -158,30 +205,57 @@ description: 景元代码审查工作流。Use when Codex needs to review code f
         -Pattern 'eval\(|dangerouslySetInnerHTML|innerHTML|VITE_.*KEY|VITE_.*SECRET|VITE_.*TOKEN|C:\\Users\\|[A-Z]:\\|/Users/|password.*=.*[''"]|sk-ant-|sk-proj-|ANTHROPIC_API_KEY|OPENAI_API_KEY'
     ```
 
+    **发现项输出法**
+    每条问题必须包含：
+    - Priority：Critical / High / Medium / Low
+    - 位置：文件路径:行号；无法定位时说明原因
+    - 问题：实际代码或行为哪里错
+    - 影响：为什么重要，可能破坏什么用户行为、数据、安全或性能
+    - 修复建议：推荐的最小修复路径
+    - 证据：Spec 原文、diff、命令输出、截图、API 响应或测试结果
+    - 路由：dev-builder、fix、pm、design、sync 或人工决策
+
+    **验证证据矩阵法**
+    审查报告必须分开列出证据，不能互相替代：
+    - Spec compliance：逐条需求证据
+    - Test status：目标测试、回归测试、未运行测试及原因
+    - Build/type/lint：命令、exit code、关键输出
+    - Security：扫描命令或人工检查范围
+    - UI/interaction：截图、Playwright 或手动步骤
+    - Performance：baseline、前后对比或不适用理由
+
 [工作流程]
     [第一步：加载比对基准]
         读取 docs/PRD/prd.md → 提取审查范围内涉及的功能需求，编号列出
         读取 docs/development/plan.md → 读取当前 Phase 或 Task 的交付清单和关键文件
         如有 docs/design/design.md → 读取审查范围内涉及的视觉方向和页面备注
+        如有 docs/context.md、docs/adr/、docs/out-of-scope/ → 读取术语、架构决策和明确不做事项
+        如有变更包 / delta spec / proposal / tasks → 读取变更意图、行为契约和执行清单
         如有设计工具 MCP → 通过设计工具找到审查范围对应的设计页面，读取这些页面及其组件的精确数值，作为 UI 一致性比对的基准
         确定审查范围：
         - 全量审查（$jingyuan:review）→ Spec 所有功能
         - Phase 审查（dev-builder Phase 完成验证触发）→ 当前 Phase 的交付清单
         - Task 审查（dev-builder per-Task review 触发）→ 当前 Task 的交付清单
+        - Diff 审查（分支/PR/指定 base-head）→ 本次 diff + 变更意图 + 受影响功能
 
     [第二步：扫描代码实现]
         遍历项目代码目录
         识别：页面/路由、组件、API endpoint、数据库表、hooks、工具函数
         建立代码地图（什么功能在哪些文件里）
+        如有 git diff → 建立 diff 地图（本次改了哪些文件、为什么改、关联哪些需求）
 
     [第三步：逐项比对]
         运用 [逐项对照法]：
         - 对照 [功能完整性] 维度，Spec 每条 vs 代码
+        - 对照 [意图与变更范围] 维度，计划/变更包/diff vs 实现
         - 对照 [UI 一致性] 维度，设计稿 vs 实际页面（如有）
         - 检查 [Spec 漂移检测]，代码中有没有 Spec 没写的功能
 
     [第四步：代码质量 + 安全审查]
+        先执行 [Critical Pass]，如发现 Critical 问题，报告中标记阻塞合并
         运用 [审查维度清单] 中的 [代码质量] 和 [安全扫描]
+        运用 [测试质量] 检查测试是否覆盖公开行为、错误路径和关键回归
+        运用 [性能门禁] 检查性能敏感路径证据
         运用 [安全扫描法] 检查危险模式
         编译验证：tsc --noEmit
 
@@ -208,26 +282,45 @@ description: 景元代码审查工作流。Use when Codex needs to review code f
          **🔴 安全问题（X 项）**
          - [描述]：[文件:行号]
 
+         **🧪 测试质量**
+         - 行为覆盖：[通过/缺口]
+         - 错误路径：[通过/缺口]
+         - 回归测试：[通过/缺口]
+         - 测试 seam 风险：[无/说明]
+
          **📊 代码质量**
          - 超大文件：[列出 >300 行的文件]
          - 类型问题：[any/ts-ignore 的使用]
          - 编译结果：tsc --noEmit [输出]
 
+         **🧾 验证证据矩阵**
+         - Spec compliance：[证据]
+         - Test status：[命令 + exit code + 关键输出]
+         - Build/type/lint：[命令 + exit code + 关键输出]
+         - Security：[扫描范围/结果]
+         - UI/interaction：[截图/步骤/未运行原因]
+         - Performance：[baseline/不适用理由]
+
          ---
 
          **Priority 分级**
+         ⛔ Critical：[阻塞合并：数据损坏、安全边界、竞态、契约破坏]
          🔴 High：[核心功能缺失、安全问题]
          🟡 Medium：[辅助功能、UI 细节、代码质量]
-         🟢 Low：[增强建议、可选优化]"
+         🟢 Low：[增强建议、可选优化]
+
+         **Ready to merge?**
+         - No / With fixes / Yes
+         - 原因：[一句话说明阻塞项或剩余风险]"
 
     注意：本 Skill 范围到输出报告为止。修复由主 Agent 拿到报告后路由执行：
     - Stage 1 失败（功能缺失/不符合 Spec）→ 主 Agent 调用 dev-builder 补实现
     - Stage 2 失败（代码质量/安全问题）→ 主 Agent 调用 fix 修复
     - 修复完成后主 Agent 重新派发 review，从 Stage 1 开始审查
+    - 如果 HEAD、目标文件、PRD/design/ADR/out-of-scope、测试命令或依赖发生变化，旧 review 视为 stale，必须重新审查
 
 [初始化]
     执行 [第一步：加载比对基准]
-
 
 
 

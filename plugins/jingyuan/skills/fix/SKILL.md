@@ -11,6 +11,7 @@ description: 景元 Bug 修复工作流。Use when Codex needs to investigate, r
 - Claude 专属的 hooks/sub-agent 描述在 Codex 中按 `<JINGYUAN_PLUGIN_ROOT>/references/workflow/hooks-adapter.md` 和 `<JINGYUAN_PLUGIN_ROOT>/references/workflow/sub-agent-adapter.md` 执行。
 - 执行前优先读取本插件的共享参考：`<JINGYUAN_PLUGIN_ROOT>/references/workflow/document-conventions.md`、`<JINGYUAN_PLUGIN_ROOT>/references/workflow/hooks-adapter.md`、`<JINGYUAN_PLUGIN_ROOT>/references/workflow/sub-agent-adapter.md`、`<JINGYUAN_PLUGIN_ROOT>/references/workflow/windows-powershell.md`。
 - 同时读取 `<JINGYUAN_PLUGIN_ROOT>/references/workflow/dependency-policy.md` 和 `<JINGYUAN_PLUGIN_ROOT>/references/workflow/project-memory.md`；PRD、context、ADR 是软依赖，缺失不阻塞修复。
+- 调试、测试和完成声明必须同时对照 `<JINGYUAN_PLUGIN_ROOT>/references/workflow/diagnostics-loop.md`、`<JINGYUAN_PLUGIN_ROOT>/references/workflow/testing-policy.md`、`<JINGYUAN_PLUGIN_ROOT>/references/workflow/verification-gates.md`。
 - 本插件面向 Windows 用户，命令示例默认使用 PowerShell；除用户明确要求外，不使用 Unix 命令作为主流程。
 - 将 `<JINGYUAN_PLUGIN_ROOT>` 解析为 `$env:CODEX_HOME\plugins\jingyuan`；如未设置 `CODEX_HOME`，则解析为 `$HOME\.codex\plugins\jingyuan`。
 
@@ -42,7 +43,9 @@ description: 景元 Bug 修复工作流。Use when Codex needs to investigate, r
 
 [第一性原则]
     **不猜不试**：没有证据就不下结论。先收集、先分析、先假设、再验证。不要看到报错就急着改代码。
+    **根因门禁**：没有完成根因调查并能说明坏值、坏状态或坏行为从哪里进入系统，不允许提出最终修复方案。
     **反馈循环优先**：先构造可重复的复现/验证循环，再进入根因假设和修复。没有循环就停止并说明缺失的复现材料或验证手段。
+    **红绿回归**：bugfix 默认先让同一个公开行为信号失败，再让同一信号通过；不能用只测私有实现的浅测试替代。
     **性能先基线**：性能问题必须先建立基线测量（耗时、资源、吞吐、查询计划或浏览器性能记录），再做优化。
     **一次一个**：一次只改一个东西。改完验证，确认有效再继续。同时改多处无法判断哪个是真正的修复。
     **修改纪律**：修 bug 也是改代码。改之前评估影响范围，改之后回归验证。修 A 不能坏 B。
@@ -76,25 +79,53 @@ description: 景元 Bug 修复工作流。Use when Codex needs to investigate, r
 [调试规则清单]
     调试过程中必须遵守的规则。
 
+    [反馈循环规则]
+        - 优先构造可由 Agent 反复运行的 pass/fail 信号：失败测试、目标命令、HTTP 请求、CLI fixture、Playwright 脚本、最小复现脚本、日志断言。
+        - 复杂或偶发问题可使用 trace replay、throwaway harness、bisect harness、differential test、property/fuzz loop 或压力循环提高复现率。
+        - 反馈循环必须证明当前看到的是用户描述的同一个 bug，不是邻近失败。
+        - 循环应尽量快速、尖锐、确定；如果循环慢、flaky 或噪声大，先改进循环再修复。
+        - 无法自动化时，写明手动验证步骤、账号/环境依赖和无法自动化的原因。
+
     [证据收集规则]
         - 完整的错误信息（不截断、不省略 stack trace）
         - 复现步骤（用户操作路径，或触发条件）
         - 环境信息（Node 版本、浏览器、OS——如果相关）
         - 最近的代码变更（git log、git diff——哪些提交可能引入了问题）
         - 相关日志（console 输出、网络请求、数据库查询）
+        - 如来自 issue / review 报告，先整理为修复简报：当前行为、期望行为、复现方式、验收标准、out-of-scope、已知风险。
 
     [假设规则]
-        - 每次最多 3 个假设，按可能性排序
-        - 每个假设必须有对应的验证方法
+        - 每次列出 3-5 个可证伪假设，按可能性排序
+        - 每个假设必须有对应的预测和验证方法
         - 先验证最可能的假设
         - 假设被否定后记录原因，不重复验证同一假设
+        - 连续 3 个假设失败后停止推进，输出已验证假设、失败原因、可能的架构/环境/需求问题和需要用户决策的信息。
+
+    [根因追踪规则]
+        - 从报错点或异常行为点沿调用链向上追踪，直到找到坏值、坏状态、坏配置或错误输入进入系统的位置。
+        - 多组件问题按边界定位：前端、API、服务、数据库、第三方依赖分别记录输入、输出、状态和错误。
+        - 不只修报错点；如果报错点只是症状，必须继续追到源头。
+        - 根因报告必须包含：症状、期望行为、实际行为、根因、证据、影响范围、修复方式、回归测试、未受影响行为。
 
     [修复规则]
         - 一次只改一个文件/一个逻辑点
         - 改之前评估影响范围（同 dev-builder 的修改纪律）
+        - 根因确认后锁定最小修复范围；如果预计触及超过 5 个文件，必须说明 blast radius 和原因。
+        - bug pattern checklist：竞态/时序、空值传播、状态污染、缓存陈旧、配置漂移、集成失败、权限边界、输入校验、数据迁移。
         - 改完后编译验证（tsc --noEmit）
         - 改完后功能验证（复现步骤不再触发 bug）
         - 改完后回归验证（相关的现有功能仍正常）
+        - UI/交互 bug 需要 before/after 截图或等价证据、console 检查和核心路径复测。
+
+    [测试 seam 规则]
+        - 回归测试必须覆盖公开行为：公共 API、CLI 命令、页面交互、服务接口、持久化结果或系统输出。
+        - 不用只测试私有函数、内部调用次数或内部 mock 的方式制造假信心。
+        - 没有合适 seam 时，记录为架构可测性问题，并给出临时手动验证与后续改造建议。
+
+    [异步和竞态规则]
+        - 禁止无依据地增加 sleep、timeout 或重试次数作为修复。
+        - 优先等待具体事件、状态、文件、计数、网络响应或 DOM 条件。
+        - 偶发问题先提高复现率：循环运行、并发压力、缩小时序窗口、记录事件顺序，再定位根因。
 
     [进程管理规则]
         如果 bug 涉及服务运行状态（服务器、Electron、端口占用），默认使用 PowerShell：
@@ -119,12 +150,18 @@ description: 景元 Bug 修复工作流。Use when Codex needs to investigate, r
         - 怀疑是框架版本兼容性 → 搜索框架 + 版本 + breaking changes
         - 修了 3 次还没好 → 搜索更广泛的关键词，可能有人遇到过同样的坑
 
+    [Debug 清理规则]
+        - 临时日志和插桩使用唯一前缀（如 `[DEBUG-fix-xxxx]`），便于完成前搜索清理。
+        - 完成前必须确认没有遗留临时日志、throwaway harness、无关截图或临时代码。
+        - 如果保留诊断日志是正式修复的一部分，必须说明目的、级别和安全影响。
+
 [调试策略]
     四阶段系统性调试法，不允许跳阶段。
 
     **第零阶段：建立反馈循环**
     - 优先用失败测试、CLI 命令、HTTP 请求、Playwright、最小复现脚本或用户复现步骤构造 pass/fail 信号。
     - 循环必须能证明 bug 存在，也能证明修复有效。
+    - 修复前记录红灯证据：命令/步骤、exit code 或现象、关键输出。
     - 如果无法构造循环，停止并向用户索要日志、录屏、HAR、测试账号、复现环境或允许添加临时 instrumentation。
     - 性能问题先记录基线，不允许直接改代码赌优化。
 
@@ -142,7 +179,7 @@ description: 景元 Bug 修复工作流。Use when Codex needs to investigate, r
     - 如有 docs/PRD/prd.md → 确认预期行为是什么
 
     **第三阶段：假设验证**
-    - 基于证据形成 1-3 个假设，按可能性排序
+    - 基于证据形成 3-5 个可证伪假设，按可能性排序
     - 用最小改动验证最可能的假设（console.log、断点、临时注释）
     - 假设被验证 → 进入第四阶段
     - 假设被否定 → 记录原因，验证下一个假设
@@ -151,9 +188,11 @@ description: 景元 Bug 修复工作流。Use when Codex needs to investigate, r
 
     **第四阶段：实施修复**
     - 实施单一修复（一次只改一个逻辑点）
+    - 将复现信号转成回归测试；无法自动化时写明 seam 限制和手动验证步骤
     - 编译验证（tsc --noEmit 零错误）
     - 功能验证（bug 不再复现）
     - 回归验证（相关功能正常）
+    - 清理临时日志和插桩
     - 如果修复失败 → 回退，回到第三阶段
     - 连续 3 次修复失败 → 停下来，审视是否是架构问题或理解偏差
 
@@ -187,11 +226,12 @@ description: 景元 Bug 修复工作流。Use when Codex needs to investigate, r
     [验证阶段]
         修复完成后必须执行：
         1. 复现循环验证：原始 pass/fail 信号从失败变为通过
-        2. 编译验证：tsc --noEmit 零错误
-        3. 功能验证：按复现步骤操作，bug 不再出现
-        4. 回归验证：相关功能（列出具体功能名）仍正常工作
-        5. 如有 Playwright → 自动化验证核心交互流程
-        输出证据（编译输出、验证截图/结果）
+        2. 回归测试验证：新增或目标测试在修复前可失败、修复后通过；无法自动化时说明原因
+        3. 编译验证：tsc --noEmit 零错误
+        4. 功能验证：按复现步骤操作，bug 不再出现
+        5. 回归验证：相关功能（列出具体功能名）仍正常工作
+        6. 如有 Playwright → 自动化验证核心交互流程
+        7. 完成声明证据：命令、exit code、关键输出、截图/结果、未验证项和原因
 
     [完成阶段]
         向用户汇报：
@@ -200,16 +240,18 @@ description: 景元 Bug 修复工作流。Use when Codex needs to investigate, r
          **根因**：[一句话说明根因]
          **修复**：[修改了哪些文件，做了什么改动]
          **验证**：
+         - 复现循环：[原始失败信号] 已从失败变为通过
+         - 回归测试：[测试名/命令] 通过
          - 编译：tsc --noEmit 零错误
          - 功能：[复现步骤] 不再触发 bug
          - 回归：[相关功能列表] 验证正常
+         - 未受影响：[列出关键旧行为]
 
          需要我 commit 吗？（commit message: fix: [问题描述]）
          还是还有其他问题要修？"
 
 [初始化]
     执行 [启动阶段]
-
 
 
 
