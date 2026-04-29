@@ -10,6 +10,7 @@ description: 景元开发计划工作流。Use when Codex needs to create or upd
 - 新入口使用 `$jingyuan:dev-plan`；旧斜杠命令仅作为历史语义参考。
 - Claude 专属的 hooks/sub-agent 描述在 Codex 中按 `<JINGYUAN_PLUGIN_ROOT>/references/workflow/hooks-adapter.md` 和 `<JINGYUAN_PLUGIN_ROOT>/references/workflow/sub-agent-adapter.md` 执行。
 - 执行前优先读取本插件的共享参考：`<JINGYUAN_PLUGIN_ROOT>/references/workflow/document-conventions.md`、`<JINGYUAN_PLUGIN_ROOT>/references/workflow/hooks-adapter.md`、`<JINGYUAN_PLUGIN_ROOT>/references/workflow/sub-agent-adapter.md`、`<JINGYUAN_PLUGIN_ROOT>/references/workflow/windows-powershell.md`。
+- 同时读取 `<JINGYUAN_PLUGIN_ROOT>/references/workflow/dependency-policy.md`、`<JINGYUAN_PLUGIN_ROOT>/references/workflow/project-memory.md`、`<JINGYUAN_PLUGIN_ROOT>/references/workflow/vertical-slice.md`，用来区分依赖等级、读取长期记忆并按端到端切片拆计划。
 - 本插件面向 Windows 用户，命令示例默认使用 PowerShell；除用户明确要求外，不使用 Unix 命令作为主流程。
 - 将 `<JINGYUAN_PLUGIN_ROOT>` 解析为 `$env:CODEX_HOME\plugins\jingyuan`；如未设置 `CODEX_HOME`，则解析为 `$HOME\.codex\plugins\jingyuan`。
 
@@ -29,6 +30,9 @@ description: 景元开发计划工作流。Use when Codex needs to create or upd
 
     可选（降级模式）：
     - docs/design/design.md → 缺失则标记"无设计规范模式"，视觉相关细节标注 [待 Design Document 补充]
+    - docs/context.md → 有则用于统一术语；缺失不阻塞
+    - docs/adr/ → 有则尊重已确认架构决策；缺失不阻塞
+    - docs/out-of-scope/ → 有则不得把其中内容规划进 Phase；缺失不阻塞
     - 设计工具 MCP → 未连接或无文件则仅依据文字描述，标记"无设计稿模式"
     - docs/design/ui-design.pen → 如存在，说明 Pencil 设计稿已生成，Phase 拆分必须优先读取该文件；如不存在但 docs/design/mockup.md 记录 Figma 文件，则按 Figma 定位信息读取
     - 已有项目代码 → 有则扫描现有结构作为约束，进入迭代模式
@@ -44,6 +48,10 @@ description: 景元开发计划工作流。Use when Codex needs to create or upd
     - 不确定的技术方案 → 搜了再定，不凭过期记忆做架构决策
 
     **粒度适中原则**：Phase 太大做不完，太小管理成本高。一个 Phase 对应一个可独立验收的功能单元，通常 1-3 个核心交付物。
+
+    **Vertical Slice 原则**：Phase 内 Task 优先按端到端可演示行为拆分，不按"先数据库、再 API、再 UI"的水平层拆分。基础设施可以存在，但必须尽快接上第一个可验证行为。
+
+    **范围保护原则**：PRD 的"本期不做"和 `docs/out-of-scope/` 中的内容不得进入开发计划。如发现 PRD 与 out-of-scope 冲突，停止并提示先调用 `$jingyuan:pm` 或 `$jingyuan:sync`。
 
     **文件路径明确原则**：每个 Phase 必须列出要创建或修改的具体文件路径。"实现聊天功能"不是计划，"创建 src/components/views/chat-view.tsx 和 src/hooks/use-chat.ts" 才是计划。
 
@@ -75,6 +83,7 @@ description: 景元开发计划工作流。Use when Codex needs to create or upd
     - Phase 拆分：将 Spec 中的功能需求按依赖关系和复杂度分解为有序的 Phase 序列。每个 Phase 是一个可独立验收的功能单元。
       - 拆分依据：功能依赖关系（A 依赖 B → B 先做）、技术基础设施放最前、核心功能优先于辅助功能
       - 粒度标准：一个 Phase 通常包含 1-3 个核心交付物
+      - 切片标准：每个 Phase 至少包含一个可演示或可验证的用户行为；Phase 内 Task 尽量覆盖必要 UI/API/数据/测试闭环
 
     - 每个 Phase 的交付清单：每个 Phase 必须明确交付什么。用动词开头，描述用户可感知的功能。
       - 格式："用户能做什么 → 系统做什么"或"完成 XX 基础设施搭建"
@@ -315,7 +324,6 @@ description: 景元开发计划工作流。Use when Codex needs to create or upd
 
 [初始化]
     执行 [加载阶段]
-
 
 
 

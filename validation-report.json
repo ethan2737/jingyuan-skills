@@ -1,69 +1,79 @@
 {
-    "generatedAt":  "2026-04-21T17:58:43+08:00",
-    "status":  "passed",
-    "pluginMode":  "complete-plugin-payload-with-flat-skill-discovery",
-    "targetPlatform":  "Windows",
-    "defaultShell":  "PowerShell",
-    "pluginRoot":  "plugins/jingyuan",
-    "pluginCacheRoot":  "plugins/cache/local/jingyuan/local",
-    "defaultInstallRoot":  "$env:CODEX_HOME or $HOME\\.codex",
-    "marketplace":  {
-                        "path":  ".agents/plugins/marketplace.json",
-                        "name":  "local",
-                        "hasJingYuanEntry":  true,
-                        "sourcePath":  "./plugins/jingyuan",
-                        "installation":  "AVAILABLE",
-                        "authentication":  "ON_INSTALL",
-                        "category":  "Productivity"
-                    },
-    "manifest":  {
-                     "path":  "plugins/jingyuan/.codex-plugin/plugin.json",
-                     "jsonValid":  true,
-                     "name":  "jingyuan",
-                     "skillsPath":  "./skills/",
-                     "defaultPromptCount":  0
-                 },
-    "skillCount":  11,
-    "skills":  [
-                   "fix",
-                   "review",
-                   "design",
-                   "mockup",
-                   "dev-builder",
-                   "dev-plan",
-                   "evolution",
-                   "feedback",
-                   "pm",
-                   "release",
-                   "skill-builder"
-               ],
-    "windowsPowerShellAdaptation":  {
-                                        "reference":  "plugins/jingyuan/references/workflow/windows-powershell.md",
-                                        "processInterruption":  "PowerShell Get-NetTCPConnection + Stop-Process; Ctrl+C preferred for foreground services",
-                                        "httpCheck":  "Invoke-WebRequest -UseBasicParsing",
-                                        "fileScan":  "Get-ChildItem -Recurse",
-                                        "contentScan":  "Select-String",
-                                        "sideEffectGate":  "git push, deploy, GitHub Release, npm publish, npm unpublish require explicit confirmation",
-                                        "skillDiscovery":  "Codex CLI discovers short skills as jingyuan:<skill> from flat skill mirrors under skills/jy-*; the complete plugin remains installed under plugins/jingyuan for shared assets and references.",
-                                        "pluginCompletionRow":  "Avoided by removing [plugins.\"jingyuan@local\"] from config.toml; enabled plugins are shown by Codex as plugin-only completion rows."
-                                    },
-    "validation":  {
-                       "script":  "scripts/validate-plugin.ps1",
-                       "result":  "passed",
-                       "installWhatIf":  "passed: installs complete plugin plus flat jingyuan:* skill mirrors and removes obsolete flat skill copies",
-                       "tempInstall":  "passed: plugins/jingyuan, plugins/cache/local/jingyuan/local, and skills/jy-pm exist",
-                       "bomCheck":  "passed: all plugin SKILL.md files start with raw --- bytes",
-                       "marketplaceEncoding":  "passed: marketplace.json is UTF-8 JSON without BOM",
-                       "configEnablement":  "passed: installer removes jingyuan@local enablement to avoid plugin-only completion row",
-                       "cacheInstall":  "passed: installer syncs plugins/cache/local/jingyuan/local as a plugin payload cache",
-                       "promptInput":  "passed: codex debug prompt-input reports jingyuan:pm skill and no JingYuan/jingyuan plugin entry"
-                   },
-    "notes":  [
-                  "Codex v0.122 shows every enabled plugin as a plugin-only completion row; JingYuan therefore uses flat skill mirrors for discovery while keeping the complete plugin payload installed.",
-                  "The local installer defaults to the Codex home directory rather than the user home directory.",
-                  "The installer keeps the complete plugin under plugins/jingyuan, syncs plugins/cache/local/jingyuan/local, creates skills/jy-* mirrors with name: \"jingyuan:<skill>\", and removes obsolete flat skill discovery entries to avoid duplicate loading.",
-                  "The installer writes the local marketplace and Codex config with UTF-8 without BOM where applicable.",
-                  "Shared assets and references are kept under plugins/jingyuan and are installed with the plugin.",
-                  "Unix command examples were removed from primary skill flows; historical Claude references remain under references/claude-original."
-              ]
+    "generatedAt": "2026-04-29T16:30:00+08:00",
+    "status": "passed",
+    "pluginMode": "complete-plugin-payload-with-flat-skill-discovery",
+    "targetPlatform": "Windows",
+    "defaultShell": "PowerShell",
+    "pluginRoot": "plugins/jingyuan",
+    "pluginCacheRoot": "plugins/cache/local/jingyuan/local",
+    "defaultInstallRoot": "$env:CODEX_HOME or $HOME\\.codex",
+    "marketplace": {
+        "path": ".agents/plugins/marketplace.json",
+        "name": "local",
+        "hasJingYuanEntry": true,
+        "sourcePath": "./plugins/jingyuan",
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL",
+        "category": "Productivity"
+    },
+    "manifest": {
+        "path": "plugins/jingyuan/.codex-plugin/plugin.json",
+        "jsonValid": true,
+        "name": "jingyuan",
+        "skillsPath": "./skills/",
+        "defaultPromptCount": 0
+    },
+    "skillCount": 13,
+    "skills": [
+        "setup",
+        "pm",
+        "design",
+        "mockup",
+        "dev-plan",
+        "dev-builder",
+        "review",
+        "fix",
+        "release",
+        "feedback",
+        "evolution",
+        "sync",
+        "skill-builder"
+    ],
+    "architectureUpgrade": {
+        "pmGate": "pm now requires problem validation, terminology clarification, scenario grounding, scope cutting, and understanding confirmation before PRD output.",
+        "setupSkill": "setup initializes docs/context.md, docs/adr, docs/out-of-scope, docs feedback directories, and .jingyuan/config.json.",
+        "projectMemory": "context, ADR, and out-of-scope references are defined under references/workflow/project-memory.md.",
+        "dependencyPolicy": "hard, soft, and optional dependency policy is defined under references/workflow/dependency-policy.md.",
+        "verticalSlice": "dev-plan and dev-builder reference vertical-slice.md for end-to-end task slicing.",
+        "fixLoop": "fix now requires a reproducible validation loop before repair and a baseline before performance optimization.",
+        "validationConsistency": "validate-plugin.ps1 checks README skill mentions and validation-report skill count/list consistency."
+    },
+    "windowsPowerShellAdaptation": {
+        "reference": "plugins/jingyuan/references/workflow/windows-powershell.md",
+        "processInterruption": "PowerShell Get-NetTCPConnection + Stop-Process; Ctrl+C preferred for foreground services",
+        "httpCheck": "Invoke-WebRequest -UseBasicParsing",
+        "fileScan": "Get-ChildItem -Recurse",
+        "contentScan": "Select-String",
+        "sideEffectGate": "git push, deploy, GitHub Release, npm publish, npm unpublish require explicit confirmation",
+        "skillDiscovery": "Codex CLI discovers short skills as jingyuan:<skill> from flat skill mirrors under skills/jy-*; the complete plugin remains installed under plugins/jingyuan for shared assets and references.",
+        "pluginCompletionRow": "Avoided by removing [plugins.\"jingyuan@local\"] from config.toml; enabled plugins are shown by Codex as plugin-only completion rows."
+    },
+    "validation": {
+        "script": "scripts/validate-plugin.ps1",
+        "result": "passed",
+        "installWhatIf": "passed with -Force -WhatIf because a local JingYuan install already exists",
+        "tempInstall": "passed: plugins/jingyuan, plugins/cache/local/jingyuan/local, and skills/jy-setup plus all existing jy-* mirrors exist",
+        "bomCheck": "passed: plugin SKILL.md files start with raw --- bytes",
+        "marketplaceEncoding": "passed: marketplace.json is UTF-8 JSON without BOM",
+        "configEnablement": "passed: installer removes jingyuan@local enablement to avoid plugin-only completion row",
+        "cacheInstall": "passed: installer syncs plugins/cache/local/jingyuan/local as a plugin payload cache",
+        "promptInput": "not run: verified flat mirror frontmatter names directly in temporary install"
+    },
+    "notes": [
+        "Codex v0.122 shows every enabled plugin as a plugin-only completion row; JingYuan therefore uses flat skill mirrors for discovery while keeping the complete plugin payload installed.",
+        "The local installer defaults to the Codex home directory rather than the user home directory.",
+        "The installer keeps the complete plugin under plugins/jingyuan, syncs plugins/cache/local/jingyuan/local, creates skills/jy-* mirrors with name: \"jingyuan:<skill>\", and removes obsolete flat skill discovery entries to avoid duplicate loading.",
+        "Shared assets and references are kept under plugins/jingyuan and are installed with the plugin.",
+        "Unix command examples are not used in primary skill flows; historical Claude references remain under references/claude-original."
+    ]
 }

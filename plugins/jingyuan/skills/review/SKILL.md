@@ -10,6 +10,7 @@ description: 景元代码审查工作流。Use when Codex needs to review code f
 - 新入口使用 `$jingyuan:review`；旧斜杠命令仅作为历史语义参考。
 - Claude 专属的 hooks/sub-agent 描述在 Codex 中按 `<JINGYUAN_PLUGIN_ROOT>/references/workflow/hooks-adapter.md` 和 `<JINGYUAN_PLUGIN_ROOT>/references/workflow/sub-agent-adapter.md` 执行。
 - 执行前优先读取本插件的共享参考：`<JINGYUAN_PLUGIN_ROOT>/references/workflow/document-conventions.md`、`<JINGYUAN_PLUGIN_ROOT>/references/workflow/hooks-adapter.md`、`<JINGYUAN_PLUGIN_ROOT>/references/workflow/sub-agent-adapter.md`、`<JINGYUAN_PLUGIN_ROOT>/references/workflow/windows-powershell.md`。
+- 同时读取 `<JINGYUAN_PLUGIN_ROOT>/references/workflow/project-memory.md` 和 `<JINGYUAN_PLUGIN_ROOT>/references/workflow/dependency-policy.md`；审查时必须尊重 `docs/context.md`、`docs/adr/`、`docs/out-of-scope/`。
 - 本插件面向 Windows 用户，命令示例默认使用 PowerShell；除用户明确要求外，不使用 Unix 命令作为主流程。
 - 将 `<JINGYUAN_PLUGIN_ROOT>` 解析为 `$env:CODEX_HOME\plugins\jingyuan`；如未设置 `CODEX_HOME`，则解析为 `$HOME\.codex\plugins\jingyuan`。
 
@@ -226,7 +227,6 @@ description: 景元代码审查工作流。Use when Codex needs to review code f
 
 [初始化]
     执行 [第一步：加载比对基准]
-
 
 
 

@@ -8,6 +8,7 @@ description: 景元同步对齐工作流。Use when Codex needs to audit and rec
 - 本 Skill 面向 Codex，默认入口为 `$jingyuan:sync`。
 - 所有产品、设计、开发计划、反馈和进化类文档必须写入目标项目的 `docs/` 目录；不得在目标项目根目录直接生成旧文件名。
 - 执行前优先读取本插件共享参考：`<JINGYUAN_PLUGIN_ROOT>/references/workflow/document-conventions.md`、`<JINGYUAN_PLUGIN_ROOT>/references/workflow/hooks-adapter.md`、`<JINGYUAN_PLUGIN_ROOT>/references/workflow/sub-agent-adapter.md`、`<JINGYUAN_PLUGIN_ROOT>/references/workflow/windows-powershell.md`。
+- 同时读取 `<JINGYUAN_PLUGIN_ROOT>/references/workflow/project-memory.md`，把 `docs/context.md`、`docs/adr/`、`docs/out-of-scope/` 纳入同步对象。
 - 遇到不确定"差异应该同步到哪里"时，读取 `references/sync-matrix.md`。
 - 本插件面向 Windows 用户，命令示例默认使用 PowerShell；除用户明确要求外，不使用 Unix 命令作为主流程。
 - 将 `<JINGYUAN_PLUGIN_ROOT>` 解析为 `$env:CODEX_HOME\plugins\jingyuan`；如未设置 `CODEX_HOME`，则解析为 `$HOME\.codex\plugins\jingyuan`。
@@ -76,6 +77,9 @@ description: 景元同步对齐工作流。Use when Codex needs to audit and rec
     **产品层**
     - docs/PRD/prd.md
     - docs/PRD/changelog.md
+    - docs/context.md
+    - docs/adr/*.md
+    - docs/out-of-scope/*.md
 
     **设计层**
     - docs/design/design.md

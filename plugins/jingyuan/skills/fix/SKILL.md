@@ -10,6 +10,7 @@ description: 景元 Bug 修复工作流。Use when Codex needs to investigate, r
 - 新入口使用 `$jingyuan:fix`；旧斜杠命令仅作为历史语义参考。
 - Claude 专属的 hooks/sub-agent 描述在 Codex 中按 `<JINGYUAN_PLUGIN_ROOT>/references/workflow/hooks-adapter.md` 和 `<JINGYUAN_PLUGIN_ROOT>/references/workflow/sub-agent-adapter.md` 执行。
 - 执行前优先读取本插件的共享参考：`<JINGYUAN_PLUGIN_ROOT>/references/workflow/document-conventions.md`、`<JINGYUAN_PLUGIN_ROOT>/references/workflow/hooks-adapter.md`、`<JINGYUAN_PLUGIN_ROOT>/references/workflow/sub-agent-adapter.md`、`<JINGYUAN_PLUGIN_ROOT>/references/workflow/windows-powershell.md`。
+- 同时读取 `<JINGYUAN_PLUGIN_ROOT>/references/workflow/dependency-policy.md` 和 `<JINGYUAN_PLUGIN_ROOT>/references/workflow/project-memory.md`；PRD、context、ADR 是软依赖，缺失不阻塞修复。
 - 本插件面向 Windows 用户，命令示例默认使用 PowerShell；除用户明确要求外，不使用 Unix 命令作为主流程。
 - 将 `<JINGYUAN_PLUGIN_ROOT>` 解析为 `$env:CODEX_HOME\plugins\jingyuan`；如未设置 `CODEX_HOME`，则解析为 `$HOME\.codex\plugins\jingyuan`。
 
@@ -41,6 +42,8 @@ description: 景元 Bug 修复工作流。Use when Codex needs to investigate, r
 
 [第一性原则]
     **不猜不试**：没有证据就不下结论。先收集、先分析、先假设、再验证。不要看到报错就急着改代码。
+    **反馈循环优先**：先构造可重复的复现/验证循环，再进入根因假设和修复。没有循环就停止并说明缺失的复现材料或验证手段。
+    **性能先基线**：性能问题必须先建立基线测量（耗时、资源、吞吐、查询计划或浏览器性能记录），再做优化。
     **一次一个**：一次只改一个东西。改完验证，确认有效再继续。同时改多处无法判断哪个是真正的修复。
     **修改纪律**：修 bug 也是改代码。改之前评估影响范围，改之后回归验证。修 A 不能坏 B。
     **联网优先**：不熟悉的报错信息先 WebSearch 再判断。第三方库的 bug 先搜已知问题再自己排查。
@@ -119,6 +122,12 @@ description: 景元 Bug 修复工作流。Use when Codex needs to investigate, r
 [调试策略]
     四阶段系统性调试法，不允许跳阶段。
 
+    **第零阶段：建立反馈循环**
+    - 优先用失败测试、CLI 命令、HTTP 请求、Playwright、最小复现脚本或用户复现步骤构造 pass/fail 信号。
+    - 循环必须能证明 bug 存在，也能证明修复有效。
+    - 如果无法构造循环，停止并向用户索要日志、录屏、HAR、测试账号、复现环境或允许添加临时 instrumentation。
+    - 性能问题先记录基线，不允许直接改代码赌优化。
+
     **第一阶段：收集证据**
     - 读完整的错误信息和 stack trace
     - 复现 bug（确认是稳定复现还是偶发）
@@ -167,8 +176,8 @@ description: 景元 Bug 修复工作流。Use when Codex needs to investigate, r
             扫描项目代码 → 了解相关模块结构
 
     [调试阶段]
-        执行 [调试策略] 的四阶段流程：
-        第一阶段 → 第二阶段 → 第三阶段 → 第四阶段
+        执行 [调试策略]：
+        第零阶段 → 第一阶段 → 第二阶段 → 第三阶段 → 第四阶段
 
         每个阶段完成后向用户汇报进展：
         - 第一阶段后："收集到以下证据：…… 初步判断问题在 XX"
@@ -177,10 +186,11 @@ description: 景元 Bug 修复工作流。Use when Codex needs to investigate, r
 
     [验证阶段]
         修复完成后必须执行：
-        1. 编译验证：tsc --noEmit 零错误
-        2. 功能验证：按复现步骤操作，bug 不再出现
-        3. 回归验证：相关功能（列出具体功能名）仍正常工作
-        4. 如有 Playwright → 自动化验证核心交互流程
+        1. 复现循环验证：原始 pass/fail 信号从失败变为通过
+        2. 编译验证：tsc --noEmit 零错误
+        3. 功能验证：按复现步骤操作，bug 不再出现
+        4. 回归验证：相关功能（列出具体功能名）仍正常工作
+        5. 如有 Playwright → 自动化验证核心交互流程
         输出证据（编译输出、验证截图/结果）
 
     [完成阶段]
@@ -199,7 +209,6 @@ description: 景元 Bug 修复工作流。Use when Codex needs to investigate, r
 
 [初始化]
     执行 [启动阶段]
-
 
 
 

@@ -10,6 +10,7 @@ description: 景元反馈记录工作流。Use when Codex detects user correctio
 - 新入口使用 `$jingyuan:feedback`；旧斜杠命令仅作为历史语义参考。
 - Claude 专属的 hooks/sub-agent 描述在 Codex 中按 `<JINGYUAN_PLUGIN_ROOT>/references/workflow/hooks-adapter.md` 和 `<JINGYUAN_PLUGIN_ROOT>/references/workflow/sub-agent-adapter.md` 执行。
 - 执行前优先读取本插件的共享参考：`<JINGYUAN_PLUGIN_ROOT>/references/workflow/document-conventions.md`、`<JINGYUAN_PLUGIN_ROOT>/references/workflow/hooks-adapter.md`、`<JINGYUAN_PLUGIN_ROOT>/references/workflow/sub-agent-adapter.md`、`<JINGYUAN_PLUGIN_ROOT>/references/workflow/windows-powershell.md`。
+- 同时读取 `<JINGYUAN_PLUGIN_ROOT>/references/workflow/project-memory.md`；涉及反复拒绝、明确不做、本期不做或范围边界的反馈，应优先考虑 `docs/out-of-scope/`。
 - 本插件面向 Windows 用户，命令示例默认使用 PowerShell；除用户明确要求外，不使用 Unix 命令作为主流程。
 - 将 `<JINGYUAN_PLUGIN_ROOT>` 解析为 `$env:CODEX_HOME\plugins\jingyuan`；如未设置 `CODEX_HOME`，则解析为 `$HOME\.codex\plugins\jingyuan`。
 
@@ -62,6 +63,10 @@ description: 景元反馈记录工作流。Use when Codex detects user correctio
 
        **反膨胀**：有修正 → 精准度 ≤ 3 / 临时发明 → 覆盖度 ≤ 3 / 2+ 次来回 → 效率 ≤ 3 / 有修改意见 → 满意度 ≤ 3
 
+    6. **Out-of-scope 信号**
+       用户明确说某能力不做、暂不做、不是本期范围，或多次拒绝同类建议。
+       → 写入普通 feedback；若该边界长期有效或重复出现，同时建议写入 `docs/out-of-scope/`。
+
     **判断标准**：
     只有确实观察到信号时才记录。宁可漏记，不可滥记。
 
@@ -72,6 +77,13 @@ description: 景元反馈记录工作流。Use when Codex detects user correctio
 
 [写入流程] 1. 读取 docs/feedback/index.md（如不存在，从 `<JINGYUAN_PLUGIN_ROOT>/assets/templates/feedback-index-template.md` 创建）2. 检查是否已有同主题 feedback（去重）- 已有 → 更新内容 + occurrences +1 + 更新 updated - 没有 → 创建新文件 + 更新索引 3. 文件名用 kebab-case，简短描述主题 4. 按 `<JINGYUAN_PLUGIN_ROOT>/assets/templates/feedback-topic-template.md` 格式写入 5. 更新 docs/feedback/index.md
 
+[out-of-scope 写入建议]
+如果 feedback 明确属于长期范围边界：
+1. 检查 `docs/out-of-scope/` 是否已有同主题记录。
+2. 没有则建议使用 `<JINGYUAN_PLUGIN_ROOT>/assets/templates/out-of-scope-template.md` 创建。
+3. 已有则建议追加来源和出现次数。
+4. 不自动把临时偏好写成永久边界；必须有用户确认或重复信号。
+
 [文件规范]
 存放位置：docs/feedback/
 索引文件：docs/feedback/index.md
@@ -80,7 +92,6 @@ description: 景元反馈记录工作流。Use when Codex detects user correctio
 
 [返回格式]
 执行完毕后返回给主 Agent：- 有新记录："记录了 1 条 feedback：[标题]（[文件名]）" - 更新已有："更新了 [文件名]，occurrences: N → N+1" - 无信号："无新 feedback"
-
 
 
 

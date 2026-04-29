@@ -10,21 +10,22 @@ JingYuan 是面向 Codex 的 Windows-first 工作流插件，把产品、设计�
 
 命令示例默认使用 PowerShell。除非用户明确要求跨平台兼容，不把 Bash、sh、pkill、lsof、grep、find 等 Unix 命令作为主流程。
 
-## 调用入口
+## 可用技能
 
-Codex 补全列表中会显示为 `jingyuan:<skill>`。输入 `$jingyuan` 搜索即可看到以下子技能：
+Codex 补全列表中显示为 `jingyuan:<skill>`。输入 `$jingyuan` 可看到以下子技能：
 
-- `$jingyuan:pm`：生成或更新 `docs/PRD/prd.md`
-- `$jingyuan:design`：生成 `docs/design/design.md`
+- `$jingyuan:setup`：初始化 JingYuan 项目目录、长期记忆和 `.jingyuan/config.json`
+- `$jingyuan:pm`：澄清产品问题、术语、场景、范围和风险，生成或更新 `docs/PRD/prd.md`
+- `$jingyuan:design`：生成或更新 `docs/design/design.md`
 - `$jingyuan:mockup`：生成设计稿说明 `docs/design/mockup.md`；如用户选择 Pencil，同步生成 `docs/design/ui-design.pen`
-- `$jingyuan:dev-plan`：生成 `docs/development/plan.md`
+- `$jingyuan:dev-plan`：生成或更新 `docs/development/plan.md`
 - `$jingyuan:dev-builder`：按开发计划实现项目
-- `$jingyuan:review`：审查代码
-- `$jingyuan:fix`：修复 Bug
-- `$jingyuan:release`：构建发布
-- `$jingyuan:feedback`：记录反馈
+- `$jingyuan:review`：审查代码、文档一致性、质量、安全、性能和测试覆盖
+- `$jingyuan:fix`：建立复现/验证循环后修复 Bug
+- `$jingyuan:release`：构建、打包和发布检查
+- `$jingyuan:feedback`：记录反馈到 `docs/feedback/`
 - `$jingyuan:evolution`：扫描反馈并提出进化建议
-- `$jingyuan:sync`：同步代码、PRD、设计文档、设计稿说明和开发计划
+- `$jingyuan:sync`：同步代码、PRD、设计、设计稿、开发计划和交接文档
 - `$jingyuan:skill-builder`：创建或维护 JingYuan skill
 
 ## 文档收口
@@ -36,11 +37,17 @@ Codex 补全列表中会显示为 `jingyuan:<skill>`。输入 `$jingyuan` 搜索
 <target-project>/docs/PRD/changelog.md
 <target-project>/docs/design/design.md
 <target-project>/docs/design/mockup.md
-<target-project>/docs/design/ui-design.pen   # 仅 Pencil 设计稿
+<target-project>/docs/design/ui-design.pen
 <target-project>/docs/development/plan.md
 <target-project>/docs/feedback/index.md
 <target-project>/docs/feedback/
+<target-project>/docs/context.md
+<target-project>/docs/adr/
+<target-project>/docs/out-of-scope/
+<target-project>/.jingyuan/config.json
 ```
+
+其中 `docs/context.md`、`docs/adr/`、`docs/out-of-scope/` 是项目长期记忆，用来固定术语、记录关键取舍和保存明确不做的范围。
 
 ## 安装到本机 Codex
 
@@ -60,7 +67,7 @@ $env:CODEX_HOME\.agents\plugins\marketplace.json
 $env:CODEX_HOME\config.toml
 ```
 
-如未设置 `CODEX_HOME`，脚本默认使用：
+如果未设置 `CODEX_HOME`，脚本默认使用：
 
 ```text
 $HOME\.codex\plugins\jingyuan
@@ -70,7 +77,7 @@ $HOME\.codex\.agents\plugins\marketplace.json
 $HOME\.codex\config.toml
 ```
 
-默认不覆盖已有插件。需要覆盖本机 JingYuan 插件时：
+默认不覆盖已有插件。需要覆盖本地 JingYuan 插件时：
 
 ```powershell
 .\install\install-local.ps1 -Force
@@ -83,29 +90,6 @@ Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
 .\install\install-local.ps1
 ```
 
-安装完成后，重启或刷新 Codex，然后使用 `$jingyuan:pm`、`$jingyuan:dev-builder` 等入口调用。
-
-安装脚本会做五件事：
-
-1. 安装完整插件到 `$HOME\.codex\plugins\jingyuan`
-2. 同步插件缓存目录 `$HOME\.codex\plugins\cache\local\jingyuan\local`
-3. 生成 `$HOME\.codex\skills\jy-*` 技能发现镜像，镜像 frontmatter 使用 `name: "jingyuan:<skill>"`
-4. 写入本地 marketplace，并从 `config.toml` 移除 `[plugins."jingyuan@local"]` 启用项，避免 Codex 补全里出现插件本体空入口
-5. 清理旧版安装遗留的 `$HOME\.codex\skills\jingyuan-*`、`$HOME\.codex\skills\jy-*` 和 `$HOME\.agents\skills\jingyuan`
-
-Codex CLI 会从 `.codex\skills\jy-*` 读取技能，技能资源仍从 `.codex\plugins\jingyuan` 引用。在 `$...` 候选里输入 `$jingyuan` 前缀时，应只匹配出各个 `jingyuan:*` 子技能，不应再出现单独的 `[Plugin] JingYuan` 本体入口。
-
-如果安装后 `$jingyuan` 仍无匹配，先完全退出并重新启动 Codex CLI，再检查：
-
-```powershell
-Select-String -Path "$HOME\.codex\config.toml" -Pattern 'jingyuan@local'
-Test-Path "$HOME\.codex\skills\jy-pm\SKILL.md"
-Select-String -Path "$HOME\.codex\skills\jy-pm\SKILL.md" -Pattern 'name: "jingyuan:pm"'
-codex plugin marketplace add "$HOME\.codex"
-```
-
-第一条命令不应再出现 `[plugins."jingyuan@local"]` 启用块；第二、三条命令应为 `True` 或匹配到 `name: "jingyuan:pm"`。如果报告 marketplace JSON 解析失败，通常是旧安装写出了非 UTF-8 无 BOM 文件，重新执行 `.\install\install-local.ps1 -Force` 即可修复。
-
 ## 验证
 
 ```powershell
@@ -117,7 +101,5 @@ codex plugin marketplace add "$HOME\.codex"
 `-HomeRoot` 仅用于测试或高级场景；正常安装不需要传参。
 
 ## 安全说明
-
-原 Claude hooks 已迁移到 `plugins/jingyuan/references/hooks/` 和 `plugins/jingyuan/references/workflow/hooks-adapter.md`。其中反馈检测、进化扫描、review 标记和 commit 前检查属于自动工作流体验；`auto-push` 默认关闭，除非用户明确开启。
 
 涉及生产部署、Git push、npm publish、npm unpublish、GitHub Release 上传、删除和重置等副作用操作时，必须先向用户展示目标、命令和影响范围，并取得明确确认。

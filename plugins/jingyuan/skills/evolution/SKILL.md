@@ -10,6 +10,7 @@ description: 景元进化引擎工作流。Use when Codex should scan docs/feedb
 - 新入口使用 `$jingyuan:evolution`；旧斜杠命令仅作为历史语义参考。
 - Claude 专属的 hooks/sub-agent 描述在 Codex 中按 `<JINGYUAN_PLUGIN_ROOT>/references/workflow/hooks-adapter.md` 和 `<JINGYUAN_PLUGIN_ROOT>/references/workflow/sub-agent-adapter.md` 执行。
 - 执行前优先读取本插件的共享参考：`<JINGYUAN_PLUGIN_ROOT>/references/workflow/document-conventions.md`、`<JINGYUAN_PLUGIN_ROOT>/references/workflow/hooks-adapter.md`、`<JINGYUAN_PLUGIN_ROOT>/references/workflow/sub-agent-adapter.md`、`<JINGYUAN_PLUGIN_ROOT>/references/workflow/windows-powershell.md`。
+- 同时读取 `<JINGYUAN_PLUGIN_ROOT>/references/workflow/project-memory.md`；重复出现的“不做/暂不做/拒绝原因”应沉淀到 `docs/out-of-scope/`。
 - 本插件面向 Windows 用户，命令示例默认使用 PowerShell；除用户明确要求外，不使用 Unix 命令作为主流程。
 - 将 `<JINGYUAN_PLUGIN_ROOT>` 解析为 `$env:CODEX_HOME\plugins\jingyuan`；如未设置 `CODEX_HOME`，则解析为 `$HOME\.codex\plugins\jingyuan`。
 
@@ -46,7 +47,11 @@ description: 景元进化引擎工作流。Use when Codex should scan docs/feedb
         筛选：occurrences >= 5 且不属于任何已有 Skill 的覆盖范围
         → 标记为"新 Skill 候选"
 
-    第四步：生成提议
+    第四步：检查 out-of-scope 信号
+        筛选：反馈中出现"不做"、"暂不做"、"不是本期范围"、"不要再建议"等长期边界，且 occurrences >= 2
+        → 标记为"out-of-scope 候选"
+
+    第五步：生成提议
         有信号 → 生成结构化提议（见 [提议格式]）
         无信号 → 返回"无进化建议"
 
@@ -66,20 +71,26 @@ description: 景元进化引擎工作流。Use when Codex should scan docs/feedb
 
      **新 Skill 提议**（X 条）
      1. [操作模式描述]：出现 [N] 次
-        -- 确认创建 / 跳过"
+        -- 确认创建 / 跳过
+
+     **Out-of-scope 沉淀**（X 条）
+     1. [不做事项]：出现 [N] 次
+        建议写入：docs/out-of-scope/[topic].md
+        原因摘要：[一句话]
+        -- 确认 / 跳过"
 
 [确认后执行]
     用户逐条确认或跳过：
     - 规则毕业 → 将 feedback 内容写入目标 `SKILL.md` 或 `<JINGYUAN_PLUGIN_ROOT>/references/workflow/*.md`，标记 graduated: true
     - Skill 优化 → 修改对应 SKILL.md
     - 新 Skill → 调用 skill-builder 创建
+    - Out-of-scope 沉淀 → 使用 `<JINGYUAN_PLUGIN_ROOT>/assets/templates/out-of-scope-template.md` 写入 `docs/out-of-scope/`
     - 跳过 → 标记 skipped: true，不再重复提议
 
 [返回格式]
     返回给主 Agent：
     - 有提议："有 N 条进化建议待处理"+ 完整提议内容
     - 无提议："无进化建议"
-
 
 
 

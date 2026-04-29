@@ -8,6 +8,8 @@ $pluginRoot = Join-Path $root 'plugins\jingyuan'
 $manifestPath = Join-Path $pluginRoot '.codex-plugin\plugin.json'
 $marketplacePath = Join-Path $root '.agents\plugins\marketplace.json'
 $installerPath = Join-Path $root 'install\install-local.ps1'
+$readmePath = Join-Path $root 'README.md'
+$validationReportPath = Join-Path $root 'validation-report.json'
 $errors = New-Object System.Collections.Generic.List[string]
 
 function Add-Error {
@@ -89,6 +91,7 @@ if (Test-Path -LiteralPath (Join-Path $skillRoot 'jingyuan')) {
 }
 
 $expectedSkills = @(
+  'setup',
   'pm',
   'design',
   'mockup',
@@ -109,6 +112,30 @@ $expectedSkillNames = @($expectedSkills | Sort-Object)
 $skillNameDiff = Compare-Object -ReferenceObject $expectedSkillNames -DifferenceObject $actualSkillNames
 if ($actualSkillNames.Count -ne $expectedSkillNames.Count -or $skillNameDiff) {
   Add-Error "Expected JingYuan skills: $($expectedSkillNames -join ', '); found: $($actualSkillNames -join ', ')."
+}
+
+if (-not (Test-Path -LiteralPath $readmePath)) {
+  Add-Error "Missing README: $readmePath"
+} else {
+  $readmeContent = Get-Content -Raw -Encoding UTF8 -LiteralPath $readmePath
+  foreach ($expectedSkill in $expectedSkills) {
+    if ($readmeContent -notmatch [regex]::Escape("`$jingyuan:$expectedSkill")) {
+      Add-Error "README must mention `$jingyuan:$expectedSkill."
+    }
+  }
+}
+
+if (Test-Path -LiteralPath $validationReportPath) {
+  Test-Utf8JsonStartsClean -Path $validationReportPath -Label 'validation-report.json'
+  $validationReport = Get-Content -Raw -Encoding UTF8 -LiteralPath $validationReportPath | ConvertFrom-Json
+  if ($validationReport.skillCount -ne $expectedSkills.Count) {
+    Add-Error "validation-report.json skillCount must be $($expectedSkills.Count); found $($validationReport.skillCount)."
+  }
+  $reportSkills = @($validationReport.skills | Sort-Object)
+  $reportSkillDiff = Compare-Object -ReferenceObject $expectedSkillNames -DifferenceObject $reportSkills
+  if ($reportSkills.Count -ne $expectedSkillNames.Count -or $reportSkillDiff) {
+    Add-Error "validation-report.json skills must match expected skills."
+  }
 }
 
 foreach ($skill in $skills) {

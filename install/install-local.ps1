@@ -215,6 +215,7 @@ $marketplacePath = Join-Path $installRoot '.agents\plugins\marketplace.json'
 $configPath = Join-Path $installRoot 'config.toml'
 $skillMirrorRoot = Join-Path $installRoot 'skills'
 $jingyuanSkillNames = @(
+  'setup',
   'pm',
   'design',
   'mockup',

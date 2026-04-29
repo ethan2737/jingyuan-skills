@@ -10,6 +10,7 @@ description: 景元开发实现工作流。Use when Codex needs to build or cont
 - 新入口使用 `$jingyuan:dev-builder`；旧斜杠命令仅作为历史语义参考。
 - Claude 专属的 hooks/sub-agent 描述在 Codex 中按 `<JINGYUAN_PLUGIN_ROOT>/references/workflow/hooks-adapter.md` 和 `<JINGYUAN_PLUGIN_ROOT>/references/workflow/sub-agent-adapter.md` 执行。
 - 执行前优先读取本插件的共享参考：`<JINGYUAN_PLUGIN_ROOT>/references/workflow/document-conventions.md`、`<JINGYUAN_PLUGIN_ROOT>/references/workflow/hooks-adapter.md`、`<JINGYUAN_PLUGIN_ROOT>/references/workflow/sub-agent-adapter.md`、`<JINGYUAN_PLUGIN_ROOT>/references/workflow/windows-powershell.md`。
+- 同时读取 `<JINGYUAN_PLUGIN_ROOT>/references/workflow/dependency-policy.md`、`<JINGYUAN_PLUGIN_ROOT>/references/workflow/project-memory.md`、`<JINGYUAN_PLUGIN_ROOT>/references/workflow/vertical-slice.md`，用于依赖分级、长期记忆和端到端切片执行。
 - 本插件面向 Windows 用户，命令示例默认使用 PowerShell；除用户明确要求外，不使用 Unix 命令作为主流程。
 - 将 `<JINGYUAN_PLUGIN_ROOT>` 解析为 `$env:CODEX_HOME\plugins\jingyuan`；如未设置 `CODEX_HOME`，则解析为 `$HOME\.codex\plugins\jingyuan`。
 
@@ -31,6 +32,9 @@ description: 景元开发实现工作流。Use when Codex needs to build or cont
 
     可选：
     - docs/design/design.md → 缺失则标记"无设计规范模式"
+    - docs/context.md → 有则统一术语；缺失不阻塞
+    - docs/adr/ → 有则尊重已确认架构决策；缺失不阻塞
+    - docs/out-of-scope/ → 有则作为范围保护；如 plan 包含其中内容，停止并提示同步
     - 设计工具 MCP → 缺失则标记"无设计稿模式"
     - gh CLI → 有则可创建 GitHub 仓库和 push；执行前必须展示仓库名、远程地址、分支和命令，并取得用户明确确认
     - playwright → 有则可做 UI 自动化测试
@@ -42,6 +46,8 @@ description: 景元开发实现工作流。Use when Codex needs to build or cont
 
 [第一性原则]
     **修改纪律**：每次改代码前必须评估影响范围。改之前想清楚，改之后回归验证。不急着动手，不改坏已有功能。
+    **Vertical Slice 优先**：每个 Task 必须对应一个可验证的用户行为或系统行为，不只以"创建文件/搭架构"作为完成标准。
+    **范围保护**：不得实现 PRD "本期不做"或 `docs/out-of-scope/` 中的内容。发现 Development Plan 与范围记录冲突时停止并提示先同步。
     **SDK-First**：框架和 SDK 已有的能力不重复造。用之前 WebSearch 确认 SDK 是否已支持。
     **联网优先**：不靠过期记忆，靠实时信息。用到外部库/API 前，WebSearch 确认当前版本的用法和兼容性。
     **验证即证据（硬性门禁）**：完成声明必须在同一条消息中包含刚刚执行的验证命令及其输出。"完成了"加上同一条消息内运行的编译输出是有效声明。"完成了"加上"之前编译过了"是无效声明，必须重新运行。"完成了"但没有任何验证命令也是无效声明。这不是建议，是门禁。没有当场验证，就没有完成。
@@ -460,18 +466,20 @@ description: 景元开发实现工作流。Use when Codex needs to build or cont
             3. 读取 docs/design/design.md 中该 Task 涉及的视觉方向和页面备注
             4. 如有设计工具 MCP 已连接，通过设计工具找到该 Task 对应的设计页面，读取该页面及其组件的精确数值。每个 Task 都重新读取，不凭记忆
             5. 明确该 Task 的交付目标：功能上实现什么、视觉上做成什么样
+            6. 明确该 Task 的 vertical slice：用户或系统触发什么、经过哪些必要层、用什么方式验证完成
 
             编码：
-            6. 严格按参照文档实现，逐个组件对照设计数值编码
+            7. 严格按参照文档实现，逐个组件对照设计数值编码
 
             开发后——对照验证 + Review 循环：
-            7. 读取代码实际值，逐项与设计数值核对，有偏差则修正
-            8. 对照 docs/PRD/prd.md 确认功能行为符合描述
-            9. 运行 `$jingyuan:review` 执行两阶段审查；审查必须同样对照 docs/PRD/prd.md、docs/design/design.md、docs/development/plan.md 和设计稿
-            10. Stage 1 失败（功能缺失）→ 补实现 → 重新运行 `$jingyuan:review`
-            11. Stage 2 失败（代码质量）→ 调用 fix 修复 → 重新运行 `$jingyuan:review`
-            12. 两个 Stage 都通过 → 将任务标记完成 → 将 `.jingyuan/needs-review` 写为 `clean` 或删除以清除 review 状态 → commit
-            13. 进入下一个 Task
+            8. 读取代码实际值，逐项与设计数值核对，有偏差则修正
+            9. 对照 docs/PRD/prd.md 确认功能行为符合描述
+            10. 验证该 Task 的端到端切片，不只验证编译或文件存在
+            11. 运行 `$jingyuan:review` 执行两阶段审查；审查必须同样对照 docs/PRD/prd.md、docs/design/design.md、docs/development/plan.md 和设计稿
+            12. Stage 1 失败（功能缺失）→ 补实现 → 重新运行 `$jingyuan:review`
+            13. Stage 2 失败（代码质量）→ 调用 fix 修复 → 重新运行 `$jingyuan:review`
+            14. 两个 Stage 都通过 → 将任务标记完成 → 将 `.jingyuan/needs-review` 写为 `clean` 或删除以清除 review 状态 → commit
+            15. 进入下一个 Task
 
             编码过程中始终遵循：
             - [开发规则清单] 中的所有规则
@@ -499,7 +507,6 @@ description: 景元开发实现工作流。Use when Codex needs to build or cont
     - 有代码 + 有 docs/development/plan.md → 持续开发模式
     - 无 docs/development/plan.md → 提示先调用 $jingyuan:dev-plan
     - 无 docs/PRD/prd.md → 提示先调用 $jingyuan:pm
-
 
 
 
