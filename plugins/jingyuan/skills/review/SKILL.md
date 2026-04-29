@@ -3,19 +3,9 @@ name: review
 description: 景元代码审查工作流。Use when Codex needs to review code for spec compliance, design compliance, code quality, safety, performance, and test coverage.
 ---
 
-# Codex 适配说明
+# JingYuan Review
 
-- 本 Skill 从原 code-review 迁移而来，正文保留原工作流内容并按 Codex 规则调整入口、路径和产物命名。
-- 所有产品、设计、开发计划、反馈和进化类文档必须写入目标项目的 `docs/` 目录；不得在目标项目根目录直接生成旧文件名。
-- 新入口使用 `$jingyuan:review`；旧斜杠命令仅作为历史语义参考。
-- Claude 专属的 hooks/sub-agent 描述在 Codex 中按 `<JINGYUAN_PLUGIN_ROOT>/references/workflow/hooks-adapter.md` 和 `<JINGYUAN_PLUGIN_ROOT>/references/workflow/sub-agent-adapter.md` 执行。
-- 执行前优先读取本插件的共享参考：`<JINGYUAN_PLUGIN_ROOT>/references/workflow/document-conventions.md`、`<JINGYUAN_PLUGIN_ROOT>/references/workflow/hooks-adapter.md`、`<JINGYUAN_PLUGIN_ROOT>/references/workflow/sub-agent-adapter.md`、`<JINGYUAN_PLUGIN_ROOT>/references/workflow/windows-powershell.md`。
-- 同时读取 `<JINGYUAN_PLUGIN_ROOT>/references/workflow/project-memory.md` 和 `<JINGYUAN_PLUGIN_ROOT>/references/workflow/dependency-policy.md`；审查时必须尊重 `docs/context.md`、`docs/adr/`、`docs/out-of-scope/`。
-- 审查准备、测试覆盖和完成声明必须同时对照 `<JINGYUAN_PLUGIN_ROOT>/references/workflow/review-readiness.md`、`<JINGYUAN_PLUGIN_ROOT>/references/workflow/testing-policy.md`、`<JINGYUAN_PLUGIN_ROOT>/references/workflow/verification-gates.md`。
-- 本插件面向 Windows 用户，命令示例默认使用 PowerShell；除用户明确要求外，不使用 Unix 命令作为主流程。
-- 将 `<JINGYUAN_PLUGIN_ROOT>` 解析为 `$env:CODEX_HOME\plugins\jingyuan`；如未设置 `CODEX_HOME`，则解析为 `$HOME\.codex\plugins\jingyuan`。
-
-# 原工作流正文（Codex 路径适配版）
+`$jingyuan:review` 对照 PRD、设计、开发计划、长期记忆和代码进行两阶段审查。启动时读取 `document-conventions.md`、`project-memory.md`、`dependency-policy.md`、`review-readiness.md`、`testing-policy.md`、`verification-gates.md` 和 `windows-powershell.md`；审查必须尊重 `docs/context.md`、`docs/adr/`、`docs/out-of-scope/`。
 
 
 [任务]
@@ -321,6 +311,5 @@ description: 景元代码审查工作流。Use when Codex needs to review code f
 
 [初始化]
     执行 [第一步：加载比对基准]
-
 
 

@@ -1,158 +1,88 @@
 ---
 name: skill-builder
-description: 景元 Skill 创建工作流。Use when Codex needs to create or maintain JingYuan skills using the established workflow and templates.
+description: 景元 Skill 创建与维护工作流。Use when Codex needs to create or maintain JingYuan skills using the established workflow, references, and templates.
 ---
 
-# Codex 适配说明
+# JingYuan Skill Builder
 
-- 本 Skill 从原 skill-builder 迁移而来，正文保留原工作流内容并按 Codex 规则调整入口、路径和产物命名。
-- 所有产品、设计、开发计划、反馈和进化类文档必须写入目标项目的 `docs/` 目录；不得在目标项目根目录直接生成旧文件名。
-- 新入口使用 `$jingyuan:skill-builder`；旧斜杠命令仅作为历史语义参考。
-- Claude 专属的 hooks/sub-agent 描述在 Codex 中按 `<JINGYUAN_PLUGIN_ROOT>/references/workflow/hooks-adapter.md` 和 `<JINGYUAN_PLUGIN_ROOT>/references/workflow/sub-agent-adapter.md` 执行。
-- 执行前优先读取本插件的共享参考：`<JINGYUAN_PLUGIN_ROOT>/references/workflow/document-conventions.md`、`<JINGYUAN_PLUGIN_ROOT>/references/workflow/hooks-adapter.md`、`<JINGYUAN_PLUGIN_ROOT>/references/workflow/sub-agent-adapter.md`、`<JINGYUAN_PLUGIN_ROOT>/references/workflow/windows-powershell.md`。
-- 本插件面向 Windows 用户，命令示例默认使用 PowerShell；除用户明确要求外，不使用 Unix 命令作为主流程。
-- 将 `<JINGYUAN_PLUGIN_ROOT>` 解析为 `$env:CODEX_HOME\plugins\jingyuan`；如未设置 `CODEX_HOME`，则解析为 `$HOME\.codex\plugins\jingyuan`。
-
-# 原工作流正文（Codex 路径适配版）
-
+`$jingyuan:skill-builder` 用于创建或维护 JingYuan 技能。新版技能应完整但不冗余：保留触发场景、依赖、输入输出、执行步骤、失败/降级行为、安全与验证要求；公共规则下沉到 workflow references。
 
 [任务]
-    根据用户描述的需求或 EVOLUTION.md 的第四层提议，创建符合框架规范的新 Skill。
-    确保新 Skill 和现有 Skill 结构一致、风格统一、可像积木一样即插即用。
+    根据用户需求、`$jingyuan:evolution` 建议或 `docs/feedback/` 信号，创建或优化符合 JingYuan 架构的 Skill。
 
 [依赖检测]
-    必需：无（本 Skill 不依赖外部文件）
+    必需：
+    - `plugins/jingyuan/skills/` 可读写。
+    - `<JINGYUAN_PLUGIN_ROOT>/assets/templates/jingyuan-skill-template.md`。
+    - `<JINGYUAN_PLUGIN_ROOT>/references/workflow/core-workflow.md`。
+    - `<JINGYUAN_PLUGIN_ROOT>/references/workflow/document-conventions.md`。
 
     可选：
-    - docs/feedback/ 中的相关记录 → 如来自 EVOLUTION.md 提议，读取原始 feedback 了解需求背景
+    - `docs/feedback/` 或 evolution 提议 → 用于了解需求背景。
+    - 1-2 个相似现有 Skill → 用于保持风格和粒度一致。
 
 [第一性原则]
-    **模板优先**：先读 `<JINGYUAN_PLUGIN_ROOT>/assets/templates/jingyuan-skill-template.md` 骨架，按结构填充。不从零开始写。
+    **完整但不冗余**：技能必须能让另一个 Agent 独立执行，但不复制共享规则和迁移历史。
+    **引用优先**：跨技能共用的路径、测试、验证、review、debug、子 Agent、Windows 规则写入 workflow references。
+    **交互模式优先**：参照同类交互模式的技能，不按领域机械复制。
+    **最小必要**：只保留真实影响执行的 Section、门禁和输出格式。
+    **联网优先**：涉及不熟悉领域或外部生态时先 WebSearch，再写规则。
 
-    **参照现有**：创建前先读 1-2 个已有 Skill 作为参考，保持风格一致。不发明新的格式。
+[新版技能结构]
+    推荐结构：
+    - frontmatter：只包含 `name` 和 `description`
+    - 标题：`# JingYuan <Skill>`
+    - 简述：一句话说明入口、任务和产物
+    - `[任务]`
+    - `[依赖检测]` 或 `## 启动读取`
+    - `[第一性原则]` 或 `## 硬性原则`
+    - 领域规则清单：按技能需要命名
+    - `[工作流程]`
+    - `[输出格式]` 或完成状态格式
+    - `[初始化]`
 
-    **最小必要**：只创建需要的 Section。不为了"看起来完整"而加空内容或无关规则。
+    不再复制：
+    - 历史迁移说明。
+    - 旧入口说明。
+    - 平台适配长说明。
+    - 每个技能重复的 Windows、路径、测试、验证长规则。
 
-    **联网优先**：如果新 Skill 涉及不熟悉的领域，先 WebSearch 了解该领域的最佳实践和常见问题，再设计维度清单和策略。
+[维护策略]
+    创建或维护 Skill 时：
+    1. 明确触发条件、输入、产物和是否会修改文件。
+    2. 判断所属交互模式：
+       - 对话采集型：参考 `pm`、`design`
+       - 自主分析型：参考 `dev-plan`、`review`
+       - 执行操作型：参考 `dev-builder`、`release`
+       - 诊断修复型：参考 `fix`
+       - 长期记忆型：参考 `feedback`、`evolution`
+    3. 先查是否已有 workflow reference 可复用；没有且会被多个技能共用，再新增 reference。
+    4. 写正文时保留决策关键点，删除长示例和迁移噪音。
+    5. 如技能依赖模板，明确模板路径和缺失时行为。
+    6. 如技能会被 README 或 core workflow 发现，更新对应文档。
 
-[文件结构]
-    ```
-    skill-builder/
-    ├── SKILL.md                           # 主 Skill 定义（本文件）
-    └── templates/
-        └── jingyuan-skill-template.md              # 新 Skill 的骨架模板
-    ```
+[瘦身判断]
+    可以删除：
+    - 历史迁移说明。
+    - 同一规则在多个技能中的重复展开。
+    - 只解释为什么、不影响怎么做的长段落。
+    - 已由 reference 覆盖的 Windows、验证、测试、review 细节。
 
-[创建规范]
-    [三层模块化]
-        框架的三层架构，每层独立、互不耦合：
-
-        **第一层：原子能力（Section）**
-        每个 Skill 由多个独立的 Section 组成，每个 Section 是一个原子能力模块：
-        - [维度清单] — 定义"检查什么 / 收集什么"
-        - [策略] — 定义"怎么做"
-        - [工作流程] — 定义"什么顺序做"
-        - [依赖检测] — 定义"需要什么前置条件"
-        这些是积木块——可以在不同 Skill 中复用相同模式。
-        改一个 Section 不影响其他 Section。
-
-        **第二层：Skill（SKILL.md）**
-        一个 Skill = 多个原子能力的组合，解决一个完整的领域问题。
-        改一个 Skill 不影响其他 Skill。
-
-        **第三层：工作流（Codex plugin references）**
-        `<JINGYUAN_PLUGIN_ROOT>/references/workflow/core-workflow.md` 和各 `SKILL.md` description 编排多个 Skill 的执行顺序和触发条件。
-        改工作流不需要改 Skill 内容。
-
-    [Section 分类]
-        **必须有**（所有 Skill 都有）：
-        - [任务] — 一句话说清楚做什么
-        - [依赖检测] — 启动时检查前置条件
-        - [第一性原则] — 3-5 条核心原则
-        - [文件结构] — Skill 目录结构
-        - [初始化] — 入口点
-
-        **推荐有**（大多数 Skill 有）：
-        - [输出风格] — 语态 + 原则 + 典型表达
-        - [XXX维度/规则清单] — 领域特定的检查维度（名称根据领域定制）
-        - [XXX策略] — 领域特定的方法论（名称根据领域定制）
-
-        **按需有**（特定类型的 Skill 需要）：
-        - [信息充足度判断] — 收集 / 分析型 Skill
-        - [回退策略] — 发布 / 部署类 Skill
-        - [Phase 完成度判断] — 开发类 Skill
-        - 多模式工作流程 — 有多种执行模式的 Skill
-
-    [命名规范]
-        - Skill 名：kebab-case（如 skill-builder、dev-plan）
-        - 目录：`plugins/jingyuan/skills/[skill-name]/`，由完整插件安装后通过 marketplace 发现
-        - 主文件：SKILL.md
-        - 模板文件（如有）：templates/ 子目录
-
-    [格式规范]
-        - Section 标题用 [标题] 格式
-        - 内容四空格缩进
-        - frontmatter 只有 name 和 description
-        - 中文编写
+    不可删除：
+    - 触发场景。
+    - 硬依赖、软依赖、可选依赖和缺失时行为。
+    - 输出路径和产物格式。
+    - 关键安全、隐私、性能、测试门禁。
+    - 失败、降级、回退和路由规则。
 
 [工作流程]
-    [第一步：需求收集]
-        了解用户想要什么新 Skill：
-        - 这个 Skill 解决什么问题？
-        - 什么时候触发？（自动触发的条件 / 手动调用）
-        - 输入是什么？（前置文件、用户输入、项目状态）
-        - 产出是什么？（文件、报告、代码变更）
-        - 如果来自 EVOLUTION.md 第四层提议 → 读取 feedback/ 中的原始记录，了解需求背景
-
-    [第二步：参照现有]
-        按交互模式（不是领域）找 1-2 个最接近的已有 Skill 作为参照：
-        - **对话采集型**（需要和用户多轮对话收集信息）→ 参照 pm、design
-        - **自主分析型**（读取输入自主分析输出结果）→ 参照 dev-plan、review
-        - **执行操作型**（直接执行具体操作产出成果）→ 参照 dev-builder、release
-        - **诊断修复型**（先诊断问题再执行修复）→ 参照 fix
-        新 Skill 可能是任何领域——不一定是软件开发，可能是内容写作、数据分析、竞品调研等。
-        按交互模式匹配参照，不按领域匹配。
-        了解参照 Skill 的结构、维度命名、策略风格、输出格式
-
-    [第三步：确定结构]
-        读取 `<JINGYUAN_PLUGIN_ROOT>/assets/templates/jingyuan-skill-template.md` 骨架
-        确定需要哪些 Section：
-        - 必须有的 5 个 → 全部保留
-        - 推荐有的 → 根据领域判断是否需要
-        - 按需有的 → 根据 Skill 类型判断
-        确定领域特定的名称：[XXX维度清单] 和 [XXX策略] 的 XXX 叫什么
-
-    [第四步：填充内容]
-        逐个 Section 填写：
-        - [任务] — 一句话，如有多种模式分别说明
-        - [依赖检测] — 列出必需和可选依赖
-        - [第一性原则] — 3-5 条，最后一条是联网优先
-        - [维度清单] — 这个领域需要关注什么？分必须 / 推荐 / 可选
-        - [策略] — 这个领域怎么做？用什么方法论？
-        - [工作流程] — 按什么顺序做？引用维度清单和策略
-        如涉及不熟悉的领域 → WebSearch 了解最佳实践
-
-    [第五步：创建文件]
-        在 `plugins/jingyuan/skills/[skill-name]/` 下创建 `SKILL.md`
-        如有模板文件 → 放入 `plugins/jingyuan/assets/templates/` 或该 skill 明确引用的 assets 目录
-        写完后自检：
-        - 所有必须 Section 都有？
-        - 格式一致（[标题] + 四空格缩进）？
-        - frontmatter 只有 name 和 description？
-        - 风格和参照的现有 Skill 一致？
-
-    [第六步：注册到 Codex 插件]
-        Codex 通过完整插件 `plugins/jingyuan/skills/` 发现新 Skill。
-        同时需要在插件文档中补充：
-        1. `SKILL.md` frontmatter description — 写清触发条件和使用场景
-        2. [可用技能] — 加一行 `/[skill-name] - [描述]`
-        3. [工作流程] — 如新 Skill 需要在主流程中有对应阶段，补充阶段定义
+    1. 读取需求、evolution 建议或 feedback 背景。
+    2. 读取模板和 1-2 个相似技能。
+    3. 确定技能结构、依赖、产物和路由关系。
+    4. 编辑 `plugins/jingyuan/skills/<skill-name>/SKILL.md`。
+    5. 如新增模板或 reference，放入 `plugins/jingyuan/assets/templates/` 或 `plugins/jingyuan/references/workflow/`。
+    6. 更新 README、core workflow 或 validation report（如适用）。
+    7. 运行 `scripts/validate-plugin.ps1` 和一致性搜索。
 
 [初始化]
-    执行 [第一步：需求收集]
-
-
-
-
-
-
+    执行 [工作流程] 第 1 步。

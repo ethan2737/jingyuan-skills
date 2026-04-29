@@ -1,5 +1,5 @@
 {
-    "generatedAt": "2026-04-29T18:10:00+08:00",
+    "generatedAt": "2026-04-29T19:20:00+08:00",
     "status": "passed",
     "pluginMode": "complete-plugin-payload-with-flat-skill-discovery",
     "targetPlatform": "Windows",
@@ -52,6 +52,10 @@
         "diagnosticsLoop": "diagnostics-loop.md defines reproducible feedback loops for bug fixes and baseline-first performance work.",
         "reviewReadiness": "review-readiness.md defines two-stage review and stale review detection.",
         "fixLoop": "fix now requires a reproducible validation loop before repair and a baseline before performance optimization.",
+        "contextSlimming": "long migrated skills were consolidated around current JingYuan references while preserving dependencies, gates, outputs, and routing behavior.",
+        "feedbackEvolutionDependencies": "feedback and evolution now declare startup dependencies, missing feedback behavior, and out-of-scope routing explicitly.",
+        "documentConventionsChanges": "document-conventions.md now includes docs/changes/<change-id>/ proposal/spec/design/tasks artifacts and old-path read-only compatibility.",
+        "adrTemplateUse": "setup now references adr-template.md as a decision-record template without creating empty ADR files.",
         "validationConsistency": "validate-plugin.ps1 checks README skill mentions and validation-report skill count/list consistency."
     },
     "windowsPowerShellAdaptation": {

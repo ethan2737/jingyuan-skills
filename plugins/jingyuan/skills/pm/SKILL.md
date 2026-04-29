@@ -3,7 +3,7 @@ name: pm
 description: 景元产品经理需求澄清闸门。Use when Codex needs to collect, challenge, reverse-engineer, generate, or update product requirements for new ideas, existing PRDs, or old projects/codebases; clarify problem, audience, scenarios, scope, risks, and write outputs to docs/PRD/prd.md and docs/PRD/changelog.md.
 ---
 
-# Codex 适配说明
+# JingYuan PM
 
 - 本 Skill 面向 Codex，默认入口为 `$jingyuan:pm`。
 - 所有产物写入目标项目 `docs/` 目录；标准输出为 `docs/PRD/prd.md` 与 `docs/PRD/changelog.md`。

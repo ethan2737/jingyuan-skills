@@ -3,19 +3,9 @@ name: fix
 description: 景元 Bug 修复工作流。Use when Codex needs to investigate, root-cause, and fix bugs against docs/PRD/prd.md, docs/development/plan.md, and current code.
 ---
 
-# Codex 适配说明
+# JingYuan Fix
 
-- 本 Skill 从原 bug-fixer 迁移而来，正文保留原工作流内容并按 Codex 规则调整入口、路径和产物命名。
-- 所有产品、设计、开发计划、反馈和进化类文档必须写入目标项目的 `docs/` 目录；不得在目标项目根目录直接生成旧文件名。
-- 新入口使用 `$jingyuan:fix`；旧斜杠命令仅作为历史语义参考。
-- Claude 专属的 hooks/sub-agent 描述在 Codex 中按 `<JINGYUAN_PLUGIN_ROOT>/references/workflow/hooks-adapter.md` 和 `<JINGYUAN_PLUGIN_ROOT>/references/workflow/sub-agent-adapter.md` 执行。
-- 执行前优先读取本插件的共享参考：`<JINGYUAN_PLUGIN_ROOT>/references/workflow/document-conventions.md`、`<JINGYUAN_PLUGIN_ROOT>/references/workflow/hooks-adapter.md`、`<JINGYUAN_PLUGIN_ROOT>/references/workflow/sub-agent-adapter.md`、`<JINGYUAN_PLUGIN_ROOT>/references/workflow/windows-powershell.md`。
-- 同时读取 `<JINGYUAN_PLUGIN_ROOT>/references/workflow/dependency-policy.md` 和 `<JINGYUAN_PLUGIN_ROOT>/references/workflow/project-memory.md`；PRD、context、ADR 是软依赖，缺失不阻塞修复。
-- 调试、测试和完成声明必须同时对照 `<JINGYUAN_PLUGIN_ROOT>/references/workflow/diagnostics-loop.md`、`<JINGYUAN_PLUGIN_ROOT>/references/workflow/testing-policy.md`、`<JINGYUAN_PLUGIN_ROOT>/references/workflow/verification-gates.md`。
-- 本插件面向 Windows 用户，命令示例默认使用 PowerShell；除用户明确要求外，不使用 Unix 命令作为主流程。
-- 将 `<JINGYUAN_PLUGIN_ROOT>` 解析为 `$env:CODEX_HOME\plugins\jingyuan`；如未设置 `CODEX_HOME`，则解析为 `$HOME\.codex\plugins\jingyuan`。
-
-# 原工作流正文（Codex 路径适配版）
+`$jingyuan:fix` 通过可重复反馈循环定位根因并修复 bug 或性能问题。启动时读取 `document-conventions.md`、`dependency-policy.md`、`project-memory.md`、`diagnostics-loop.md`、`testing-policy.md`、`verification-gates.md` 和 `windows-powershell.md`；PRD、context、ADR 是软依赖，缺失不阻塞修复。
 
 
 [任务]
@@ -252,6 +242,5 @@ description: 景元 Bug 修复工作流。Use when Codex needs to investigate, r
 
 [初始化]
     执行 [启动阶段]
-
 
 

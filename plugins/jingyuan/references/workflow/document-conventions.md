@@ -2,31 +2,50 @@
 
 ## 统一输出目录
 
-所有 JingYuan skills 产出的产品、设计、开发计划、反馈、进化和发布说明文档，必须写入目标项目的 `docs/` 目录。不得在目标项目根目录直接生成规划类文档。
+所有 JingYuan 技能产出的产品、设计、开发计划、变更、反馈、进化和发布说明文档，必须写入目标项目的 `docs/` 目录。项目运行配置写入 `.jingyuan/`。
+
+代码项目本体仍按项目技术栈放在项目代码目录，不放入 `docs/`。
 
 ## 标准产物映射
 
-| 原文件 | Codex 适配后文件 |
+| 语义 | 标准路径 |
 |---|---|
-| Product-Spec.md | docs/PRD/prd.md |
-| Product-Spec-CHANGELOG.md | docs/PRD/changelog.md |
-| Design-Brief.md | docs/design/design.md |
-| 设计稿说明/索引 | docs/design/mockup.md |
-| Pencil 设计稿本体 | docs/design/ui-design.pen |
-| DEV-PLAN.md | docs/development/plan.md |
-| FEEDBACK-INDEX.md | docs/feedback/index.md |
-| feedback/*.md | docs/feedback/*.md |
-| 项目术语表 | docs/context.md |
-| 架构决策记录 | docs/adr/*.md |
-| 不做事项记录 | docs/out-of-scope/*.md |
-| JingYuan 配置 | .jingyuan/config.json |
+| PRD | `docs/PRD/prd.md` |
+| PRD 变更记录 | `docs/PRD/changelog.md` |
+| 设计规范 | `docs/design/design.md` |
+| 设计稿说明/索引 | `docs/design/mockup.md` |
+| Pencil 设计稿本体 | `docs/design/ui-design.pen` |
+| 开发总览计划 | `docs/development/plan.md` |
+| 较大变更提案 | `docs/changes/<change-id>/proposal.md` |
+| 较大变更需求 delta | `docs/changes/<change-id>/spec.md` |
+| 较大变更设计约束 | `docs/changes/<change-id>/design.md` |
+| 较大变更任务清单 | `docs/changes/<change-id>/tasks.md` |
+| 反馈索引 | `docs/feedback/index.md` |
+| 反馈记录 | `docs/feedback/*.md` |
+| 项目术语和长期上下文 | `docs/context.md` |
+| 架构决策记录 | `docs/adr/*.md` |
+| 明确不做事项 | `docs/out-of-scope/*.md` |
+| JingYuan 配置 | `.jingyuan/config.json` |
 
-## 命名规则
+## 旧版兼容
 
-- 使用英文 Title-Case 文件名。
-- 行业通用缩写可以保留，例如 `PRD.md`。
-- 代码项目仍按原规则放在 `<project-name>/` 子目录，不放入 `docs/`。
-- 读取旧项目时允许兼容旧文件名，但写入和更新必须使用新路径。
-- `docs/design/ui-design.pen` 只在用户选择 Pencil 作为设计工具时生成或更新；Figma 设计稿只在 `docs/design/mockup.md` 记录文件 URL / file key / 节点 ID。
-- `docs/context.md`、`docs/adr/`、`docs/out-of-scope/` 是长期记忆，不属于一次性产物；后续技能应读取并尊重。
+读取旧项目时允许把下列文件作为迁移来源：
+
+- `Product-Spec.md`
+- `Product-Spec-CHANGELOG.md`
+- `Design-Brief.md`
+- `DEV-PLAN.md`
+- `FEEDBACK-INDEX.md`
+- `docs/PRD/PRD.md`
+- `docs/PRD/PRD-CHANGELOG.md`
+- `docs/PRD.md`
+
+兼容只用于读取、逆向和迁移。新建、更新和同步必须写入标准路径。
+
+## 使用规则
+
+- `docs/design/ui-design.pen` 只在用户选择 Pencil 时生成或更新。
+- Figma 设计稿只在 `docs/design/mockup.md` 记录文件 URL、file key、页面 ID 和节点 ID。
+- `docs/changes/<change-id>/` 用于跨模块、跨会话、改变用户行为或需要独立验证矩阵的较大变更；小改动可以只更新 `docs/development/plan.md`。
+- `docs/context.md`、`docs/adr/`、`docs/out-of-scope/` 是长期记忆，后续技能必须读取并尊重。
 - 新建项目建议先运行 `$jingyuan:setup` 初始化目录和长期记忆骨架。

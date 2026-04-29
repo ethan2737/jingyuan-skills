@@ -1,98 +1,72 @@
 ---
 name: evolution
-description: 景元进化引擎工作流。Use when Codex should scan docs/feedback/ and docs/feedback/index.md for repeated patterns and propose workflow, rule, or skill improvements.
+description: 景元进化引擎工作流。Use when Codex should scan docs/feedback/ and docs/feedback/index.md for repeated patterns and propose workflow, rule, out-of-scope, or skill improvements.
 ---
 
-# Codex 适配说明
+# JingYuan Evolution
 
-- 本 Skill 从原 evolution-engine 迁移而来，正文保留原工作流内容并按 Codex 规则调整入口、路径和产物命名。
-- 所有产品、设计、开发计划、反馈和进化类文档必须写入目标项目的 `docs/` 目录；不得在目标项目根目录直接生成旧文件名。
-- 新入口使用 `$jingyuan:evolution`；旧斜杠命令仅作为历史语义参考。
-- Claude 专属的 hooks/sub-agent 描述在 Codex 中按 `<JINGYUAN_PLUGIN_ROOT>/references/workflow/hooks-adapter.md` 和 `<JINGYUAN_PLUGIN_ROOT>/references/workflow/sub-agent-adapter.md` 执行。
-- 执行前优先读取本插件的共享参考：`<JINGYUAN_PLUGIN_ROOT>/references/workflow/document-conventions.md`、`<JINGYUAN_PLUGIN_ROOT>/references/workflow/hooks-adapter.md`、`<JINGYUAN_PLUGIN_ROOT>/references/workflow/sub-agent-adapter.md`、`<JINGYUAN_PLUGIN_ROOT>/references/workflow/windows-powershell.md`。
-- 同时读取 `<JINGYUAN_PLUGIN_ROOT>/references/workflow/project-memory.md`；重复出现的“不做/暂不做/拒绝原因”应沉淀到 `docs/out-of-scope/`。
-- 本插件面向 Windows 用户，命令示例默认使用 PowerShell；除用户明确要求外，不使用 Unix 命令作为主流程。
-- 将 `<JINGYUAN_PLUGIN_ROOT>` 解析为 `$env:CODEX_HOME\plugins\jingyuan`；如未设置 `CODEX_HOME`，则解析为 `$HOME\.codex\plugins\jingyuan`。
-
-# 原工作流正文（Codex 路径适配版）
-
+`$jingyuan:evolution` 扫描 `docs/feedback/` 的重复模式，提出规则毕业、技能优化、新技能和 out-of-scope 沉淀建议。它只提出结构化建议；修改技能、workflow 或长期记忆前必须有用户确认。
 
 [任务]
-    扫描 docs/feedback/ 中的积累，识别三类进化信号：
-    1. 规则毕业：feedback 重复 3+ 次 → 提议升级为正式规则
-    2. Skill 优化：某 Skill 来源的 feedback 评分持续偏低 → 提议调整 Skill
-    3. 新 Skill 提议：某操作模式反复出现但无 Skill 覆盖 → 提议创建新 Skill
+    读取反馈积累，识别可升级为正式规则、技能优化、新技能或长期范围边界的信号。
+    有信号则返回结构化进化建议。
+    无信号或无反馈数据则返回"无进化建议"。
 
-    有信号 → 生成提议返回给主 Agent，由用户确认后执行。
-    无信号 → 返回"无进化建议"。
+[依赖检测]
+    必需：
+    - 可读目标项目目录。
+    - `<JINGYUAN_PLUGIN_ROOT>/references/workflow/core-workflow.md`。
+    - `<JINGYUAN_PLUGIN_ROOT>/references/workflow/project-memory.md`。
 
-[扫描流程]
+    可选：
+    - `docs/feedback/index.md` → 缺失时扫描 `docs/feedback/`；两者都缺失则返回"无进化建议"，不报错。
+    - `docs/feedback/` → 缺失时返回"无进化建议"。
+    - `docs/out-of-scope/` → 缺失时仍可提出候选，但建议先运行 `$jingyuan:setup`。
+    - 目标 `SKILL.md` 或 workflow reference → 只在用户确认执行进化时读取并修改。
 
-    第一步：扫描毕业候选
-        读取 docs/feedback/index.md 定位所有 feedback 文件
-        读取每个文件的 frontmatter
-        筛选：occurrences >= 3 且 graduated == false 且 skipped != true
-        确定毕业目标：
-        - source_skill 明确 → 毕业到对应 SKILL.md
-        - 涉及多个 Skill 或全局性 → 毕业到 `<JINGYUAN_PLUGIN_ROOT>/references/workflow/core-workflow.md` 或对应 workflow reference
+    启动读取：
+    - `<JINGYUAN_PLUGIN_ROOT>/references/workflow/document-conventions.md`
+    - `<JINGYUAN_PLUGIN_ROOT>/references/workflow/core-workflow.md`
+    - `<JINGYUAN_PLUGIN_ROOT>/references/workflow/project-memory.md`
+    - `<JINGYUAN_PLUGIN_ROOT>/references/workflow/windows-powershell.md`
 
-    第二步：检查 Skill 优化信号
-        扫描 `docs/feedback/` 中的 scores 字段，按 source_skill 分组
-        触发条件（满足任一）：
-        - 某 Skill 连续 3 次同一维度 <= 2 分
-        - 某 Skill 某维度最近 5 次平均 <= 3 分
-        - 某 Skill 来源的 feedback occurrences 合计 >= 5
+[第一性原则]
+    **建议先于修改**：evolution 默认只输出建议，不直接改技能或规则。
+    **重复才毕业**：一次反馈只记录，不升级为正式规则。
+    **证据可追溯**：每条建议必须指向 feedback 文件、出现次数和 source_skill。
+    **范围边界单独处理**：重复的“不做/暂不做/不要再建议”优先沉淀到 `docs/out-of-scope/`。
+    **不放大噪声**：跳过 skipped、低置信或缺少项目上下文的反馈。
 
-    第三步：检查新 Skill 信号
-        筛选：occurrences >= 5 且不属于任何已有 Skill 的覆盖范围
-        → 标记为"新 Skill 候选"
+[扫描规则]
+    - 规则毕业：occurrences >= 3 且 graduated != true 且 skipped != true。
+    - Skill 优化：同一 source_skill 最近反馈集中，或某评分维度连续偏低。
+    - 新 Skill 候选：同类操作出现 >= 5 次且不属于现有技能覆盖范围。
+    - Out-of-scope 候选：同类拒绝、暂不做或范围边界出现 >= 2 次。
 
-    第四步：检查 out-of-scope 信号
-        筛选：反馈中出现"不做"、"暂不做"、"不是本期范围"、"不要再建议"等长期边界，且 occurrences >= 2
-        → 标记为"out-of-scope 候选"
+[工作流程]
+    1. 执行 [依赖检测]。
+    2. 读取 `docs/feedback/index.md`；缺失时扫描 `docs/feedback/*.md`；没有反馈则返回"无进化建议"。
+    3. 读取候选 feedback frontmatter 和正文摘要。
+    4. 按 [扫描规则] 分组：规则毕业、Skill 优化、新 Skill、Out-of-scope。
+    5. 为每条候选确定建议落点：
+       - 单一技能问题 → 对应 `plugins/jingyuan/skills/<skill>/SKILL.md`
+       - 全局工作流问题 → 对应 `references/workflow/*.md`
+       - 范围边界 → `docs/out-of-scope/<topic>.md`
+       - 新操作模式 → `$jingyuan:skill-builder`
+    6. 输出提议，等待用户逐条确认或跳过。
 
-    第五步：生成提议
-        有信号 → 生成结构化提议（见 [提议格式]）
-        无信号 → 返回"无进化建议"
-
-[提议格式]
-    "**进化建议**（共 N 条）
-
-     **规则毕业**（X 条）
-     1. [feedback 标题]：出现 [N] 次（来源：[source_skill]）
-        建议写入：[目标文件] 的 [目标位置]
-        内容摘要：[一句话]
-        -- 确认 / 跳过
-
-     **Skill 优化**（X 条）
-     1. [Skill 名称]：累计 [N] 条相关 feedback
-        优化建议：[具体建议]
-        -- 确认 / 跳过
-
-     **新 Skill 提议**（X 条）
-     1. [操作模式描述]：出现 [N] 次
-        -- 确认创建 / 跳过
-
-     **Out-of-scope 沉淀**（X 条）
-     1. [不做事项]：出现 [N] 次
-        建议写入：docs/out-of-scope/[topic].md
-        原因摘要：[一句话]
-        -- 确认 / 跳过"
-
-[确认后执行]
-    用户逐条确认或跳过：
-    - 规则毕业 → 将 feedback 内容写入目标 `SKILL.md` 或 `<JINGYUAN_PLUGIN_ROOT>/references/workflow/*.md`，标记 graduated: true
-    - Skill 优化 → 修改对应 SKILL.md
-    - 新 Skill → 调用 skill-builder 创建
-    - Out-of-scope 沉淀 → 使用 `<JINGYUAN_PLUGIN_ROOT>/assets/templates/out-of-scope-template.md` 写入 `docs/out-of-scope/`
-    - 跳过 → 标记 skipped: true，不再重复提议
+[确认后执行规则]
+    用户确认后才执行：
+    - 规则毕业 → 写入目标技能或 workflow reference，并把 feedback 标记 graduated。
+    - Skill 优化 → 修改对应 `SKILL.md`，并保留原 feedback 证据。
+    - 新 Skill → 调用 `$jingyuan:skill-builder`。
+    - Out-of-scope 沉淀 → 使用 `out-of-scope-template.md` 创建或更新记录。
+    - 跳过 → 标记 skipped，避免重复提议。
 
 [返回格式]
-    返回给主 Agent：
-    - 有提议："有 N 条进化建议待处理"+ 完整提议内容
-    - 无提议："无进化建议"
+    - 有建议：按"规则毕业 / Skill 优化 / 新 Skill / Out-of-scope 沉淀"分组列出。
+    - 无建议：`无进化建议`
+    - 数据缺失：`未发现 docs/feedback/ 或 docs/feedback/index.md，无进化建议`
 
-
-
-
-
+[初始化]
+    执行 [依赖检测]，然后进入 [工作流程]。
