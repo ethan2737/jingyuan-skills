@@ -39,7 +39,7 @@ description: 景元发布构建工作流。Use when Codex needs to package, buil
     - 签名证书等用户专属资产缺失时，说明需要什么并引导用户准备
 
     可选：
-    - docs/PRD.md → 有则可对照功能做冒烟测试
+    - docs/PRD/prd.md → 有则可对照功能做冒烟测试
 
 [第一性原则]
     **dev 测通 ≠ 打包能用**：开发环境和打包后的运行时环境完全不同。路径不同、依赖打包方式不同、权限不同。必须从安装包测试，不能只测 dev 模式。
@@ -130,7 +130,7 @@ description: 景元发布构建工作流。Use when Codex needs to package, buil
        - 静态托管：提醒用户上传 [BUILD_DIR] 到托管服务
        - 记录部署 URL
     5. 在线验证：访问部署 URL，确认页面可加载、无白屏
-    6. 冒烟测试：如有 docs/PRD.md → 对照核心功能列表逐项测试
+    6. 冒烟测试：如有 docs/PRD/prd.md → 对照核心功能列表逐项测试
 
     **Desktop 项目发布（Electron，默认 Windows）**
     1. 构建：`pnpm build` → 验证前端产物
@@ -145,7 +145,7 @@ description: 景元发布构建工作流。Use when Codex needs to package, buil
        - 用户确认成功 → 继续冒烟测试
        - 用户报告失败 → 排查问题后重新打包
     5. 功能冒烟测试
-       - 如有 docs/PRD.md → 对照核心功能列表逐项测试
+       - 如有 docs/PRD/prd.md → 对照核心功能列表逐项测试
        - 如无 → 测试应用能正常打开、主要页面能加载、核心操作能执行
        - 如有 Playwright → 自动化测试关键流程
 
@@ -225,7 +225,7 @@ description: 景元发布构建工作流。Use when Codex needs to package, buil
         CLI → 全局安装后运行
 
     [第六步：冒烟测试]
-        根据项目类型和 docs/PRD.md（如有）测试核心功能
+        根据项目类型和 docs/PRD/prd.md（如有）测试核心功能
         如有 Playwright → 自动化测试关键流程
         每项测试附结果
 

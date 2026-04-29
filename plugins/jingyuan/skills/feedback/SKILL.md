@@ -1,6 +1,6 @@
 ---
 name: feedback
-description: 景元反馈记录工作流。Use when Codex detects user correction, dissatisfaction, workflow feedback, or improvement signals and should write docs/feedback/ plus docs/Feedback-Index.md.
+description: 景元反馈记录工作流。Use when Codex detects user correction, dissatisfaction, workflow feedback, or improvement signals and should write docs/feedback/ plus docs/feedback/index.md.
 ---
 
 # Codex 适配说明
@@ -70,11 +70,11 @@ description: 景元反馈记录工作流。Use when Codex detects user correctio
 与项目无关 → 不写，让 Codex 默认行为处理
 不重复写 — 同一条信息只进一个系统
 
-[写入流程] 1. 读取 docs/Feedback-Index.md（如不存在，从 `<JINGYUAN_PLUGIN_ROOT>/assets/templates/feedback-index-template.md` 创建）2. 检查是否已有同主题 feedback（去重）- 已有 → 更新内容 + occurrences +1 + 更新 updated - 没有 → 创建新文件 + 更新索引 3. 文件名用 kebab-case，简短描述主题 4. 按 `<JINGYUAN_PLUGIN_ROOT>/assets/templates/feedback-topic-template.md` 格式写入 5. 更新 docs/Feedback-Index.md
+[写入流程] 1. 读取 docs/feedback/index.md（如不存在，从 `<JINGYUAN_PLUGIN_ROOT>/assets/templates/feedback-index-template.md` 创建）2. 检查是否已有同主题 feedback（去重）- 已有 → 更新内容 + occurrences +1 + 更新 updated - 没有 → 创建新文件 + 更新索引 3. 文件名用 kebab-case，简短描述主题 4. 按 `<JINGYUAN_PLUGIN_ROOT>/assets/templates/feedback-topic-template.md` 格式写入 5. 更新 docs/feedback/index.md
 
 [文件规范]
 存放位置：docs/feedback/
-索引文件：docs/Feedback-Index.md
+索引文件：docs/feedback/index.md
 索引模板：`<JINGYUAN_PLUGIN_ROOT>/assets/templates/feedback-index-template.md`
 内容模板：`<JINGYUAN_PLUGIN_ROOT>/assets/templates/feedback-topic-template.md`
 

@@ -17,20 +17,20 @@ description: 景元代码审查工作流。Use when Codex needs to review code f
 
 
 [任务]
-    对照 docs/PRD.md 和设计稿，审查代码实现的完整度和质量。
+    对照 docs/PRD/prd.md 和设计稿，审查代码实现的完整度和质量。
     输出结构化审查报告。修复由主 Agent 拿到报告后使用 dev-builder 或 fix skill 执行。
 
 [依赖检测]
     Skill 启动时第一步自动执行：
 
     必需：
-    - docs/PRD.md → 缺失则提示先调用 $jingyuan:pm
+    - docs/PRD/prd.md → 缺失则提示先调用 $jingyuan:pm
     - 项目代码已存在 → 无代码则提示先调用 $jingyuan:dev-builder
 
     可选（增强审查能力）：
-    - docs/Development-Plan.md → 有则可对照 Phase 交付清单检查
-    - docs/Design-Document.md → 有则可对照视觉规范
-    - 设计工具 MCP（Pencil / Figma 等）→ 有则可提取设计数值与代码对比
+    - docs/development/plan.md → 有则可对照 Phase 交付清单检查
+    - docs/design/design.md → 有则可对照视觉规范
+    - 设计工具 MCP（Pencil / Figma 等）→ 有则可提取设计数值与代码对比；Pencil 优先读取 docs/design/ui-design.pen，Figma 按 docs/design/mockup.md 记录的文件定位信息读取
     - Playwright plugin → 有则可自动化 UI 交互测试
     - git → 有则可用 git diff 追溯变更范围
 
@@ -70,11 +70,11 @@ description: 景元代码审查工作流。Use when Codex needs to review code f
     --- Stage 1: Spec Compliance（做对了没有？）---
 
     [功能完整性]
-        逐条对照 docs/PRD.md 的功能需求：
+        逐条对照 docs/PRD/prd.md 的功能需求：
         - Spec 中的每个功能是否有对应的代码实现
         - 实现是否完整（不是半成品）
         - 行为是否符合 Spec 描述（不是"能跑"就算完成）
-        - 如有 docs/Development-Plan.md → 对照当前 Phase 的交付清单
+        - 如有 docs/development/plan.md → 对照当前 Phase 的交付清单
 
         对每个功能输出：
         - ✅ 完整实现 — Spec 条目 + 代码位置 + 验证方式
@@ -82,11 +82,13 @@ description: 景元代码审查工作流。Use when Codex needs to review code f
         - ❌ 未实现 — Spec 原文引用
 
     [UI 一致性]（如有设计稿）
-        对照设计稿检查 UI 实现：
-        - 如有设计工具 MCP → 提取设计数值，与代码中的 Tailwind class / style 逐项比对
-        - 查看设计稿视觉效果作为参考
+    对照设计稿检查 UI 实现：
+    - 如有设计工具 MCP → 提取设计数值，与代码中的 Tailwind class / style 逐项比对
+    - Pencil 设计稿 → 打开 docs/design/ui-design.pen 定位页面、组件和状态变体
+    - Figma 设计稿 → 从 docs/design/mockup.md 读取文件 URL / file key / 页面 ID / 节点 ID 后定位
+    - 查看设计稿视觉效果作为参考
         - 对比：布局、组件、颜色、间距、交互状态
-        - 如有 docs/Design-Document.md → 对照色彩方向、信息密度、交互风格
+        - 如有 docs/design/design.md → 对照色彩方向、信息密度、交互风格
 
     --- Stage 2: Code Quality（做好了没有？）---
     Stage 1 全部通过后才执行 Stage 2。如果 Stage 1 有 HIGH priority 问题，报告中标注"Stage 2 未执行，请先修复 Stage 1 问题"。
@@ -157,9 +159,9 @@ description: 景元代码审查工作流。Use when Codex needs to review code f
 
 [工作流程]
     [第一步：加载比对基准]
-        读取 docs/PRD.md → 提取审查范围内涉及的功能需求，编号列出
-        读取 docs/Development-Plan.md → 读取当前 Phase 或 Task 的交付清单和关键文件
-        如有 docs/Design-Document.md → 读取审查范围内涉及的视觉方向和页面备注
+        读取 docs/PRD/prd.md → 提取审查范围内涉及的功能需求，编号列出
+        读取 docs/development/plan.md → 读取当前 Phase 或 Task 的交付清单和关键文件
+        如有 docs/design/design.md → 读取审查范围内涉及的视觉方向和页面备注
         如有设计工具 MCP → 通过设计工具找到审查范围对应的设计页面，读取这些页面及其组件的精确数值，作为 UI 一致性比对的基准
         确定审查范围：
         - 全量审查（$jingyuan:review）→ Spec 所有功能
@@ -186,7 +188,7 @@ description: 景元代码审查工作流。Use when Codex needs to review code f
         格式：
         "📋 **代码审查报告**
 
-         **对照文档**：docs/PRD.md [+ docs/Development-Plan.md Phase N]
+         **对照文档**：docs/PRD/prd.md [+ docs/development/plan.md Phase N]
 
          ---
 
@@ -224,7 +226,6 @@ description: 景元代码审查工作流。Use when Codex needs to review code f
 
 [初始化]
     执行 [第一步：加载比对基准]
-
 
 
 

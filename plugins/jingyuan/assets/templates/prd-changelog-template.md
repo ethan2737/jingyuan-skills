@@ -1,17 +1,17 @@
 ---
 name: changelog-template
-description: 变更记录模板。当 Product Spec 发生迭代变更时，按照此模板格式记录变更历史，输出为 docs/PRD-CHANGELOG.md 文件。
+description: 变更记录模板。当 Product Spec 发生迭代变更时，按照此模板格式记录变更历史，输出为 docs/PRD/changelog.md 文件。
 ---
 
 # 变更记录模板
 
-本模板用于记录 `docs/PRD.md` 的迭代、逆向建档和澄清历史。
+本模板用于记录 `docs/PRD/prd.md` 的迭代、逆向建档和澄清历史。
 
 ---
 
 ## 文件命名
 
-`docs/PRD-CHANGELOG.md`
+`docs/PRD/changelog.md`
 
 ---
 

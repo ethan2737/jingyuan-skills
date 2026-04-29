@@ -14,10 +14,10 @@ JingYuan 是面向 Codex 的 Windows-first 工作流插件，把产品、设计�
 
 Codex 补全列表中会显示为 `jingyuan:<skill>`。输入 `$jingyuan` 搜索即可看到以下子技能：
 
-- `$jingyuan:pm`：生成或更新 `docs/PRD.md`
-- `$jingyuan:design`：生成 `docs/Design-Document.md`
-- `$jingyuan:mockup`：生成 `docs/Design-Mockup.md`
-- `$jingyuan:dev-plan`：生成 `docs/Development-Plan.md`
+- `$jingyuan:pm`：生成或更新 `docs/PRD/prd.md`
+- `$jingyuan:design`：生成 `docs/design/design.md`
+- `$jingyuan:mockup`：生成设计稿说明 `docs/design/mockup.md`；如用户选择 Pencil，同步生成 `docs/design/ui-design.pen`
+- `$jingyuan:dev-plan`：生成 `docs/development/plan.md`
 - `$jingyuan:dev-builder`：按开发计划实现项目
 - `$jingyuan:review`：审查代码
 - `$jingyuan:fix`：修复 Bug
@@ -32,12 +32,13 @@ Codex 补全列表中会显示为 `jingyuan:<skill>`。输入 `$jingyuan` 搜索
 所有产出文档统一写入目标项目的 `docs/` 目录：
 
 ```text
-<target-project>/docs/PRD.md
-<target-project>/docs/PRD-CHANGELOG.md
-<target-project>/docs/Design-Document.md
-<target-project>/docs/Design-Mockup.md
-<target-project>/docs/Development-Plan.md
-<target-project>/docs/Feedback-Index.md
+<target-project>/docs/PRD/prd.md
+<target-project>/docs/PRD/changelog.md
+<target-project>/docs/design/design.md
+<target-project>/docs/design/mockup.md
+<target-project>/docs/design/ui-design.pen   # 仅 Pencil 设计稿
+<target-project>/docs/development/plan.md
+<target-project>/docs/feedback/index.md
 <target-project>/docs/feedback/
 ```
 

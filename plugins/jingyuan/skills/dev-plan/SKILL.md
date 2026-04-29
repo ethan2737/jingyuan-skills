@@ -1,6 +1,6 @@
 ---
 name: dev-plan
-description: 景元开发计划工作流。Use when Codex needs to create or update docs/Development-Plan.md from docs/PRD.md and optional docs/Design-Document.md.
+description: 景元开发计划工作流。Use when Codex needs to create or update docs/development/plan.md from docs/PRD/prd.md and optional docs/design/design.md.
 ---
 
 # Codex 适配说明
@@ -17,19 +17,20 @@ description: 景元开发计划工作流。Use when Codex needs to create or upd
 
 
 [任务]
-    **生成模式**：读取 docs/PRD.md（和 docs/Design-Document.md，如有），分析功能依赖关系，WebSearch 验证技术选型，输出分阶段开发计划 docs/Development-Plan.md。
+    **生成模式**：读取 docs/PRD/prd.md（和 docs/design/design.md，如有），分析功能依赖关系，WebSearch 验证技术选型，输出分阶段开发计划 docs/development/plan.md。
 
-    **迭代模式**：当 PRD 变更后，分析变更影响范围，更新 docs/Development-Plan.md 中的 Phase 划分和文件清单。已完成的 Phase（标记 ✅）不动。
+    **迭代模式**：当 PRD 变更后，分析变更影响范围，更新 docs/development/plan.md 中的 Phase 划分和文件清单。已完成的 Phase（标记 ✅）不动。
 
 [依赖检测]
     Skill 启动时第一步自动执行：
 
     必需：
-    - docs/PRD.md → 缺失则提示先调用 $jingyuan:pm
+    - docs/PRD/prd.md → 缺失则提示先调用 $jingyuan:pm
 
     可选（降级模式）：
-    - docs/Design-Document.md → 缺失则标记"无设计规范模式"，视觉相关细节标注 [待 Design Document 补充]
+    - docs/design/design.md → 缺失则标记"无设计规范模式"，视觉相关细节标注 [待 Design Document 补充]
     - 设计工具 MCP → 未连接或无文件则仅依据文字描述，标记"无设计稿模式"
+    - docs/design/ui-design.pen → 如存在，说明 Pencil 设计稿已生成，Phase 拆分必须优先读取该文件；如不存在但 docs/design/mockup.md 记录 Figma 文件，则按 Figma 定位信息读取
     - 已有项目代码 → 有则扫描现有结构作为约束，进入迭代模式
 
 [第一性原则]
@@ -58,7 +59,7 @@ description: 景元开发计划工作流。Use when Codex needs to create or upd
     dev-plan/
     ├── SKILL.md                           # 主 Skill 定义（本文件）
     └── templates/
-        └── development-plan-template.md           # docs/Development-Plan.md 输出模板
+        └── development-plan-template.md           # docs/development/plan.md 输出模板
     ```
 
 [分析维度清单]
@@ -148,7 +149,7 @@ description: 景元开发计划工作流。Use when Codex needs to create or upd
     - 除此之外，Spec 已经写清楚了，不需要追问用户
 
 [信息充足度判断]
-    当以下条件满足时，可以生成 docs/Development-Plan.md：
+    当以下条件满足时，可以生成 docs/development/plan.md：
 
     **必须满足**（没有这些，Plan 是废纸）：
     - ✅ 技术栈已确定（框架 + 版本 + 关键依赖，经 WebSearch 验证）
@@ -173,17 +174,17 @@ description: 景元开发计划工作流。Use when Codex needs to create or upd
             执行 [依赖检测]
 
         第二步：加载 PRD
-            读取 docs/PRD.md
+            读取 docs/PRD/prd.md
             提取：产品类型、核心功能列表、辅助功能列表、AI 能力需求、技术方向、UI 布局结构、数据存储方式
-            检查 docs/PRD.md 中是否包含 [待补充] 标记。如有，列出涉及的条目并提示用户先补充或确认可以跳过
+            检查 docs/PRD/prd.md 中是否包含 [待补充] 标记。如有，列出涉及的条目并提示用户先补充或确认可以跳过
 
         第三步：加载 Design Document（如有）
-            读取 docs/Design-Document.md
+            读取 docs/design/design.md
             提取：核心页面列表、视觉方向（影响组件拆分粒度）
 
         第四步：加载设计稿（如有）
             检查设计工具 MCP 是否连接
-            如有 → 通过设计工具读取设计稿，提取：
+            如有 → 通过设计工具读取设计稿。Pencil 优先打开 docs/design/ui-design.pen；Figma 按 docs/design/mockup.md 中记录的文件 URL / file key / 页面 ID 定位。提取：
             - 所有页面和变体的完整清单
             - 各页面的组件构成和布局结构
             - 具体的交互元素和状态变体
@@ -242,7 +243,7 @@ description: 景元开发计划工作流。Use when Codex needs to create or upd
             有疑问 → 向用户确认后继续
 
     [输出阶段]
-        目的：生成 docs/Development-Plan.md 文件
+        目的：生成 docs/development/plan.md 文件
 
         第一步：加载模板
             读取 <JINGYUAN_PLUGIN_ROOT>/assets/templates/development-plan-template.md
@@ -261,12 +262,12 @@ description: 景元开发计划工作流。Use when Codex needs to create or upd
             无占位符检查：扫描输出内容中是否包含 TBD、TODO、待补充、待确定、"类似 Phase/Task N"等占位符，如有则替换为具体内容
 
         第四步：输出文件
-            保存为 docs/Development-Plan.md
+            保存为 docs/development/plan.md
 
         第五步：引导下一步
-            "✅ docs/Development-Plan.md 已生成！
+            "✅ docs/development/plan.md 已生成！
 
-             文件：docs/Development-Plan.md
+             文件：docs/development/plan.md
              共 N 个 Phase，覆盖 Spec 中的全部 X 个功能。
 
              接下来：
@@ -276,15 +277,15 @@ description: 景元开发计划工作流。Use when Codex needs to create or upd
 
 [工作流程（迭代模式）]
     触发条件：
-    - 已有 docs/Development-Plan.md 且 PRD 发生变更
+    - 已有 docs/development/plan.md 且 PRD 发生变更
     - 用户主动要求调整 Phase
 
     [变更分析阶段]
         第一步：加载现有文件
-            读取现有 docs/Development-Plan.md
-            读取更新后的 docs/PRD.md
-            如有 docs/PRD-CHANGELOG.md → 读取最近的变更记录，快速定位变更范围
-            如有 docs/Design-Document.md → 读取，检查视觉方向是否也有变更
+            读取现有 docs/development/plan.md
+            读取更新后的 docs/PRD/prd.md
+            如有 docs/PRD/changelog.md → 读取最近的变更记录，快速定位变更范围
+            如有 docs/design/design.md → 读取，检查视觉方向是否也有变更
             如有设计工具 MCP 已连接 → 读取最新设计稿，对比变更涉及的页面
 
         第二步：识别变更影响
@@ -302,7 +303,7 @@ description: 景元开发计划工作流。Use when Codex needs to create or upd
 
     [更新阶段]
         第一步：更新 Phase
-            在现有 docs/Development-Plan.md 上直接修改
+            在现有 docs/development/plan.md 上直接修改
             保持已完成 Phase 不变（标记 ✅ 的不动）
             只改受影响的待开发 Phase
 
@@ -310,11 +311,10 @@ description: 景元开发计划工作流。Use when Codex needs to create or upd
             确认更新后的 Phase 顺序不违反依赖关系
 
         第三步：保存文件
-            保存更新后的 docs/Development-Plan.md
+            保存更新后的 docs/development/plan.md
 
 [初始化]
     执行 [加载阶段]
-
 
 
 

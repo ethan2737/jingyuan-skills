@@ -1,6 +1,6 @@
 ---
 name: dev-builder
-description: 景元开发实现工作流。Use when Codex needs to build or continue a project from docs/PRD.md and docs/Development-Plan.md with review, testing, security, and performance gates.
+description: 景元开发实现工作流。Use when Codex needs to build or continue a project from docs/PRD/prd.md and docs/development/plan.md with review, testing, security, and performance gates.
 ---
 
 # Codex 适配说明
@@ -17,20 +17,20 @@ description: 景元开发实现工作流。Use when Codex needs to build or cont
 
 
 [任务]
-    **初始化模式**：无代码 + 有 docs/Development-Plan.md → 根据技术栈搭建项目骨架，安装依赖，配置开发环境，完成 Phase 1。
+    **初始化模式**：无代码 + 有 docs/development/plan.md → 根据技术栈搭建项目骨架，安装依赖，配置开发环境，完成 Phase 1。
 
-    **持续开发模式**：有代码 + 有 docs/Development-Plan.md → 按 Phase 逐步开发。每个 Phase：Plan Mode 规划实现 → 读设计稿 → 编码 → per-Task review + commit → Phase 四步走验证 → 用户确认。
+    **持续开发模式**：有代码 + 有 docs/development/plan.md → 按 Phase 逐步开发。每个 Phase：Plan Mode 规划实现 → 读设计稿 → 编码 → per-Task review + commit → Phase 四步走验证 → 用户确认。
 
 [依赖检测]
     Skill 启动时第一步自动执行。
 
     必需：
-    - docs/PRD.md → 缺失则提示先调用 $jingyuan:pm
-    - docs/Development-Plan.md → 缺失则提示先调用 $jingyuan:dev-plan
+    - docs/PRD/prd.md → 缺失则提示先调用 $jingyuan:pm
+    - docs/development/plan.md → 缺失则提示先调用 $jingyuan:dev-plan
     - Development Plan 技术栈表中列出的所有系统工具和运行时环境
 
     可选：
-    - docs/Design-Document.md → 缺失则标记"无设计规范模式"
+    - docs/design/design.md → 缺失则标记"无设计规范模式"
     - 设计工具 MCP → 缺失则标记"无设计稿模式"
     - gh CLI → 有则可创建 GitHub 仓库和 push；执行前必须展示仓库名、远程地址、分支和命令，并取得用户明确确认
     - playwright → 有则可做 UI 自动化测试
@@ -266,18 +266,21 @@ description: 景元开发实现工作流。Use when Codex needs to build or cont
 
     **Plan Mode 策略**
     每个 Phase 开始前必须进入 Plan Mode 并列出 TaskList。这是编码的前置条件，不可跳过。
-    1. 读 docs/Development-Plan.md 中该 Phase 的交付清单和关键文件
+    1. 读 docs/development/plan.md 中该 Phase 的交付清单和关键文件
     2. 探索现有代码结构，理解当前状态
     3. 规划具体实现步骤，明确先改什么、后改什么、哪些文件需要新建或修改
     4. 用 Codex 任务清单/计划工具将实现步骤拆为具体 Task，每个页面、组件、功能一个 Task
     5. TaskList 列好后直接开始编码，不需要等用户确认
     
     禁止在没有 Plan 和 TaskList 的情况下直接写代码。
-    Plan Mode 负责"这个 Phase 怎么实现"，docs/Development-Plan.md 负责"做哪些 Phase"。
+    Plan Mode 负责"这个 Phase 怎么实现"，docs/development/plan.md 负责"做哪些 Phase"。
 
     **设计稿参照策略**
     
     如有设计工具 MCP 已连接（如 Pencil、Figma 等），以下步骤**不可跳过**：
+    - 若项目存在 docs/design/ui-design.pen，说明用户选择过 Pencil；优先打开该文件读取页面、组件、变量和状态变体
+    - 若使用 Figma，以 docs/design/mockup.md 中记录的 Figma 文件 URL / file key / 页面 ID / 节点 ID 定位设计稿
+    - 若 docs/design/mockup.md 记录的设计文件位置与实际设计工具文件不一致，先调用 $jingyuan:sync 或提示用户确认新基准
     
     **每个功能开发前**：
     - 通过设计工具 API 读取涉及的所有页面和变体的精确数值（宽高、padding、gap、字号、字重、颜色、圆角、阴影）
@@ -295,8 +298,8 @@ description: 景元开发实现工作流。Use when Codex needs to build or cont
     - 让用户在浏览器中确认最终视觉效果
     
     如无设计工具（降级模式）：
-    - 以 docs/Design-Document.md 为主要参照
-    - 如无 Design Document → 以 docs/PRD.md 文字描述为参照
+    - 以 docs/design/design.md 为主要参照
+    - 如无 Design Document → 以 docs/PRD/prd.md 文字描述为参照
 
     **联网搜索策略**
     以下场景必须先 WebSearch 再动手：
@@ -306,7 +309,7 @@ description: 景元开发实现工作流。Use when Codex needs to build or cont
     4. 报错信息不熟悉 → 搜索别人的解决方案
 
     **技术栈选择策略**（初始化模式使用）
-    根据 docs/Development-Plan.md 的技术栈表配置项目。如 Development Plan 未指定：
+    根据 docs/development/plan.md 的技术栈表配置项目。如 Development Plan 未指定：
     - Web（纯前端）→ React + Vite + TypeScript + Tailwind
     - Web（全栈）→ Next.js + TypeScript + Tailwind
     - Desktop → Electron + Next.js + TypeScript + Tailwind
@@ -348,7 +351,7 @@ description: 景元开发实现工作流。Use when Codex needs to build or cont
     **四步走**（必须全部通过才能确认 Phase 完成）：
 
     第一步：Code Review
-    - 对照 docs/Development-Plan.md 该 Phase 的交付清单，逐项确认是否实现
+    - 对照 docs/development/plan.md 该 Phase 的交付清单，逐项确认是否实现
     - 检查代码质量：命名规范、类型安全、无 any、无循环依赖
     - 检查有没有超出 Phase 范围的改动（scope creep）
     - 输出证据：交付清单逐项对照结果
@@ -386,21 +389,21 @@ description: 景元开发实现工作流。Use when Codex needs to build or cont
     - 如验证过程中发现问题并修复，修复的 commit 用 `fix:` 前缀（per-Task commit 已在第二步完成）
 
 [工作流程（初始化模式）]
-    触发条件：有 docs/Development-Plan.md，无项目代码
+    触发条件：有 docs/development/plan.md，无项目代码
 
     [启动阶段]
         第一步：依赖检测
             执行 [依赖检测]
 
         第二步：加载文档
-            读取 docs/PRD.md → 提取产品概述、核心功能
-            读取 docs/Development-Plan.md → 提取技术栈表、Phase 1 内容、数据库表（如有）
-            如有 docs/Design-Document.md → 读取色彩方向、信息密度（配置 Tailwind 主题）
+            读取 docs/PRD/prd.md → 提取产品概述、核心功能
+            读取 docs/development/plan.md → 提取技术栈表、Phase 1 内容、数据库表（如有）
+            如有 docs/design/design.md → 读取色彩方向、信息密度（配置 Tailwind 主题）
             如有设计工具 MCP → 读取 Phase 1 相关页面的设计数据
 
     [技术方案阶段]
         运用 [技术栈选择策略]
-        根据 docs/Development-Plan.md 的技术栈表确认方案
+        根据 docs/development/plan.md 的技术栈表确认方案
         WebSearch 验证框架版本和关键依赖兼容性
         如有多个合理选项 → 给用户 2-3 个方案选
 
@@ -419,16 +422,16 @@ description: 景元开发实现工作流。Use when Codex needs to build or cont
         进入 [持续开发模式] 的 Phase 执行流程，从 Phase 1 开始
 
 [工作流程（持续开发模式）]
-    触发条件：有 docs/Development-Plan.md + 有项目代码
+    触发条件：有 docs/development/plan.md + 有项目代码
 
     [加载阶段]
         第一步：依赖检测
             执行 [依赖检测]
 
         第二步：加载文档和代码状态
-            读取 docs/Development-Plan.md → 识别所有 Phase 及完成状态
-            读取 docs/PRD.md → 作为功能参照
-            如有 docs/Design-Document.md → 读取视觉方向
+            读取 docs/development/plan.md → 识别所有 Phase 及完成状态
+            读取 docs/PRD/prd.md → 作为功能参照
+            如有 docs/design/design.md → 读取视觉方向
             如有设计工具 MCP → 准备读取
             扫描已有代码结构 → 了解当前项目状态
 
@@ -441,7 +444,7 @@ description: 景元开发实现工作流。Use when Codex needs to build or cont
         第一步：Plan + TaskList
             这一步是编码的前置条件，不可跳过，不需要用户确认。没有 Plan 和 TaskList 不允许写任何代码。
             1. 读取该 Phase 的交付清单和关键文件
-            2. 如有设计工具 MCP 已连接，查看该 Phase 涉及的页面，读取精确数值。如无设计工具，以 docs/Design-Document.md 或 docs/PRD.md 为参照
+            2. 如有设计工具 MCP 已连接，查看该 Phase 涉及的页面，读取精确数值。如无设计工具，以 docs/design/design.md 或 docs/PRD/prd.md 为参照
             3. 探索现有代码，理解当前结构
             4. 规划实现步骤，明确先做什么、后做什么
             5. 用 Codex 任务清单/计划工具列出具体任务清单，每个页面、组件、功能一个 Task
@@ -452,9 +455,9 @@ description: 景元开发实现工作流。Use when Codex needs to build or cont
             对每个 Task 执行以下循环：
 
             开发前——加载参照文档：
-            1. 读取 docs/Development-Plan.md 中该 Task 对应的交付清单和关键文件
-            2. 读取 docs/PRD.md 中该 Task 涉及的功能描述
-            3. 读取 docs/Design-Document.md 中该 Task 涉及的视觉方向和页面备注
+            1. 读取 docs/development/plan.md 中该 Task 对应的交付清单和关键文件
+            2. 读取 docs/PRD/prd.md 中该 Task 涉及的功能描述
+            3. 读取 docs/design/design.md 中该 Task 涉及的视觉方向和页面备注
             4. 如有设计工具 MCP 已连接，通过设计工具找到该 Task 对应的设计页面，读取该页面及其组件的精确数值。每个 Task 都重新读取，不凭记忆
             5. 明确该 Task 的交付目标：功能上实现什么、视觉上做成什么样
 
@@ -463,8 +466,8 @@ description: 景元开发实现工作流。Use when Codex needs to build or cont
 
             开发后——对照验证 + Review 循环：
             7. 读取代码实际值，逐项与设计数值核对，有偏差则修正
-            8. 对照 docs/PRD.md 确认功能行为符合描述
-            9. 运行 `$jingyuan:review` 执行两阶段审查；审查必须同样对照 docs/PRD.md、docs/Design-Document.md、docs/Development-Plan.md 和设计稿
+            8. 对照 docs/PRD/prd.md 确认功能行为符合描述
+            9. 运行 `$jingyuan:review` 执行两阶段审查；审查必须同样对照 docs/PRD/prd.md、docs/design/design.md、docs/development/plan.md 和设计稿
             10. Stage 1 失败（功能缺失）→ 补实现 → 重新运行 `$jingyuan:review`
             11. Stage 2 失败（代码质量）→ 调用 fix 修复 → 重新运行 `$jingyuan:review`
             12. 两个 Stage 都通过 → 将任务标记完成 → 将 `.jingyuan/needs-review` 写为 `clean` 或删除以清除 review 状态 → commit
@@ -492,11 +495,10 @@ description: 景元开发实现工作流。Use when Codex needs to build or cont
 
 [初始化]
     检测项目状态，路由到对应模式：
-    - 无代码 + 有 docs/Development-Plan.md → 初始化模式
-    - 有代码 + 有 docs/Development-Plan.md → 持续开发模式
-    - 无 docs/Development-Plan.md → 提示先调用 $jingyuan:dev-plan
-    - 无 docs/PRD.md → 提示先调用 $jingyuan:pm
-
+    - 无代码 + 有 docs/development/plan.md → 初始化模式
+    - 有代码 + 有 docs/development/plan.md → 持续开发模式
+    - 无 docs/development/plan.md → 提示先调用 $jingyuan:dev-plan
+    - 无 docs/PRD/prd.md → 提示先调用 $jingyuan:pm
 
 
 

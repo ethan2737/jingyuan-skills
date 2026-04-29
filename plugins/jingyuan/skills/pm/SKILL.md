@@ -1,13 +1,13 @@
 ---
 name: pm
-description: 景元产品经理工作流。Use when Codex needs to collect, challenge, reverse-engineer, generate, or update product requirements for new ideas, existing PRDs, or old projects/codebases; extract feature lists; and write outputs to docs/PRD.md and docs/PRD-CHANGELOG.md.
+description: 景元产品经理工作流。Use when Codex needs to collect, challenge, reverse-engineer, generate, or update product requirements for new ideas, existing PRDs, or old projects/codebases; extract feature lists; and write outputs to docs/PRD/prd.md and docs/PRD/changelog.md.
 ---
 
 # Codex 适配说明
 
 - 本 Skill 面向 Codex，默认入口为 `$jingyuan:pm`。
 - 所有产物写入目标项目的 `docs/` 目录，不在项目根目录散落旧文件名。
-- 默认产物为 `docs/PRD.md` 与 `docs/PRD-CHANGELOG.md`，不输出 `.docx`，不依赖 `/PRD` 指令。
+- 默认产物为 `docs/PRD/prd.md` 与 `docs/PRD/changelog.md`，不输出 `.docx`，不依赖 `/PRD` 指令。
 - 先读取本插件共享参考：`<JINGYUAN_PLUGIN_ROOT>/references/workflow/document-conventions.md`、`<JINGYUAN_PLUGIN_ROOT>/references/workflow/hooks-adapter.md`、`<JINGYUAN_PLUGIN_ROOT>/references/workflow/sub-agent-adapter.md`、`<JINGYUAN_PLUGIN_ROOT>/references/workflow/windows-powershell.md`。
 - 进入旧项目逆向时，再读取 `references/reverse-engineering.md`。
 - 需要用框架整理用户故事、优先级、成功指标时，再读取 `references/pm-frameworks.md`。
@@ -18,7 +18,7 @@ description: 景元产品经理工作流。Use when Codex needs to collect, chal
 本 Skill 处理 3 类任务：
 
 1. **0-1 模式**：用户只有想法或模糊需求，需要从头梳理产品。
-2. **迭代模式**：项目已有 `docs/PRD.md`，用户要新增、修改、删除或澄清需求。
+2. **迭代模式**：项目已有 `docs/PRD/prd.md`，用户要新增、修改、删除或澄清需求。
 3. **逆向模式**：项目没有成型 PRD，但已有旧项目、旧代码库、旧文档或可运行系统，需要从现状反推出产品需求并补齐文档。
 
 # 第一性原则
@@ -39,7 +39,7 @@ description: 景元产品经理工作流。Use when Codex needs to collect, chal
 - **产品结构化**：整理目标用户、场景、功能、流程、边界条件、非功能要求、成功指标、风险。
 - **优先级引导**：在需求很多时，使用轻量 MoSCoW 或 RICE 做裁剪，不把文档写成空话。
 - **竞品与市场调研**：需要时联网补齐外部证据，支撑方案和取舍。
-- **文档输出**：生成或更新 `docs/PRD.md` 与 `docs/PRD-CHANGELOG.md`。
+- **文档输出**：生成或更新 `docs/PRD/prd.md` 与 `docs/PRD/changelog.md`。
 
 # 文件结构
 
@@ -61,7 +61,7 @@ description: 景元产品经理工作流。Use when Codex needs to collect, chal
 
 Skill 启动后按以下顺序处理：
 
-1. 检查项目内是否存在 `docs/PRD.md`。
+1. 检查项目内是否存在 `docs/PRD/prd.md`。
 2. 若不存在，再扫描 `*spec*.md`、`*prd*.md`、`*PRD*.md`、`*需求*.md`、`*product*.md` 作为候选文档。
 3. 若找到明确 PRD 或用户明确要修改现有需求文档，进入 **迭代模式**。
 4. 若没有 PRD，但用户给了旧项目路径、代码库、页面、仓库、README、功能现状描述，进入 **逆向模式**。
@@ -112,7 +112,7 @@ Skill 启动后按以下顺序处理：
    - 用户真不知道时，提供 2-3 个方案，各自说明优点、代价、适用场景。
 5. **输出 PRD**
    - 加载 `<JINGYUAN_PLUGIN_ROOT>/assets/templates/prd-template.md`。
-   - 用模板结构生成 `docs/PRD.md`。
+   - 用模板结构生成 `docs/PRD/prd.md`。
 
 ## 0-1 模式必须收集
 
@@ -129,7 +129,7 @@ Skill 启动后按以下顺序处理：
 
 # 迭代模式
 
-适用场景：项目已有 `docs/PRD.md`，用户要补功能、删功能、改逻辑、调布局、补 AI 能力、修正文档偏差。
+适用场景：项目已有 `docs/PRD/prd.md`，用户要补功能、删功能、改逻辑、调布局、补 AI 能力、修正文档偏差。
 
 ## 工作流
 
@@ -143,11 +143,11 @@ Skill 启动后按以下顺序处理：
    - 检查对现有功能、用户流程、兼容性、边界条件、风险的影响。
    - 检查是否与现有 PRD 冲突。
 4. **更新文档**
-   - 基于现有 `docs/PRD.md` 结构更新，不强行重排整个文档。
+   - 基于现有 `docs/PRD/prd.md` 结构更新，不强行重排整个文档。
    - 若新增 AI 能力、边界、风险、成功指标，必须同步写入对应章节。
 5. **更新变更记录**
    - 加载 `<JINGYUAN_PLUGIN_ROOT>/assets/templates/prd-changelog-template.md`。
-   - 追加到 `docs/PRD-CHANGELOG.md`。
+   - 追加到 `docs/PRD/changelog.md`。
 
 ## 停止追问标准
 
@@ -164,7 +164,7 @@ Skill 启动后按以下顺序处理：
 ## 固定扫描顺序
 
 1. **先看现有文档**
-   - `docs/PRD.md`
+   - `docs/PRD/prd.md`
    - README
    - 需求、设计、接口、部署、数据库文档
 2. **再看结构与入口**
@@ -203,7 +203,7 @@ Skill 启动后按以下顺序处理：
 
 ## 逆向模式输出要求
 
-- 若项目没有 PRD，生成基线 `docs/PRD.md`。
+- 若项目没有 PRD，生成基线 `docs/PRD/prd.md`。
 - 基线 PRD 里必须体现“产品现状”与“建议目标”的区别。
 - 对不能确认的角色、规则、边界、状态机、权限逻辑，保留 `[待确认]`。
 
@@ -232,7 +232,7 @@ Skill 启动后按以下顺序处理：
 
 # 变更记录规则
 
-更新 `docs/PRD-CHANGELOG.md` 时：
+更新 `docs/PRD/changelog.md` 时：
 
 - 分类使用：`新增`、`修改`、`删除`、`重构澄清`、`待确认关闭`。
 - 若是第一次为旧项目补 PRD，允许记录为“逆向建档 / 基线建立”。

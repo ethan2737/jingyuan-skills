@@ -1,6 +1,6 @@
 ---
 name: product-spec-template
-description: Product Spec 输出模板。当需要生成产品需求文档时，按照此模板的结构和格式填充内容，输出为 docs/PRD.md 文件。
+description: Product Spec 输出模板。当需要生成产品需求文档时，按照此模板的结构和格式填充内容，输出为 docs/PRD/prd.md 文件。
 ---
 
 # PRD 输出模板
@@ -11,7 +11,7 @@ description: Product Spec 输出模板。当需要生成产品需求文档时，
 
 ## 模板结构
 
-**文件命名**：`docs/PRD.md`
+**文件命名**：`docs/PRD/prd.md`
 
 ---
 

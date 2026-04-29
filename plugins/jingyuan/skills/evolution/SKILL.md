@@ -1,6 +1,6 @@
 ---
 name: evolution
-description: 景元进化引擎工作流。Use when Codex should scan docs/feedback/ and docs/Feedback-Index.md for repeated patterns and propose workflow, rule, or skill improvements.
+description: 景元进化引擎工作流。Use when Codex should scan docs/feedback/ and docs/feedback/index.md for repeated patterns and propose workflow, rule, or skill improvements.
 ---
 
 # Codex 适配说明
@@ -28,7 +28,7 @@ description: 景元进化引擎工作流。Use when Codex should scan docs/feedb
 [扫描流程]
 
     第一步：扫描毕业候选
-        读取 docs/Feedback-Index.md 定位所有 feedback 文件
+        读取 docs/feedback/index.md 定位所有 feedback 文件
         读取每个文件的 frontmatter
         筛选：occurrences >= 3 且 graduated == false 且 skipped != true
         确定毕业目标：

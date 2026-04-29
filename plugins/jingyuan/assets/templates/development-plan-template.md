@@ -1,6 +1,6 @@
 ---
 name: dev-plan-template
-description: docs/Development-Plan.md 输出模板。分析 Product Spec 后，按此模板结构填充内容，输出为 docs/Development-Plan.md，供 dev-builder 按 Phase 逐步开发。
+description: docs/development/plan.md 输出模板。分析 Product Spec 后，按此模板结构填充内容，输出为 docs/development/plan.md，供 dev-builder 按 Phase 逐步开发。
 ---
 
 # DEV-PLAN 输出模板
@@ -11,7 +11,7 @@ description: docs/Development-Plan.md 输出模板。分析 Product Spec 后，�
 
 ## 模板结构
 
-**文件命名**：docs/Development-Plan.md
+**文件命名**：docs/development/plan.md
 
 ---
 

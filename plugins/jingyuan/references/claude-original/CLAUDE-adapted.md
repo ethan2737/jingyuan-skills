@@ -4,10 +4,10 @@
 
 [任务]
     引导用户完成产品开发的完整流程：
-    1. **需求收集** → 调用 pm，生成 docs/PRD.md
-        2. **设计规范** → 调用 design，生成 docs/Design-Document.md（可选）
+    1. **需求收集** → 调用 pm，生成 docs/PRD/prd.md
+        2. **设计规范** → 调用 design，生成 docs/design/design.md（可选）
         3. **设计图制作** → 调用 mockup，通过设计工具生成完整设计稿（可选）
-        4. **开发计划** → 调用 dev-plan，生成 docs/Development-Plan.md
+        4. **开发计划** → 调用 dev-plan，生成 docs/development/plan.md
         5. **项目开发** → 调用 dev-builder，实现项目代码
         6. **Bug 修复** → 调用 fix，定位并修复问题（按需）
         7. **代码审查** → 调用 review，审查质量并修复（按需）
@@ -15,10 +15,10 @@
 
 [文件结构]
     project/
-    ├── docs/PRD.md                    # 产品需求文档
-    ├── docs/PRD-CHANGELOG.md          # 需求变更记录
-    ├── docs/Design-Document.md                    # 设计规范文档（可选）
-    ├── docs/Development-Plan.md                        # 分阶段开发计划
+    ├── docs/PRD/prd.md                    # 产品需求文档
+    ├── docs/PRD/changelog.md          # 需求变更记录
+    ├── docs/design/design.md                    # 设计规范文档（可选）
+    ├── docs/development/plan.md                        # 分阶段开发计划
     ├── <project-name>/                    # 项目代码（以项目名命名的子文件夹）
     │   ├── src/
     │   ├── package.json
@@ -52,7 +52,7 @@
     - **联网优先**：涉及外部库、API、框架版本时先 WebSearch 确认再动手
     - **持续观察和记录**：当用户给出修正、反馈或改进意见时，派发 jingyuan-feedback-observer-role sub-agent 记录。不依赖主 Agent 自觉写入。
     - 当收到 detect-feedback-signal hook 注入的 additionalContext 时，处理完用户请求后必须派发 jingyuan-feedback-observer-role，不可忽略。
-    - **设计优先级**：如有设计稿时的视觉参照顺序，设计工具中的设计稿（最高）→ docs/Design-Document.md（次之）→ docs/PRD.md（功能逻辑）。有设计稿时一切 UI 以设计图为准，冲突时设计稿优先。具体参照步骤见各 Skill 的设计参照策略。
+    - **设计优先级**：如有设计稿时的视觉参照顺序，设计工具中的设计稿（最高）→ docs/design/design.md（次之）→ docs/PRD/prd.md（功能逻辑）。有设计稿时一切 UI 以设计图为准，冲突时设计稿优先。具体参照步骤见各 Skill 的设计参照策略。
 
 [Skill 调用规则]
     匹配触发条件时，必须先调用 Skill 再输出响应。不要先回复再调用。
@@ -73,19 +73,19 @@
     
     [design]
         **手动调用**：$jingyuan:design
-        前置条件：docs/PRD.md 必须存在
+        前置条件：docs/PRD/prd.md 必须存在
     
     [mockup]
         **手动调用**：$jingyuan:mockup
-        前置条件：docs/PRD.md 和 docs/Design-Document.md 必须存在
+        前置条件：docs/PRD/prd.md 和 docs/design/design.md 必须存在
     
     [dev-plan]
         **手动调用**：$jingyuan:dev-plan
-        前置条件：docs/PRD.md 必须存在
+        前置条件：docs/PRD/prd.md 必须存在
     
     [dev-builder]
         **手动调用**：jingyuan:dev-builder
-        前置条件：docs/PRD.md 和 docs/Development-Plan.md 必须存在
+        前置条件：docs/PRD/prd.md 和 docs/development/plan.md 必须存在
     
     [fix]
         **自动调用**：
@@ -100,7 +100,7 @@
         - 每个功能开发完成后，自动进入 review → fix 闭环
         - 用户要求代码审查、检查代码质量时
         **手动调用**：jingyuan:review
-        前置条件：docs/PRD.md 必须存在，项目代码已创建
+        前置条件：docs/PRD/prd.md 必须存在，项目代码已创建
         执行方式：永远通过派发 jingyuan-reviewer-role Sub-Agent 执行（见 [Sub-Agent 调度规则]）
     
     [release]
@@ -149,11 +149,11 @@
 [项目状态检测与路由]
     初始化时自动检测项目进度，路由到对应阶段：
     检测逻辑：
-        - 无 docs/PRD.md → 全新项目 → 引导用户描述想法或调用 $jingyuan:pm
-        - 有 docs/PRD.md，无 docs/Development-Plan.md，无代码 → Spec 已完成 → 输出交付指南
-        - 有 docs/PRD.md + docs/Development-Plan.md，无代码 → Plan 已完成 → 引导调用 jingyuan:dev-builder
-        - 有 docs/PRD.md + 代码，无 docs/Development-Plan.md → 建议调用 $jingyuan:dev-plan 生成计划
-        - 有 docs/PRD.md + docs/Development-Plan.md + 代码 → 项目开发中 → 可继续开发、审查、修复或发布
+        - 无 docs/PRD/prd.md → 全新项目 → 引导用户描述想法或调用 $jingyuan:pm
+        - 有 docs/PRD/prd.md，无 docs/development/plan.md，无代码 → Spec 已完成 → 输出交付指南
+        - 有 docs/PRD/prd.md + docs/development/plan.md，无代码 → Plan 已完成 → 引导调用 jingyuan:dev-builder
+        - 有 docs/PRD/prd.md + 代码，无 docs/development/plan.md → 建议调用 $jingyuan:dev-plan 生成计划
+        - 有 docs/PRD/prd.md + docs/development/plan.md + 代码 → 项目开发中 → 可继续开发、审查、修复或发布
     
     显示格式：
         "📊 **项目进度检测**
@@ -180,7 +180,7 @@
         输出：
             "✅ **Product Spec 已生成！**
             
-            文件：docs/PRD.md
+            文件：docs/PRD/prd.md
             
             ---
             
@@ -199,7 +199,7 @@
         完成后：
             "✅ **Design Brief 已生成！**
             
-            文件：docs/Design-Document.md
+            文件：docs/design/design.md
             
             接下来：
             - 调用 $jingyuan:mockup 生成完整设计稿（可选）
@@ -226,7 +226,7 @@
         完成后：
             "✅ **DEV-PLAN 已生成！**
             
-            文件：docs/Development-Plan.md
+            文件：docs/development/plan.md
             共 N 个 Phase。
             
             调用 jingyuan:dev-builder 开始开发。"
@@ -298,12 +298,12 @@
         第一步：明确变更内容
             调用 pm（迭代模式）
                 ↓
-            通过追问明确变更内容 → 更新 docs/PRD.md → 更新 docs/PRD-CHANGELOG.md
+            通过追问明确变更内容 → 更新 docs/PRD/prd.md → 更新 docs/PRD/changelog.md
     
         第二步：更新开发计划
             调用 dev-plan（迭代模式）
                 ↓
-            更新 docs/Development-Plan.md（如不存在则创建）→ 明确变更影响哪些 Phase / Task
+            更新 docs/development/plan.md（如不存在则创建）→ 明确变更影响哪些 Phase / Task
     
         第三步：执行代码变更
             Agent 根据变更的 Task 数量和复杂度自主判断：

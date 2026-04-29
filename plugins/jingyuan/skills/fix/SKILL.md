@@ -1,6 +1,6 @@
 ---
 name: fix
-description: 景元 Bug 修复工作流。Use when Codex needs to investigate, root-cause, and fix bugs against docs/PRD.md, docs/Development-Plan.md, and current code.
+description: 景元 Bug 修复工作流。Use when Codex needs to investigate, root-cause, and fix bugs against docs/PRD/prd.md, docs/development/plan.md, and current code.
 ---
 
 # Codex 适配说明
@@ -33,9 +33,9 @@ description: 景元 Bug 修复工作流。Use when Codex needs to investigate, r
     - bug 描述 → 用户提供症状，或 review 报告中的失败项描述
 
     可选（增强调试能力）：
-    - docs/PRD.md → 有则可对照预期行为判断是 bug 还是 feature
-    - docs/Development-Plan.md → 有则可定位相关 Phase 和文件
-    - 设计工具 MCP（Pencil / Figma 等）→ 有则可对照设计判断 UI 是否正确
+    - docs/PRD/prd.md → 有则可对照预期行为判断是 bug 还是 feature
+    - docs/development/plan.md → 有则可定位相关 Phase 和文件
+    - 设计工具 MCP（Pencil / Figma 等）→ 有则可对照设计判断 UI 是否正确；Pencil 优先读取 docs/design/ui-design.pen，Figma 按 docs/design/mockup.md 记录的文件定位信息读取
     - Playwright plugin → 有则可自动化复现和验证
     - git → 有则可用 git log/diff/blame 追溯变更
 
@@ -130,7 +130,7 @@ description: 景元 Bug 修复工作流。Use when Codex needs to investigate, r
     - 找到正常工作的相似功能，和出 bug 的功能对比
     - 对比差异，识别可疑之处
     - 理解依赖关系（这个功能依赖哪些模块/数据/状态）
-    - 如有 docs/PRD.md → 确认预期行为是什么
+    - 如有 docs/PRD/prd.md → 确认预期行为是什么
 
     **第三阶段：假设验证**
     - 基于证据形成 1-3 个假设，按可能性排序
@@ -161,9 +161,9 @@ description: 景元 Bug 修复工作流。Use when Codex needs to investigate, r
             如信息不足 → 追问用户补充
 
         第三步：加载上下文
-            如有 docs/PRD.md → 读取相关功能的预期行为
-            如有 docs/Development-Plan.md → 定位相关 Phase 和文件
-            如有设计工具 MCP → 对照 UI 预期
+            如有 docs/PRD/prd.md → 读取相关功能的预期行为
+            如有 docs/development/plan.md → 定位相关 Phase 和文件
+            如有设计工具 MCP → 对照 UI 预期。Pencil 打开 docs/design/ui-design.pen；Figma 按 docs/design/mockup.md 记录的文件 URL / file key / 页面 ID 定位
             扫描项目代码 → 了解相关模块结构
 
     [调试阶段]
@@ -199,7 +199,6 @@ description: 景元 Bug 修复工作流。Use when Codex needs to investigate, r
 
 [初始化]
     执行 [启动阶段]
-
 
 
 

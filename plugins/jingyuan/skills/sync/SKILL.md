@@ -24,14 +24,15 @@ description: 景元同步对齐工作流。Use when Codex needs to audit and rec
     - Git 仓库或可读项目目录 → 用于识别代码、文档和最近变更
 
     可选：
-    - docs/PRD/PRD.md 或 docs/PRD.md → 缺失则标记"无 PRD 模式"，必要时提示先调用 $jingyuan:pm
-    - docs/PRD/PRD-CHANGELOG.md 或 docs/PRD-CHANGELOG.md → 缺失但需要记录 PRD 变化时创建
-    - docs/Design-Document.md → 缺失则标记"无设计规范模式"
-    - docs/Design-Mockup.md → 缺失则标记"无设计稿说明模式"
-    - docs/Development-Plan.md → 缺失则标记"无开发计划模式"
+    - docs/PRD/prd.md → 缺失则标记"无 PRD 模式"，必要时提示先调用 $jingyuan:pm
+    - docs/PRD/changelog.md → 缺失但需要记录 PRD 变化时创建
+    - docs/design/design.md → 缺失则标记"无设计规范模式"
+    - docs/design/mockup.md → 缺失则标记"无设计稿说明模式"
+    - docs/design/ui-design.pen → 如存在则作为 Pencil 设计稿本体纳入同步；不存在不代表缺失，可能使用 Figma
+    - docs/development/plan.md → 缺失则标记"无开发计划模式"
     - README.md → 缺失则仅在项目已经有可运行代码且需要外部说明时创建
     - AGENTS.md 或 CLAUDE.md → 缺失则仅在存在明确项目约定时创建或更新
-    - 设计工具 MCP → 可用时优先尝试同步设计稿；不可用时同步 docs/Design-Mockup.md 并列出待手工处理项
+    - 设计工具 MCP → 可用时优先尝试同步设计稿；不可用时同步 docs/design/mockup.md 并列出待手工处理项
 
 [第一性原则]
     **事实优先**：先读代码、文档、Git diff、最近提交和设计稿，再判断差异。不要凭记忆同步。
@@ -73,18 +74,17 @@ description: 景元同步对齐工作流。Use when Codex needs to audit and rec
     每次执行都要按项目实际存在情况盘点以下对象：
 
     **产品层**
-    - docs/PRD/PRD.md
-    - docs/PRD.md
-    - docs/PRD/PRD-CHANGELOG.md
-    - docs/PRD-CHANGELOG.md
+    - docs/PRD/prd.md
+    - docs/PRD/changelog.md
 
     **设计层**
-    - docs/Design-Document.md
-    - docs/Design-Mockup.md
+    - docs/design/design.md
+    - docs/design/mockup.md
+    - docs/design/ui-design.pen（仅 Pencil 模式）
     - 已连接设计工具中的页面、组件、变量和状态变体
 
     **开发层**
-    - docs/Development-Plan.md
+    - docs/development/plan.md
     - package.json、依赖清单、配置文件、路由入口、核心业务代码
     - 测试、构建、部署相关配置
 
@@ -92,7 +92,7 @@ description: 景元同步对齐工作流。Use when Codex needs to audit and rec
     - README.md
     - AGENTS.md
     - CLAUDE.md
-    - docs/feedback/、docs/Feedback-Index.md（如本次变更来自反馈闭环）
+    - docs/feedback/、docs/feedback/index.md（如本次变更来自反馈闭环）
 
 [差异判断规则]
     **高置信度，可直接同步**
@@ -140,8 +140,9 @@ description: 景元同步对齐工作流。Use when Codex needs to audit and rec
     如果设计工具 MCP 可用且差异属于明确的设计稿落后：
     1. 读取相关页面和组件
     2. 对照 PRD、Design Document 和代码行为确认修改范围
-    3. 能安全执行则修改设计稿并截图验证
-    4. 无法执行、工具不可用或风险过高时，更新 docs/Design-Mockup.md，写清待修改页面、原因和建议调用 $jingyuan:mockup
+    3. Pencil 模式必须修改 docs/design/ui-design.pen；Figma 模式按 docs/design/mockup.md 记录的文件定位信息修改远端设计稿
+    4. 能安全执行则修改设计稿并截图验证
+    5. 无法执行、工具不可用或风险过高时，更新 docs/design/mockup.md，写清待修改页面、原因和建议调用 $jingyuan:mockup
 
     **PRD 保护法**
     只有在变更体现产品意图时才改 PRD。若代码只是绕过、降级或缺陷，记录为待确认或建议调用 $jingyuan:fix，不写成需求。
@@ -154,7 +155,7 @@ description: 景元同步对齐工作流。Use when Codex needs to audit and rec
         4. 检查当前分支、工作区状态、最近提交和未提交 diff。
         5. 枚举并读取 [同步对象清单] 中实际存在的文件。
         6. 扫描代码结构、入口、路由、配置、依赖、核心业务文件和测试文件。
-        7. 如设计工具 MCP 可用，读取当前设计稿页面、组件、变量和状态变体清单。
+        7. 如设计工具 MCP 可用，读取当前设计稿页面、组件、变量和状态变体清单。Pencil 优先读取 docs/design/ui-design.pen；Figma 按 docs/design/mockup.md 定位。
 
     [第二步：差异建模]
         1. 建立"事实表"：代码事实、文档事实、设计稿事实、Git 变更事实。
@@ -166,11 +167,11 @@ description: 景元同步对齐工作流。Use when Codex needs to audit and rec
         4. 对涉及安全、权限、数据删除、收费和合规的差异，提高到待确认，除非用户明确确认。
 
     [第三步：执行同步]
-        1. 先同步面向外部和下游的文档：README.md、docs/Design-Mockup.md、docs/Development-Plan.md。
-        2. 再同步产品和设计源文档：docs/PRD/PRD.md 或 docs/PRD.md、docs/Design-Document.md。
-        3. 如 PRD 有实际变更，追加 docs/PRD/PRD-CHANGELOG.md 或 docs/PRD-CHANGELOG.md。
+        1. 先同步面向外部和下游的文档：README.md、docs/design/mockup.md、docs/development/plan.md。
+        2. 再同步产品和设计源文档：docs/PRD/prd.md、docs/design/design.md。
+        3. 如 PRD 有实际变更，追加 docs/PRD/changelog.md。
         4. 最后同步项目内 Agent 约定：AGENTS.md 或 CLAUDE.md。
-        5. 对设计稿差异，能通过 MCP 修改则修改并截图验证；不能修改则更新 docs/Design-Mockup.md 的待处理清单。
+        5. 对设计稿差异，能通过 MCP 修改则修改并截图验证；不能修改则更新 docs/design/mockup.md 的待处理清单。
 
     [第四步：自检]
         逐项检查：
