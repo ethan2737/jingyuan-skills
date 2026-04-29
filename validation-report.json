@@ -1,5 +1,5 @@
 {
-    "generatedAt": "2026-04-29T16:30:00+08:00",
+    "generatedAt": "2026-04-29T18:10:00+08:00",
     "status": "passed",
     "pluginMode": "complete-plugin-payload-with-flat-skill-discovery",
     "targetPlatform": "Windows",
@@ -45,6 +45,12 @@
         "projectMemory": "context, ADR, and out-of-scope references are defined under references/workflow/project-memory.md.",
         "dependencyPolicy": "hard, soft, and optional dependency policy is defined under references/workflow/dependency-policy.md.",
         "verticalSlice": "dev-plan and dev-builder reference vertical-slice.md for end-to-end task slicing.",
+        "developmentArtifacts": "dev-plan and dev-builder now support docs/changes/<change-id>/ proposal/spec/design/tasks artifacts while keeping docs/development/plan.md as the overview.",
+        "testingPolicy": "testing-policy.md defines behavior-first TDD, mock boundaries, and accepted replacement evidence for visual/config/bootstrap work.",
+        "implementationCycle": "implementation-cycle.md defines preflight, apply-style checkbox execution, scope drift detection, and stale verification rules.",
+        "verificationGates": "verification-gates.md defines completion statuses and fresh evidence requirements.",
+        "diagnosticsLoop": "diagnostics-loop.md defines reproducible feedback loops for bug fixes and baseline-first performance work.",
+        "reviewReadiness": "review-readiness.md defines two-stage review and stale review detection.",
         "fixLoop": "fix now requires a reproducible validation loop before repair and a baseline before performance optimization.",
         "validationConsistency": "validate-plugin.ps1 checks README skill mentions and validation-report skill count/list consistency."
     },

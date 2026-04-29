@@ -1,330 +1,100 @@
 ---
 name: dev-plan
-description: 景元开发计划工作流。Use when Codex needs to create or update docs/development/plan.md from docs/PRD/prd.md and optional docs/design/design.md.
+description: 景元开发计划工作流。Use when Codex needs to create or update docs/development/plan.md from product requirements, design guidance, existing code, or change requests.
 ---
 
-# Codex 适配说明
-
-- 本 Skill 从原 dev-planner 迁移而来，正文保留原工作流内容并按 Codex 规则调整入口、路径和产物命名。
-- 所有产品、设计、开发计划、反馈和进化类文档必须写入目标项目的 `docs/` 目录；不得在目标项目根目录直接生成旧文件名。
-- 新入口使用 `$jingyuan:dev-plan`；旧斜杠命令仅作为历史语义参考。
-- Claude 专属的 hooks/sub-agent 描述在 Codex 中按 `<JINGYUAN_PLUGIN_ROOT>/references/workflow/hooks-adapter.md` 和 `<JINGYUAN_PLUGIN_ROOT>/references/workflow/sub-agent-adapter.md` 执行。
-- 执行前优先读取本插件的共享参考：`<JINGYUAN_PLUGIN_ROOT>/references/workflow/document-conventions.md`、`<JINGYUAN_PLUGIN_ROOT>/references/workflow/hooks-adapter.md`、`<JINGYUAN_PLUGIN_ROOT>/references/workflow/sub-agent-adapter.md`、`<JINGYUAN_PLUGIN_ROOT>/references/workflow/windows-powershell.md`。
-- 同时读取 `<JINGYUAN_PLUGIN_ROOT>/references/workflow/dependency-policy.md`、`<JINGYUAN_PLUGIN_ROOT>/references/workflow/project-memory.md`、`<JINGYUAN_PLUGIN_ROOT>/references/workflow/vertical-slice.md`，用来区分依赖等级、读取长期记忆并按端到端切片拆计划。
-- 本插件面向 Windows 用户，命令示例默认使用 PowerShell；除用户明确要求外，不使用 Unix 命令作为主流程。
-- 将 `<JINGYUAN_PLUGIN_ROOT>` 解析为 `$env:CODEX_HOME\plugins\jingyuan`；如未设置 `CODEX_HOME`，则解析为 `$HOME\.codex\plugins\jingyuan`。
-
-# 原工作流正文（Codex 路径适配版）
-
-
-[任务]
-    **生成模式**：读取 docs/PRD/prd.md（和 docs/design/design.md，如有），分析功能依赖关系，WebSearch 验证技术选型，输出分阶段开发计划 docs/development/plan.md。
-
-    **迭代模式**：当 PRD 变更后，分析变更影响范围，更新 docs/development/plan.md 中的 Phase 划分和文件清单。已完成的 Phase（标记 ✅）不动。
-
-[依赖检测]
-    Skill 启动时第一步自动执行：
-
-    必需：
-    - docs/PRD/prd.md → 缺失则提示先调用 $jingyuan:pm
-
-    可选（降级模式）：
-    - docs/design/design.md → 缺失则标记"无设计规范模式"，视觉相关细节标注 [待 Design Document 补充]
-    - docs/context.md → 有则用于统一术语；缺失不阻塞
-    - docs/adr/ → 有则尊重已确认架构决策；缺失不阻塞
-    - docs/out-of-scope/ → 有则不得把其中内容规划进 Phase；缺失不阻塞
-    - 设计工具 MCP → 未连接或无文件则仅依据文字描述，标记"无设计稿模式"
-    - docs/design/ui-design.pen → 如存在，说明 Pencil 设计稿已生成，Phase 拆分必须优先读取该文件；如不存在但 docs/design/mockup.md 记录 Figma 文件，则按 Figma 定位信息读取
-    - 已有项目代码 → 有则扫描现有结构作为约束，进入迭代模式
-
-[第一性原则]
-    **可验证原则**：每个 Phase 完成后必须能编译、能运行、能看到效果。不允许"写一堆代码但什么都跑不起来"的 Phase。
-
-    **依赖正序原则**：地基先打，房子后盖。基础设施（项目骨架、数据库、路由）永远排在业务功能前面。功能之间有依赖关系的，被依赖方先做。
-
-    **联网优先原则**：不靠过期记忆，靠实时信息。
-    - 技术栈选型 → 先 WebSearch 确认框架最新稳定版本、已知问题、推荐搭配
-    - 关键依赖 → 先 WebSearch 确认 API 兼容性、版本号、是否有 breaking changes
-    - 不确定的技术方案 → 搜了再定，不凭过期记忆做架构决策
-
-    **粒度适中原则**：Phase 太大做不完，太小管理成本高。一个 Phase 对应一个可独立验收的功能单元，通常 1-3 个核心交付物。
-
-    **Vertical Slice 原则**：Phase 内 Task 优先按端到端可演示行为拆分，不按"先数据库、再 API、再 UI"的水平层拆分。基础设施可以存在，但必须尽快接上第一个可验证行为。
-
-    **范围保护原则**：PRD 的"本期不做"和 `docs/out-of-scope/` 中的内容不得进入开发计划。如发现 PRD 与 out-of-scope 冲突，停止并提示先调用 `$jingyuan:pm` 或 `$jingyuan:sync`。
-
-    **文件路径明确原则**：每个 Phase 必须列出要创建或修改的具体文件路径。"实现聊天功能"不是计划，"创建 src/components/views/chat-view.tsx 和 src/hooks/use-chat.ts" 才是计划。
-
-    **无占位符原则**：Plan 里每一个字都要具体到任何人拿到这份 Plan 都能直接开工。
-    - 不允许：TBD、TODO、"待补充"、"待确定"、"implement later"
-    - 不允许："类似 Task N"——重复具体内容，不引用
-    - 不允许："添加适当的错误处理"——指明处理什么错误、怎么处理
-    - 不允许："实现相关功能"——列出具体功能名称和行为
-    - 每个 Task 描述必须完整到一个没有项目上下文的工程师也能读懂并执行
-
-[文件结构]
-    ```
-    dev-plan/
-    ├── SKILL.md                           # 主 Skill 定义（本文件）
-    └── templates/
-        └── development-plan-template.md           # docs/development/plan.md 输出模板
-    ```
-
-[分析维度清单]
-    分析 PRD 时，需要覆盖以下维度（不必按顺序，根据项目特征灵活调整）：
-
-    **必须分析**（没有这些，Development Plan 就是空中楼阁）：
-
-    - 技术栈确定：从 Spec 的技术方向章节提取推荐技术栈，WebSearch 验证框架版本、兼容性、已知问题。如 Spec 只写了方向（如"Web 应用"）没写具体栈，则根据项目类型推荐并确认。
-      - 确认项：框架 + 版本号、UI 方案、数据库方案、包管理器、部署目标
-      - WebSearch 重点：框架最新稳定版、关键依赖兼容性、社区推荐搭配
-      - 如有多个合理选项 → 给用户 2-3 个方案 + 优劣对比，让用户选
-
-    - Phase 拆分：将 Spec 中的功能需求按依赖关系和复杂度分解为有序的 Phase 序列。每个 Phase 是一个可独立验收的功能单元。
-      - 拆分依据：功能依赖关系（A 依赖 B → B 先做）、技术基础设施放最前、核心功能优先于辅助功能
-      - 粒度标准：一个 Phase 通常包含 1-3 个核心交付物
-      - 切片标准：每个 Phase 至少包含一个可演示或可验证的用户行为；Phase 内 Task 尽量覆盖必要 UI/API/数据/测试闭环
-
-    - 每个 Phase 的交付清单：每个 Phase 必须明确交付什么。用动词开头，描述用户可感知的功能。
-      - 格式："用户能做什么 → 系统做什么"或"完成 XX 基础设施搭建"
-
-    - 每个 Phase 的关键文件：每个 Phase 必须列出将要创建或修改的具体文件路径。
-      - 对新项目：根据技术栈的约定推导目录结构（如 Next.js 的 src/app/api/、src/components/ 等）
-      - 对已有项目：扫描现有代码结构作为基础
-
-    - 功能依赖图：识别功能之间的依赖关系，确保 Phase 排序不违反依赖。
-      - 例：聊天 UI 依赖消息数据库 → 数据库必须在聊天 UI 之前
-      - 例：IM Bridge 依赖 Agent 引擎 → Agent 引擎必须在 IM 之前
-
-    **尽量分析**（有这些，Plan 更落地）：
-
-    - 数据库设计：如项目需要数据库，梳理所有数据表、所属 Phase、用途。
-      - 格式：表名 + 首次创建的 Phase + 用途说明
-
-    - 每个 Phase 的验收标准：每个 Phase 完成时如何验证。
-      - 最低标准：能编译、能启动、新功能可用
-      - 推荐标准：能编译 + 能启动 + 新功能可用 + 现有功能未破坏
-
-    - 已知风险与限制：标注某些 Phase 中预期会有的技术风险或已知限制。
-      - 例："Phase 4 只实现 UI 配置界面，IM 实际连接引擎在 Phase 10"
-
-    **不需要分析**（交给 dev-builder 决定）：
-    - 具体的代码实现细节（函数签名、类接口）
-    - 具体的 CSS 样式方案
-    - 测试用例设计
-    - Git 分支策略
-
-[分析策略]
-    **依赖图构建法**
-    从 Spec 的功能列表出发，构建功能之间的依赖关系：
-    1. 列出所有功能点
-    2. 对每个功能问：它能独立运行吗？它依赖哪些其他功能或基础设施？
-    3. 构建有向无环图（DAG）
-    4. 拓扑排序得到 Phase 顺序
-    基础设施（项目骨架、数据库初始化、路由框架）始终是 DAG 的根节点。
-
-    **洋葱剥皮法（由内到外）**
-    如果功能之间没有强依赖关系，按"用户感知价值"排序：
-    1. 核心功能（去掉它产品就不成立的）→ 最先做
-    2. 重要功能（有它才好用的）→ 中间做
-    3. 辅助功能（锦上添花的）→ 最后做
-    4. 收尾功能（i18n、打包、部署）→ 最后做
-
-    **粒度校准法**
-    检查每个 Phase 的粒度是否合理：
-    - 太大的信号：交付清单超过 5 项、关键文件超过 10 个、涉及 3 个以上互不相关的功能
-    - 太小的信号：交付清单只有 1 项且很简单、关键文件只有 1-2 个
-    - 合适的信号：交付清单 2-4 项、关键文件 3-8 个、功能之间有内聚性
-
-    **风险前置法**
-    识别项目中技术风险最高的部分（新技术、复杂集成、不确定的 API），尽量安排在早期 Phase：
-    - 未用过的框架 → 在骨架 Phase 就验证
-    - 关键第三方 API → 在早期 Phase 做集成验证
-    - 性能敏感的功能 → 在实现时就考虑，不留到最后优化
-
-    **WebSearch 验证法**
-    对技术选型中的每个关键决策，执行搜索验证：
-    1. 框架 + "latest stable version" + 年份
-    2. 框架A + 框架B + "compatibility" 或 "integration"
-    3. 具体包名 + "known issues" 或 "breaking changes"
-    4. 项目类型 + "recommended stack" + 年份
-    验证结果影响技术栈表和 Phase 安排。
-
-    **确认策略**
-    dev-plan 不像 pm 那样需要大量对话。只在以下情况向用户确认：
-    - 技术栈有多个合理选项时 → 给 2-3 个方案让用户选
-    - Phase 粒度偏好 → "你想要粗粒度（6-8 个 Phase）还是细粒度（10-15 个 Phase）？"
-    - 功能优先级有歧义时 → "先做 A 还是先做 B？"
-    - 除此之外，Spec 已经写清楚了，不需要追问用户
-
-[信息充足度判断]
-    当以下条件满足时，可以生成 docs/development/plan.md：
-
-    **必须满足**（没有这些，Plan 是废纸）：
-    - ✅ 技术栈已确定（框架 + 版本 + 关键依赖，经 WebSearch 验证）
-    - ✅ Phase 拆分完成（每个 Phase 有明确的交付清单）
-    - ✅ 依赖顺序合理（没有 Phase 依赖未完成的前置 Phase）
-    - ✅ 每个 Phase 有关键文件列表（具体路径，不是模糊描述）
-    - ✅ Spec 中的所有核心功能都被覆盖（没有遗漏）
-
-    **尽量满足**（有这些，Plan 更实用）：
-    - ✅ 数据库表梳理完成（如有数据库）
-    - ✅ 每个 Phase 有验收标准
-    - ✅ 已知风险和限制已标注
-
-    如果「必须满足」条件未达成，继续分析，不生成半成品。
-    如果「尽量满足」条件未达成，在对应 Phase 的验收标准中写明最低验收标准——能编译、能启动、新功能可用——不使用占位符。
-
-[工作流程（生成模式）]
-    [加载阶段]
-        目的：读取所有输入文档，建立分析基础
-
-        第一步：依赖检测
-            执行 [依赖检测]
-
-        第二步：加载 PRD
-            读取 docs/PRD/prd.md
-            提取：产品类型、核心功能列表、辅助功能列表、AI 能力需求、技术方向、UI 布局结构、数据存储方式
-            检查 docs/PRD/prd.md 中是否包含 [待补充] 标记。如有，列出涉及的条目并提示用户先补充或确认可以跳过
-
-        第三步：加载 Design Document（如有）
-            读取 docs/design/design.md
-            提取：核心页面列表、视觉方向（影响组件拆分粒度）
-
-        第四步：加载设计稿（如有）
-            检查设计工具 MCP 是否连接
-            如有 → 通过设计工具读取设计稿。Pencil 优先打开 docs/design/ui-design.pen；Figma 按 docs/design/mockup.md 中记录的文件 URL / file key / 页面 ID 定位。提取：
-            - 所有页面和变体的完整清单
-            - 各页面的组件构成和布局结构
-            - 具体的交互元素和状态变体
-            - 页面之间的跳转关系
-            - 可复用组件列表
-            设计稿存在时，Phase 拆分和关键文件规划必须以设计稿的实际页面结构为准。设计稿中的页面数量、组件数量直接决定 Phase 的工作量和文件清单，不能只看 Spec 文字描述。
-            如无 → 跳过，仅依据 Spec 和 Design Document 的文字描述
-
-        第五步：扫描已有代码（如有）
-            如果项目目录中已有代码 → 扫描目录结构，识别技术栈和已实现的功能
-            标记为已有代码约束，避免 Plan 与现有结构冲突
-
-    [技术验证阶段]
-        目的：确定并验证技术栈
-
-        第一步：提取技术方向
-            从 Spec 的技术方向章节提取推荐的技术栈
-            如 Spec 无明确技术栈 → 根据项目类型推荐：
-            - Web（纯前端）→ React + Vite + TypeScript + Tailwind
-            - Web（全栈）→ Next.js + TypeScript + Tailwind
-            - Desktop → Electron + Next.js + TypeScript + Tailwind
-            - CLI → Node.js + TypeScript + Commander
-            - Mobile → React Native / Expo
-
-        第二步：WebSearch 验证
-            对照 [分析维度清单] 中的"技术栈确定"维度
-            运用 [分析策略] 中的"WebSearch 验证法"
-            验证框架版本、关键依赖兼容性、已知问题
-
-        第三步：确认技术栈
-            如有多个合理选项 → 向用户展示 2-3 个方案 + 优劣对比，让用户选
-            如 Spec 技术方向明确且验证通过 → 直接确认，不需要问用户
-            输出确认的技术栈表
-
-    [分析阶段]
-        目的：分析功能依赖关系，拆分 Phase
-
-        第一步：功能拆解
-            将 Spec 中的功能需求逐条列出
-            如有设计稿 → 以设计稿的页面结构为准，逐页面确认涉及的功能和组件。设计稿中的页面数量和组件构成直接决定 Phase 的文件清单
-            如无设计稿 → 依据 Spec 和 Design Document 的文字描述推导页面结构
-            标注每个功能的：类型、依赖的其他功能、涉及的数据表、涉及的页面和组件
-
-        第二步：依赖图构建
-            运用 [分析策略] 中的"依赖图构建法"
-            构建功能依赖图，识别先后顺序
-
-        第三步：Phase 拆分
-            运用 [分析策略] 中的"洋葱剥皮法"和"风险前置法"
-            将功能按依赖顺序和优先级分组为 Phase
-            运用"粒度校准法"检查每个 Phase 的粒度
-
-        第四步：充足度判断
-            对照 [信息充足度判断]
-            「必须满足」全部达成 → 进入输出阶段
-            有疑问 → 向用户确认后继续
-
-    [输出阶段]
-        目的：生成 docs/development/plan.md 文件
-
-        第一步：加载模板
-            读取 <JINGYUAN_PLUGIN_ROOT>/assets/templates/development-plan-template.md
-
-        第二步：填充内容
-            按模板结构填写：
-            - Phase 列表（编号 + 功能名 + 交付清单 + 关键文件 + 验收标准）
-            - 技术栈表
-            - 数据库表汇总（如有）
-            - 开发规则
-
-        第三步：自检
-            运用 [分析策略] 中的"粒度校准法"再次检查
-            确认 Spec 中每个核心功能都有对应 Phase
-            确认 Phase 顺序不违反依赖关系
-            无占位符检查：扫描输出内容中是否包含 TBD、TODO、待补充、待确定、"类似 Phase/Task N"等占位符，如有则替换为具体内容
-
-        第四步：输出文件
-            保存为 docs/development/plan.md
-
-        第五步：引导下一步
-            "✅ docs/development/plan.md 已生成！
-
-             文件：docs/development/plan.md
-             共 N 个 Phase，覆盖 Spec 中的全部 X 个功能。
-
-             接下来：
-             - 调用 $jingyuan:dev-builder 按 Phase 开始开发
-             - 或先调用 $jingyuan:design 确定视觉方向（如还没做）
-             - 想调整 Phase 粒度或顺序？直接告诉我。"
-
-[工作流程（迭代模式）]
-    触发条件：
-    - 已有 docs/development/plan.md 且 PRD 发生变更
-    - 用户主动要求调整 Phase
-
-    [变更分析阶段]
-        第一步：加载现有文件
-            读取现有 docs/development/plan.md
-            读取更新后的 docs/PRD/prd.md
-            如有 docs/PRD/changelog.md → 读取最近的变更记录，快速定位变更范围
-            如有 docs/design/design.md → 读取，检查视觉方向是否也有变更
-            如有设计工具 MCP 已连接 → 读取最新设计稿，对比变更涉及的页面
-
-        第二步：识别变更影响
-            对比 Spec 变更内容与现有 Plan：
-            - 新功能 → 需要新增 Phase 或插入已有 Phase
-            - 功能修改 → 需要更新对应 Phase 的交付清单和关键文件
-            - 功能删除 → 需要移除或精简对应 Phase
-            - 技术栈变更 → 可能需要重排多个 Phase
-
-        第三步：向用户说明影响
-            "Spec 的变更会影响 Plan 中的以下 Phase：
-             - Phase N：[影响说明]
-             - Phase M：[影响说明]
-             需要我直接更新吗？"
-
-    [更新阶段]
-        第一步：更新 Phase
-            在现有 docs/development/plan.md 上直接修改
-            保持已完成 Phase 不变（标记 ✅ 的不动）
-            只改受影响的待开发 Phase
-
-        第二步：重新校验依赖
-            确认更新后的 Phase 顺序不违反依赖关系
-
-        第三步：保存文件
-            保存更新后的 docs/development/plan.md
-
-[初始化]
-    执行 [加载阶段]
-
-
-
-
+# JingYuan Dev Plan
+
+`$jingyuan:dev-plan` 把 PRD、设计、项目长期记忆和现有代码转成可执行、可恢复、可验证的开发计划。它不是只排 Phase，而是规划一个个端到端 vertical slice，并在较大变更时生成 change artifact。
+
+## 启动读取
+
+先解析 `<JINGYUAN_PLUGIN_ROOT>`：优先 `$env:CODEX_HOME\plugins\jingyuan`，否则 `$HOME\.codex\plugins\jingyuan`。
+
+启动后读取：
+- `docs/PRD/prd.md`。缺失则提示先调用 `$jingyuan:pm`。
+- `docs/design/design.md`、`docs/design/mockup.md`、`docs/design/ui-design.pen`，存在则作为界面和交互约束。
+- `docs/context.md`、`docs/adr/`、`docs/out-of-scope/`，存在则作为术语、架构决策和范围边界。
+- 现有项目代码，存在则进入迭代规划，计划必须贴合现有结构。
+- `<JINGYUAN_PLUGIN_ROOT>/references/workflow/document-conventions.md`
+- `<JINGYUAN_PLUGIN_ROOT>/references/workflow/dependency-policy.md`
+- `<JINGYUAN_PLUGIN_ROOT>/references/workflow/project-memory.md`
+- `<JINGYUAN_PLUGIN_ROOT>/references/workflow/vertical-slice.md`
+- `<JINGYUAN_PLUGIN_ROOT>/references/workflow/development-artifacts.md`
+- `<JINGYUAN_PLUGIN_ROOT>/references/workflow/testing-policy.md`
+- `<JINGYUAN_PLUGIN_ROOT>/references/workflow/review-readiness.md`
+- `<JINGYUAN_PLUGIN_ROOT>/references/workflow/windows-powershell.md`
+
+## 输出目标
+
+默认输出总览计划：
+- `docs/development/plan.md`
+
+较大变更必须额外输出 change artifact：
+- `docs/changes/<change-id>/proposal.md`
+- `docs/changes/<change-id>/spec.md`
+- `docs/changes/<change-id>/design.md`
+- `docs/changes/<change-id>/tasks.md`
+
+小改动可只更新 `docs/development/plan.md`。如果变更影响多个能力、跨模块、改变用户行为、改变架构决策、引入新依赖或需要多次恢复执行，必须生成 `docs/changes/<change-id>/`。
+
+## 第一性原则
+
+- **可验证行为优先**：每个 Phase/Slice 都必须描述用户或系统触发什么，以及能观察到什么结果。
+- **禁止纯水平切片**：除项目初始化外，不允许把“只建表”“只写 API”“只做 UI”当成独立完成标准。基础设施必须绑定第一个 tracer 行为。
+- **范围保护**：PRD 的“本期不做”和 `docs/out-of-scope/` 不得进入计划。发现冲突时停止并提示先调用 `$jingyuan:pm` 或 `$jingyuan:sync`。
+- **依赖正序**：用 `Blocked by` 显式记录依赖，不只靠 Phase 顺序。
+- **语言与运行时明确**：技术栈必须写清编程语言、运行时、包管理器和测试框架。已有项目跟随现有主语言；新项目按 PRD 和产品类型推荐；引入第二语言必须说明原因、边界、验证命令和维护成本。
+- **测试意图前置**：计划不写具体测试代码，但必须写清公开行为、seam、验证命令和关键回归范围。
+- **风险前置**：新技术、外部 API、性能敏感路径、架构分歧要早做 Spike 或 ADR。
+- **无占位符**：不得输出英文或中文占位符、未来再补的措辞，或“类似 Task N”。
+
+## 生成模式
+
+用于从 PRD/design/code 生成新计划。
+
+1. 读取输入文档和现有代码，提取产品类型、核心能力、辅助能力、页面/状态、数据存储、外部依赖和技术方向。
+2. 做 scope challenge：记录已有能力、最小实现、可能过度设计的部分、NOT in scope、ADR 需求、HITL 阻塞点。
+3. 技术栈验证：涉及现代框架、SDK、外部 API 或不确定版本时，必须联网确认当前稳定版本、兼容性和已知问题。
+4. 语言边界确认：明确主语言、运行时、包管理器、测试框架；若需要第二语言，记录引入理由和限制边界。
+5. 构建依赖图：列出功能点、数据/页面/API/外部依赖，用 DAG 排序。
+6. 拆 vertical slice：每个 slice 覆盖必要的 UI/API/数据/状态/错误路径/测试闭环。
+7. 标注执行属性：`AFK`、`HITL`、`Spike`、`QA`，并写清 `Blocked by`。
+8. 填充 `<JINGYUAN_PLUGIN_ROOT>/assets/templates/development-plan-template.md`。
+9. 自检：核心需求覆盖、依赖顺序、语言边界、文件路径、verify checklist、out-of-scope、无占位符。
+10. 写入 `docs/development/plan.md`；如触发 change artifact 条件，同时写入 `docs/changes/<change-id>/`。
+
+## 迭代模式
+
+用于 PRD、设计或现有代码发生变化后更新计划。
+
+1. 读取现有 `docs/development/plan.md`、`docs/changes/*/tasks.md`、PRD changelog、设计和代码状态。
+2. 判断是更新现有 change 还是新开 change：同一 intent 且 scope 高重叠则更新；intent 改变、范围扩大或影响多个独立能力则新开。
+3. 已完成并验证的 Phase/Slice 不静默重写；如必须返工，说明原因和影响。
+4. 对未完成部分更新交付项、关键文件、测试意图、验证命令、Blocked by 和风险。
+5. 重新执行计划自检，保存文件。
+
+## 每个 Phase/Slice 必填字段
+
+- `状态`：`[ ]`、`[x]`、`[!]`。`[!]` 表示阻塞或需要人工判断。
+- `切片类型`：`AFK`、`HITL`、`Spike`、`QA`。
+- `Blocked by`：前置 Phase/Slice 或 `None`。
+- `可验证行为`：用户或系统触发、主要路径、可观察结果。
+- `涉及层次`：UI、API、数据、状态、外部依赖、测试。
+- `公开接口 / seam`：后续实现和测试从哪里进入。
+- `交付内容`：具体能力，不写模糊动词。
+- `关键文件`：具体相对路径和用途。
+- `测试意图`：必须覆盖的公开行为、错误路径、回归范围。
+- `验证命令`：构建、测试、类型检查、浏览器或手动 smoke。
+- `Review 对照清单`：规格符合度、范围、质量、安全、性能。
+- `风险与前置信号`：技术风险、性能 baseline、外部权限、ADR/HITL。
+- `NOT in scope`：本 slice 明确不做的内容。
+
+## 输出完成声明
+
+完成计划生成或更新时，说明：
+- 写入了哪些文件。
+- 覆盖了 PRD 中哪些核心能力。
+- 生成了多少个 Phase/Slice 和 change artifact。
+- 哪些项是 `HITL`、`Spike` 或 `BLOCKED`。
+- 下一步调用 `$jingyuan:dev-builder` 时应从哪个未完成 checkbox 开始。

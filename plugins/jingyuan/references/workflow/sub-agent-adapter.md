@@ -20,3 +20,42 @@ Codex 中不直接照搬 Claude 的“自动派发 sub-agent”语义。默认�
 - 不并行修改同一文件。
 - 子任务不得 commit；commit 和最终验证由主 Agent 控制。
 - 审查任务只报告，不修复；修复走 `fix` 或 `dev-builder`。
+
+## 状态协议
+
+实现类子任务只能返回以下状态：
+
+- `DONE`：任务完成，附验证命令、exit code、关键输出和修改摘要。
+- `DONE_WITH_CONCERNS`：任务完成但存在未验证项、外部依赖、低风险遗留或需要主 Agent 判断的事项。
+- `NEEDS_CONTEXT`：缺少需求、权限、账号、设计基准、ADR 或项目约束。
+- `BLOCKED`：无法复现、无法验证、范围冲突、安全敏感或连续失败。
+
+主 Agent 必须按状态处理：
+
+- `DONE`：进入规格符合度 review。
+- `DONE_WITH_CONCERNS`：先判断 concern 是否影响正确性、范围或安全；必要时返工。
+- `NEEDS_CONTEXT`：补充上下文后重新分派或自行处理。
+- `BLOCKED`：识别 blocker 类型，不能原样重试。
+
+## 分派边界
+
+适合委派：
+- 独立 AFK slice。
+- 只读调研。
+- 互不重叠文件的实现任务。
+- review 或 QA 报告。
+
+不适合委派：
+- 当前主 Agent 下一步被阻塞的关键路径。
+- 需要统一架构判断的 HITL 任务。
+- 多个任务会修改同一文件。
+- 需要 commit、push、发布或删除的副作用操作。
+
+## 子任务提示必须包含
+
+- 对应 plan/change checkbox。
+- PRD/design/ADR/out-of-scope 摘要。
+- 可验证行为和公开 seam。
+- 允许修改的文件或模块边界。
+- 验证命令。
+- 返回状态格式。

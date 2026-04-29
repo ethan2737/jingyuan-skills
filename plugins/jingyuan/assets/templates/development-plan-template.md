@@ -1,202 +1,162 @@
 ---
 name: dev-plan-template
-description: docs/development/plan.md 输出模板。分析 Product Spec 后，按此模板结构填充内容，输出为 docs/development/plan.md，供 dev-builder 按 Phase 逐步开发。
+description: docs/development/plan.md 输出模板。用于生成可验证、可恢复、可审查的 JingYuan 开发计划。
 ---
 
-# DEV-PLAN 输出模板
+# Development Plan 模板
 
-本模板用于生成分阶段开发计划。dev-builder 读取此文档按 Phase 逐步实现代码。
-
----
-
-## 模板结构
-
-**文件命名**：docs/development/plan.md
-
----
+`$jingyuan:dev-plan` 按此结构生成 `docs/development/plan.md`。较大变更还应在 `docs/changes/<change-id>/` 生成 `proposal.md`、`spec.md`、`design.md`、`tasks.md`。
 
 ```markdown
-# Development Plan — [项目名称]
+# Development Plan - {项目名}
 
-> 本文件记录项目的开发阶段划分、当前进度和剩余工作。
-> 新 session 启动时应首先阅读此文件，了解项目状态后再继续开发。
+> 本文档是开发总览。具体变更可拆到 `docs/changes/<change-id>/`。
+> `$jingyuan:dev-builder` 从第一个未完成 checkbox 开始执行。
+
+## Plan Metadata
+
+| 项 | 内容 |
+|---|---|
+| 项目 | {项目名} |
+| PRD | `docs/PRD/prd.md` |
+| Design | `docs/design/design.md` |
+| Context | `docs/context.md` |
+| ADR | `docs/adr/` |
+| Out of scope | `docs/out-of-scope/` |
+| 当前目标 | {本轮开发目标} |
+
+## Scope Challenge
+
+**已有能力复用**
+- {现有模块/能力}：{复用方式}
+
+**最小实现**
+- {最小可交付行为}
+
+**NOT in scope**
+- {本轮明确不做的内容和原因}
+
+**HITL / ADR / Spike**
+- {需要人工判断、架构决策或技术验证的事项}
+
+## Change Artifacts
+
+| Change ID | 状态 | 路径 | 说明 |
+|---|---|---|---|
+| `{change-id}` | `[ ]` | `docs/changes/{change-id}/` | {变更说明} |
+
+## Phase / Slice Plan
+
+### Phase 1: {阶段名称}
+
+**状态**：`[ ]`
+
+**切片类型**：AFK / HITL / Spike / QA
+
+**Blocked by**：None / Phase N / Slice ID
+
+**可验证行为**
+- 触发：{用户或系统做什么}
+- 路径：{经过哪些必要层}
+- 结果：{可观察结果}
+
+**涉及层次**
+- UI：{页面/组件或不涉及}
+- API：{接口或不涉及}
+- 数据：{表/文件/状态或不涉及}
+- 状态：{客户端/服务端状态或不涉及}
+- 外部依赖：{SDK/API/服务或不涉及}
+- 测试：{目标测试或 smoke}
+
+**公开接口 / seam**
+- `{接口、命令、页面、route、hook 或 service}`：{验证入口}
+
+**交付内容**
+- [ ] {具体交付项一}
+- [ ] {具体交付项二}
+
+**关键文件**
+- `{path/to/file}`：{用途}
+- `{path/to/test-file}`：{测试或 smoke 用途}
+
+**测试意图**
+- {公开行为一} 应在 {条件} 下得到 {结果}
+- {错误路径} 应显示或返回 {结果}
+- {关键回归范围}
+
+**验证命令**
+~~~powershell
+{项目真实验证命令}
+~~~
+
+**Review 对照清单**
+- 规格符合度：{PRD/design/ADR/out-of-scope 对照点}
+- 范围：{不得多做/少做的边界}
+- 质量：{类型、安全、错误处理、性能、可维护性重点}
+
+**风险与前置信号**
+- {技术风险、性能 baseline、外部权限、HITL 条件}
+
+**NOT in scope**
+- {本 slice 不做的内容}
 
 ---
 
-## Phase 1: [功能名称]
+### Phase 2: {阶段名称}
 
-**交付内容**：
-- [用动词开头，描述交付物1——用户能做什么 / 系统做什么]
-- [交付物2]
-- [交付物3]
+按 Phase 1 的字段完整填写。不得写“同上”或引用其他 Phase。
 
-**关键文件**：
-- `src/path/to/file1.tsx` — [用途说明]
-- `src/path/to/file2.ts` — [用途说明]
-- `src/path/to/file3.ts` — [用途说明]
+## Technology Stack
 
-**验收标准**：
-- [能编译、能启动、能看到XX效果]
+| 层级 | 技术 | 版本 | 验证方式 | 说明 |
+|---|---|---|---|---|
+| 编程语言 | {主语言} | {版本} | {PRD/现有项目/WebSearch} | {选择理由} |
+| 运行时 | {运行时} | {版本} | {验证方式} | {执行环境} |
+| 包管理器 | {包管理器} | {版本} | {验证方式} | {安装和脚本入口} |
+| 测试框架 | {测试框架} | {版本} | {验证方式} | {行为测试和回归测试入口} |
+| {层级} | {技术名} | {版本} | {WebSearch 或现有项目约束} | {选择理由} |
 
----
+## Language Boundary
 
-## Phase 2: [功能名称]
+| 项 | 内容 |
+|---|---|
+| 主语言 | {例如 TypeScript} |
+| 允许的辅助语言 | {例如 PowerShell 仅用于 Windows 环境操作；无则写 None} |
+| 禁止引入 | {本项目不应引入的语言、运行时或包管理器} |
+| 第二语言条件 | {必须满足的业务/工具链原因、边界、验证命令和维护成本} |
 
-**交付内容**：
-- [交付物列表]
+## Data Model
 
-**关键文件**：
-- [文件路径 + 用途]
+| 数据对象 | 首次引入 | 用途 | 迁移/兼容策略 |
+|---|---|---|---|
+| `{table_or_file}` | Phase N | {用途} | {创建或迁移策略} |
 
-**验收标准**：
-- [验证标准]
+## Verification Matrix
 
----
+| 范围 | 命令/步骤 | 覆盖内容 | 必须通过 |
+|---|---|---|---|
+| Type check | `{命令}` | 类型和依赖 | 是 |
+| Unit / behavior tests | `{命令}` | 公开行为和错误路径 | 是 |
+| Build | `{命令}` | 构建产物 | 是 |
+| Smoke | `{命令或手动步骤}` | 关键用户路径 | 是 |
+| Security | `{命令或检查步骤}` | 密钥、注入、权限边界 | 是 |
+| Performance | `{命令或不适用理由}` | 性能敏感路径 | 按风险决定 |
 
-<根据实际功能数量动态增减 Phase>
+## Development Rules
 
----
-
-## 技术栈
-
-| 层级 | 技术 | 版本 | 说明 |
-|------|------|------|------|
-| [层级名] | [技术名] | [版本号] | [选择理由或用途] |
-
-## 数据库表（如有）
-
-| 表名 | 所属 Phase | 用途 |
-|------|-----------|------|
-| `table_name` | Phase N | [用途说明] |
-
-## 开发规则
-
-- 每完成一个 Phase 执行四步走：Code Review → 测试完整性 → 编译验证 → 功能测试
-- 四步走全部通过后才能 commit
-- Commit message 格式：`phase-N: 简要描述`
-- 包管理器：[pnpm/npm/yarn]
+- 每个 slice 从未完成 checkbox 开始。
+- 核心逻辑、bugfix、复杂状态、外部集成默认 TDD。
+- 纯样式、脚手架、简单配置可使用替代验证，但必须写明证据。
+- 完成声明必须附新鲜验证命令、exit code 和关键输出。
+- Review 分两阶段：规格符合度先于代码质量。
+- 计划外改动必须标记 scope drift。
 ```
 
----
+## 写作要求
 
-## 完整示例
-
-以下是「Forge — 本地 AI 桌面代理」项目的 DEV-PLAN 片段，供参考：
-
-```markdown
-# Development Plan — Forge
-
-> 本文件记录 Forge 项目的开发阶段划分、当前进度和剩余工作。
-> 新 session 启动时应首先阅读此文件，了解项目状态后再继续开发。
-
----
-
-## Phase 1: Electron + Next.js 骨架
-
-**交付内容**：
-- Electron 主进程 + Next.js 渲染器基础框架
-- 三区布局：左侧栏（可折叠）+ 主内容区 + 右侧栏（可折叠）
-- 标题栏组件（窗口控制按钮）
-- 导航图标栏（聊天 / 管理 / IM / 定时 / 设置）
-- 深色/浅色/跟随系统主题切换（ThemeProvider）
-- Tailwind CSS 语义色彩系统
-
-**关键文件**：
-- `src/components/layout/app-layout.tsx` — 主布局
-- `src/components/layout/left-sidebar.tsx` — 左侧栏
-- `src/components/layout/right-sidebar.tsx` — 右侧栏
-- `src/components/layout/title-bar.tsx` — 标题栏
-- `src/components/providers/theme-provider.tsx` — 主题
-- `src/app/globals.css` — 色彩变量定义
-
-**验收标准**：
-- TypeScript 编译无错误
-- Electron 窗口可启动，显示三区布局
-- 主题切换正常工作
-
----
-
-## Phase 2: 聊天核心 + SQLite 持久化
-
-**交付内容**：
-- SQLite 数据库初始化（better-sqlite3，WAL 模式）
-- sessions 和 messages 表
-- settings 表（key-value 全局设置）
-- 会话 CRUD API（/api/sessions）
-- 聊天 API（/api/chat）— Claude API 流式调用 + SSE 输出
-- 前端聊天界面：用户消息 + Agent 消息 + 流式渲染
-- 会话列表 + 新建会话 + 切换会话
-
-**关键文件**：
-- `src/lib/db.ts` — 数据库初始化 + 表创建
-- `src/app/api/chat/route.ts` — 聊天 API
-- `src/hooks/use-chat.ts` — 聊天状态管理
-- `src/hooks/use-sessions.ts` — 会话管理
-- `src/components/views/chat-view.tsx` — 聊天视图
-
-**验收标准**：
-- 能创建会话、发送消息、收到 Claude 流式回复
-- 刷新后会话和消息不丢失
-
----
-
-## 技术栈
-
-| 层级 | 技术 | 版本 | 说明 |
-|------|------|------|------|
-| 桌面框架 | Electron | 40.x | 跨平台桌面壳 |
-| 前端 | Next.js + React | 15.x | 全栈框架 |
-| UI | Tailwind CSS | 4.x | 工具类 CSS |
-| AI 引擎 | Claude API (@anthropic-ai/sdk) | latest | 核心 AI 能力 |
-| 数据库 | SQLite (better-sqlite3) | latest | 本地持久化，WAL 模式 |
-| 包管理 | pnpm | 10.x | 快速、磁盘高效 |
-
-## 数据库表
-
-| 表名 | 所属 Phase | 用途 |
-|------|-----------|------|
-| `sessions` | Phase 2 | 会话元数据 |
-| `messages` | Phase 2 | 消息内容（JSON content blocks） |
-| `settings` | Phase 2 | 全局 key-value 设置 |
-| `skills` | Phase 3 | Skill 定义 |
-| `agents` | Phase 3 | Agent 配置 |
-| `mcp_servers` | Phase 3 | MCP 服务器配置 |
-| `im_channels` | Phase 4 | IM 通道配置 |
-| `cron_tasks` | Phase 4 | 定时任务定义 |
-| `api_providers` | Phase 5 | 多模型 API 提供商 |
-| `workspaces` | Phase 6 | Workspace 定义 |
-
-## 开发规则
-
-- 每完成一个 Phase 执行四步走：Code Review → 测试完整性 → 编译验证 → 功能测试
-- 四步走全部通过后才能 commit
-- Commit message 格式：`phase-N: 简要描述`
-- 包管理器：pnpm
-```
-
----
-
-## 写作要点
-
-1. **Phase 命名**：用功能名称命名，不用编号序列。"聊天核心 + SQLite 持久化"比"Phase 2"更容易理解
-2. **交付内容**：
-   - 用动词开头（搭建、实现、创建、配置）
-   - 每条描述一个可感知的交付物
-   - 基础设施 Phase 可以写"XX 表 + CRUD API"
-   - 业务功能 Phase 要写用户能做什么
-3. **关键文件**：
-   - 使用完整的项目内相对路径
-   - 每个文件附用途说明
-   - 不列测试文件和配置文件（除非是 Phase 的核心交付物）
-4. **验收标准**：
-   - 最低要求：能编译 + 能启动 + 新功能可用
-   - 推荐加上：现有功能未破坏
-5. **技术栈表**：
-   - 标注版本号（经 WebSearch 验证的最新稳定版）
-   - 说明列写选择理由或用途
-6. **数据库表**：
-   - 标注在哪个 Phase 创建
-   - 后续 Phase 如果新增列（migration），在该 Phase 的交付内容中说明
-7. **Phase 顺序**：
-   - 基础设施（骨架/数据库/路由）→ 核心功能 → 辅助功能 → 收尾（i18n/打包/部署）
-   - 不违反依赖关系
+- 每个 Phase/Slice 必须能被 `$jingyuan:dev-builder` 直接执行。
+- 每个 checkbox 都应对应一个可验证结果。
+- 不写私有实现细节，但必须写公开 seam。
+- 测试意图描述行为，不绑定内部实现。
+- 验证命令必须是目标项目真实可运行命令。
+- 不使用英文或中文占位符，不写未来再补的措辞。

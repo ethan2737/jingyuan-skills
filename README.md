@@ -39,6 +39,10 @@ Codex 补全列表中显示为 `jingyuan:<skill>`。输入 `$jingyuan` 可看到
 <target-project>/docs/design/mockup.md
 <target-project>/docs/design/ui-design.pen
 <target-project>/docs/development/plan.md
+<target-project>/docs/changes/<change-id>/proposal.md
+<target-project>/docs/changes/<change-id>/spec.md
+<target-project>/docs/changes/<change-id>/design.md
+<target-project>/docs/changes/<change-id>/tasks.md
 <target-project>/docs/feedback/index.md
 <target-project>/docs/feedback/
 <target-project>/docs/context.md
@@ -47,7 +51,7 @@ Codex 补全列表中显示为 `jingyuan:<skill>`。输入 `$jingyuan` 可看到
 <target-project>/.jingyuan/config.json
 ```
 
-其中 `docs/context.md`、`docs/adr/`、`docs/out-of-scope/` 是项目长期记忆，用来固定术语、记录关键取舍和保存明确不做的范围。
+其中 `docs/context.md`、`docs/adr/`、`docs/out-of-scope/` 是项目长期记忆，用来固定术语、记录关键取舍和保存明确不做的范围。`docs/changes/<change-id>/` 用于较大开发变更的 proposal/spec/design/tasks 生命周期，`docs/development/plan.md` 继续作为开发总览。
 
 ## 安装到本机 Codex
 
