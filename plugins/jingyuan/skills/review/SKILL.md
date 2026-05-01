@@ -1,9 +1,15 @@
-﻿---
+---
 name: review
-description: 景元代码审查工作流。Use when Codex needs to review code for spec compliance, design compliance, code quality, safety, performance, and test coverage.
+description: 景元代码审查工作流。Use when Codex or Claude Code needs to review code for spec compliance, design compliance, code quality, safety, performance, and test coverage.
 ---
 
 # JingYuan Review
+
+## 客户端入口与插件根目录
+
+- Codex 入口：`$jingyuan:review`。
+- Claude Code 入口：`/jingyuan:review`。
+- `<JINGYUAN_PLUGIN_ROOT>` 解析规则：Claude Code 使用 `${CLAUDE_PLUGIN_ROOT}`；Codex 优先使用 `$env:CODEX_HOME\plugins\jingyuan`，否则使用 `$HOME\.codex\plugins\jingyuan`。
 
 `$jingyuan:review` 对照 PRD、设计、开发计划、长期记忆和代码进行两阶段审查。启动时读取 `document-conventions.md`、`project-memory.md`、`dependency-policy.md`、`review-readiness.md`、`testing-policy.md`、`verification-gates.md` 和 `windows-powershell.md`；审查必须尊重 `docs/context.md`、`docs/adr/`、`docs/out-of-scope/`。
 

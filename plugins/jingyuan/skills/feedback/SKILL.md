@@ -1,9 +1,15 @@
-﻿---
+---
 name: feedback
-description: 景元反馈记录工作流。Use when Codex detects user correction, dissatisfaction, workflow feedback, scope-boundary signals, or improvement signals and should write docs/feedback/ plus docs/feedback/index.md.
+description: 景元反馈记录工作流。Use when Codex or Claude Code detects user correction, dissatisfaction, workflow feedback, scope-boundary signals, or improvement signals and should write docs/feedback/ plus docs/feedback/index.md.
 ---
 
 # JingYuan Feedback
+
+## 客户端入口与插件根目录
+
+- Codex 入口：`$jingyuan:feedback`。
+- Claude Code 入口：`/jingyuan:feedback`。
+- `<JINGYUAN_PLUGIN_ROOT>` 解析规则：Claude Code 使用 `${CLAUDE_PLUGIN_ROOT}`；Codex 优先使用 `$env:CODEX_HOME\plugins\jingyuan`，否则使用 `$HOME\.codex\plugins\jingyuan`。
 
 `$jingyuan:feedback` 把值得长期记住的用户修正、流程缺口、质量问题和范围边界写入 `docs/feedback/`，供 `$jingyuan:evolution` 后续升级规则或优化技能。
 

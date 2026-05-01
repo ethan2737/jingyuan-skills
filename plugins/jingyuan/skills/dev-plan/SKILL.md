@@ -1,15 +1,21 @@
-﻿---
+---
 name: dev-plan
-description: 景元开发计划工作流。Use when Codex needs to create or update docs/development/plan.md from product requirements, design guidance, existing code, or change requests.
+description: 景元开发计划工作流。Use when Codex or Claude Code needs to create or update docs/development/plan.md from product requirements, design guidance, existing code, or change requests.
 ---
 
 # JingYuan Dev Plan
+
+## 客户端入口与插件根目录
+
+- Codex 入口：`$jingyuan:dev-plan`。
+- Claude Code 入口：`/jingyuan:dev-plan`。
+- `<JINGYUAN_PLUGIN_ROOT>` 解析规则：Claude Code 使用 `${CLAUDE_PLUGIN_ROOT}`；Codex 优先使用 `$env:CODEX_HOME\plugins\jingyuan`，否则使用 `$HOME\.codex\plugins\jingyuan`。
 
 `$jingyuan:dev-plan` 把 PRD、设计、项目长期记忆和现有代码转成可执行、可恢复、可验证的开发计划。它不是只排 Phase，而是规划一个个端到端 vertical slice，并在较大变更时生成 change artifact。
 
 ## 启动读取
 
-先解析 `<JINGYUAN_PLUGIN_ROOT>`：优先 `$env:CODEX_HOME\plugins\jingyuan`，否则 `$HOME\.codex\plugins\jingyuan`。
+先解析 `<JINGYUAN_PLUGIN_ROOT>`：Claude Code 使用 `${CLAUDE_PLUGIN_ROOT}`；Codex 优先使用 `$env:CODEX_HOME\plugins\jingyuan`，否则使用 `$HOME\.codex\plugins\jingyuan`。
 
 启动后读取：
 - `docs/PRD/prd.md`。缺失则提示先调用 `$jingyuan:pm`。

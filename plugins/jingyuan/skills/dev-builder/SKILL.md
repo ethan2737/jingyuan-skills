@@ -1,15 +1,21 @@
-﻿---
+---
 name: dev-builder
-description: 景元开发实现工作流。Use when Codex needs to build or continue a project from docs/PRD/prd.md and docs/development/plan.md with review, testing, security, and performance gates.
+description: 景元开发实现工作流。Use when Codex or Claude Code needs to build or continue a project from docs/PRD/prd.md and docs/development/plan.md with review, testing, security, and performance gates.
 ---
 
 # JingYuan Dev Builder
+
+## 客户端入口与插件根目录
+
+- Codex 入口：`$jingyuan:dev-builder`。
+- Claude Code 入口：`/jingyuan:dev-builder`。
+- `<JINGYUAN_PLUGIN_ROOT>` 解析规则：Claude Code 使用 `${CLAUDE_PLUGIN_ROOT}`；Codex 优先使用 `$env:CODEX_HOME\plugins\jingyuan`，否则使用 `$HOME\.codex\plugins\jingyuan`。
 
 `$jingyuan:dev-builder` 按 `docs/development/plan.md` 和可选 `docs/changes/<change-id>/tasks.md` 执行开发。核心职责是把每个 vertical slice 做成可运行、可测试、可审查、可恢复的增量，而不是批量写代码后再补验证。
 
 ## 启动读取
 
-先解析 `<JINGYUAN_PLUGIN_ROOT>`：优先 `$env:CODEX_HOME\plugins\jingyuan`，否则 `$HOME\.codex\plugins\jingyuan`。
+先解析 `<JINGYUAN_PLUGIN_ROOT>`：Claude Code 使用 `${CLAUDE_PLUGIN_ROOT}`；Codex 优先使用 `$env:CODEX_HOME\plugins\jingyuan`，否则使用 `$HOME\.codex\plugins\jingyuan`。
 
 启动后读取：
 - `docs/PRD/prd.md`。缺失则提示先调用 `$jingyuan:pm`。

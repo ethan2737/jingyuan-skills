@@ -1,9 +1,15 @@
-﻿---
+---
 name: research
-description: 景元横纵调研工作流。Use when Codex needs to produce source-backed deep research reports for products, companies, technical concepts, or people using diachronic and synchronic analysis.
+description: 景元横纵调研工作流。Use when Codex or Claude Code needs to produce source-backed deep research reports for products, companies, technical concepts, or people using diachronic and synchronic analysis.
 ---
 
 # JingYuan Research
+
+## 客户端入口与插件根目录
+
+- Codex 入口：`$jingyuan:research`。
+- Claude Code 入口：`/jingyuan:research`。
+- `<JINGYUAN_PLUGIN_ROOT>` 解析规则：Claude Code 使用 `${CLAUDE_PLUGIN_ROOT}`；Codex 优先使用 `$env:CODEX_HOME\plugins\jingyuan`，否则使用 `$HOME\.codex\plugins\jingyuan`。
 
 `$jingyuan:research` 将《横纵分析法 Deep Research Prompt》编排为 JingYuan Skill。除本 Skill 必需的触发、依赖、落盘、验证和路由规则外，调研能力定义必须按下方原文执行，不改写、不扩写、不替换方法论。
 

@@ -1,9 +1,15 @@
-﻿---
+---
 name: setup
-description: 景元项目初始化工作流。Use when Codex needs to initialize JingYuan project conventions, create docs/PRD, docs/design, docs/development, docs/feedback, docs/context.md, docs/adr, docs/out-of-scope, and .jingyuan/config.json before using other jingyuan:* skills.
+description: 景元项目初始化工作流。Use when Codex or Claude Code needs to initialize JingYuan project conventions, create docs/PRD, docs/design, docs/development, docs/feedback, docs/context.md, docs/adr, docs/out-of-scope, and .jingyuan/config.json before using other jingyuan:* skills.
 ---
 
 # JingYuan Setup
+
+## 客户端入口与插件根目录
+
+- Codex 入口：`$jingyuan:setup`。
+- Claude Code 入口：`/jingyuan:setup`。
+- `<JINGYUAN_PLUGIN_ROOT>` 解析规则：Claude Code 使用 `${CLAUDE_PLUGIN_ROOT}`；Codex 优先使用 `$env:CODEX_HOME\plugins\jingyuan`，否则使用 `$HOME\.codex\plugins\jingyuan`。
 
 `$jingyuan:setup` 为目标项目创建 JingYuan 工作流骨架。它只初始化目录、模板和配置，不编造业务 PRD、设计决策或代码项目。
 

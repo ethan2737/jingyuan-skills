@@ -1,9 +1,15 @@
-﻿---
+---
 name: fix
-description: 景元 Bug 修复工作流。Use when Codex needs to investigate, root-cause, and fix bugs against docs/PRD/prd.md, docs/development/plan.md, and current code.
+description: 景元 Bug 修复工作流。Use when Codex or Claude Code needs to investigate, root-cause, and fix bugs against docs/PRD/prd.md, docs/development/plan.md, and current code.
 ---
 
 # JingYuan Fix
+
+## 客户端入口与插件根目录
+
+- Codex 入口：`$jingyuan:fix`。
+- Claude Code 入口：`/jingyuan:fix`。
+- `<JINGYUAN_PLUGIN_ROOT>` 解析规则：Claude Code 使用 `${CLAUDE_PLUGIN_ROOT}`；Codex 优先使用 `$env:CODEX_HOME\plugins\jingyuan`，否则使用 `$HOME\.codex\plugins\jingyuan`。
 
 `$jingyuan:fix` 通过可重复反馈循环定位根因并修复 bug 或性能问题。启动时读取 `document-conventions.md`、`dependency-policy.md`、`project-memory.md`、`diagnostics-loop.md`、`testing-policy.md`、`verification-gates.md` 和 `windows-powershell.md`；PRD、context、ADR 是软依赖，缺失不阻塞修复。
 

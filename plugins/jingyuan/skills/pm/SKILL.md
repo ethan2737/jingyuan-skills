@@ -1,16 +1,22 @@
-﻿---
+---
 name: pm
-description: 景元产品经理需求澄清闸门。Use when Codex needs to collect, challenge, reverse-engineer, generate, or update product requirements for new ideas, existing PRDs, or old projects/codebases; clarify problem, audience, scenarios, scope, risks, and write outputs to docs/PRD/prd.md and docs/PRD/changelog.md.
+description: 景元产品经理需求澄清闸门。Use when Codex or Claude Code needs to collect, challenge, reverse-engineer, generate, or update product requirements for new ideas, existing PRDs, or old projects/codebases; clarify problem, audience, scenarios, scope, risks, and write outputs to docs/PRD/prd.md and docs/PRD/changelog.md.
 ---
 
 # JingYuan PM
 
-- 本 Skill 面向 Codex，默认入口为 `$jingyuan:pm`。
+## 客户端入口与插件根目录
+
+- Codex 入口：`$jingyuan:pm`。
+- Claude Code 入口：`/jingyuan:pm`。
+- `<JINGYUAN_PLUGIN_ROOT>` 解析规则：Claude Code 使用 `${CLAUDE_PLUGIN_ROOT}`；Codex 优先使用 `$env:CODEX_HOME\plugins\jingyuan`，否则使用 `$HOME\.codex\plugins\jingyuan`。
+
+- 本 Skill 面向 Codex 与 Claude Code。
 - 所有产物写入目标项目 `docs/` 目录；标准输出为 `docs/PRD/prd.md` 与 `docs/PRD/changelog.md`。
 - 读取旧项目时兼容 `docs/PRD/PRD.md`、`docs/PRD/PRD-CHANGELOG.md`、`docs/PRD.md`，但新建或重构时收口到标准路径。
 - 启动后优先读取共享参考：`<JINGYUAN_PLUGIN_ROOT>/references/workflow/document-conventions.md`、`<JINGYUAN_PLUGIN_ROOT>/references/workflow/dependency-policy.md`、`<JINGYUAN_PLUGIN_ROOT>/references/workflow/project-memory.md`、`<JINGYUAN_PLUGIN_ROOT>/references/workflow/windows-powershell.md`。
 - PM 细则按需读取本目录 `references/`：`clarifying-questions.md`、`context-rules.md`、`prd-readiness-gate.md`、`out-of-scope-rules.md`、`reverse-engineering.md`、`pm-frameworks.md`。
-- `<JINGYUAN_PLUGIN_ROOT>` 解析为 `$env:CODEX_HOME\plugins\jingyuan`；如未设置 `CODEX_HOME`，则解析为 `$HOME\.codex\plugins\jingyuan`。
+- `<JINGYUAN_PLUGIN_ROOT>` 解析规则：Claude Code 使用 `${CLAUDE_PLUGIN_ROOT}`；Codex 优先使用 `$env:CODEX_HOME\plugins\jingyuan`，否则使用 `$HOME\.codex\plugins\jingyuan`。
 
 # 核心任务
 
