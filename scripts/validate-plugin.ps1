@@ -118,8 +118,14 @@ if (-not (Test-Path -LiteralPath $installerPath)) {
   if ($installerContent -notmatch 'Install-JingYuanSkillMirror') {
     Add-Error 'Installer must create flat Codex skill mirrors for jingyuan:* discovery.'
   }
+  if ($installerContent -notmatch 'JINGYUAN_SKILL\.md') {
+    Add-Error 'Installer must generate a BOM-safe JingYuan payload file for Codex mirror instructions.'
+  }
   if ($installerContent -match 'Write-Utf8BomFile -Path \$skillFile') {
     Add-Error 'Installer must write Codex flat skill mirrors without BOM so frontmatter starts with raw ---.'
+  }
+  if ($installerContent -notmatch 'Write-Utf8BomFile -Path \$payloadFile') {
+    Add-Error 'Installer must write Codex mirror payloads with BOM to avoid Windows PowerShell mojibake when reading Chinese instructions.'
   }
   if ($installerContent -match '\[plugins\."jingyuan@local"\]\s*\r?\n\s*enabled\s*=\s*true') {
     Add-Error 'Installer must not enable jingyuan@local by default because Codex shows enabled plugins as plugin-only completion rows.'

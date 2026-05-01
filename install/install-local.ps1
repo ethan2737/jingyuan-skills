@@ -193,11 +193,33 @@ function Install-JingYuanSkillMirror {
     if ($PSCmdlet.ShouldProcess($targetSkill, "Install JingYuan skill mirror jingyuan:$skillName")) {
       Copy-Item -LiteralPath $sourceSkill -Destination $targetSkill -Recurse
       $skillFile = Join-Path $targetSkill 'SKILL.md'
+      $payloadFile = Join-Path $targetSkill 'JINGYUAN_SKILL.md'
       $content = Read-TextFile -Path $skillFile
       $content = [regex]::Replace($content, '(?m)^name:\s*.+$', "name: `"jingyuan:$skillName`"")
       $content = $content.Replace('../../assets/', '../../plugins/jingyuan/assets/')
       $content = $content.Replace('../../references/', '../../plugins/jingyuan/references/')
-      Write-Utf8NoBomFile -Path $skillFile -Value $content
+      Write-Utf8BomFile -Path $payloadFile -Value $content
+
+      $bridge = @"
+---
+name: "jingyuan:$skillName"
+description: JingYuan $skillName workflow skill. Use this Codex entry to load the full JingYuan instructions.
+---
+
+# JingYuan Codex Skill Bridge
+
+This file must stay ASCII-only and UTF-8 without BOM so Codex can discover `$jingyuan:$skillName` from raw frontmatter.
+
+Before responding or taking action:
+
+1. Read `JINGYUAN_SKILL.md` from this directory as UTF-8.
+   PowerShell example: `Get-Content -Raw -Encoding UTF8 -LiteralPath "<this-skill-dir>\JINGYUAN_SKILL.md"`.
+2. Follow the loaded JingYuan instructions exactly.
+3. Treat `<JINGYUAN_PLUGIN_ROOT>` as `$env:CODEX_HOME\plugins\jingyuan` when `CODEX_HOME` is set, otherwise `$HOME\.codex\plugins\jingyuan`.
+
+Do not use this bridge as the workflow itself.
+"@
+      Write-Utf8NoBomFile -Path $skillFile -Value $bridge
     }
   }
 }
