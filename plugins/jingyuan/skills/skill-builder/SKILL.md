@@ -1,4 +1,4 @@
----
+﻿---
 name: skill-builder
 description: 景元 Skill 创建与维护工作流。Use when Codex needs to create or maintain JingYuan skills using the established workflow, references, and templates.
 ---

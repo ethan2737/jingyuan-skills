@@ -1,4 +1,4 @@
----
+﻿---
 name: sync
 description: 景元同步对齐工作流。Use when Codex needs to audit and reconcile code, PRD, design document, design mockup, development plan, README, AGENTS.md, or CLAUDE.md after product, design, mockup, or code changes.
 ---

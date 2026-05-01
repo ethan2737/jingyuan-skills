@@ -41,6 +41,34 @@ function Test-Utf8JsonStartsClean {
   }
 }
 
+function Test-StrictUtf8 {
+  param(
+    [Parameter(Mandatory = $true)][string]$Path,
+    [Parameter(Mandatory = $true)][string]$Label
+  )
+
+  $bytes = [System.IO.File]::ReadAllBytes($Path)
+  $encoding = [System.Text.UTF8Encoding]::new($false, $true)
+  try {
+    [void]$encoding.GetString($bytes)
+  } catch {
+    Add-Error "$Label must be valid UTF-8: $Path"
+  }
+}
+
+function Test-Utf8Bom {
+  param(
+    [Parameter(Mandatory = $true)][string]$Path,
+    [Parameter(Mandatory = $true)][string]$Label
+  )
+
+  Test-StrictUtf8 -Path $Path -Label $Label
+  $bytes = [System.IO.File]::ReadAllBytes($Path)
+  if ($bytes.Length -lt 3 -or $bytes[0] -ne 0xEF -or $bytes[1] -ne 0xBB -or $bytes[2] -ne 0xBF) {
+    Add-Error "$Label must be UTF-8 with BOM for Windows PowerShell 5.1 compatibility: $Path"
+  }
+}
+
 if (-not (Test-Path -LiteralPath $manifestPath)) {
   Add-Error "Missing plugin manifest: $manifestPath"
 } else {
@@ -147,13 +175,13 @@ foreach ($skill in $skills) {
   }
 
   $bytes = [System.IO.File]::ReadAllBytes($skillFile)
-  if ($bytes.Length -lt 3 -or $bytes[0] -ne 0x2D -or $bytes[1] -ne 0x2D -or $bytes[2] -ne 0x2D) {
-    Add-Error "SKILL.md must start with raw --- bytes and no UTF-8 BOM: $skillFile"
+  if ($bytes.Length -lt 6 -or $bytes[0] -ne 0xEF -or $bytes[1] -ne 0xBB -or $bytes[2] -ne 0xBF -or $bytes[3] -ne 0x2D -or $bytes[4] -ne 0x2D -or $bytes[5] -ne 0x2D) {
+    Add-Error "SKILL.md must be UTF-8 with BOM followed by --- frontmatter: $skillFile"
     continue
   }
 
   $content = Get-Content -Raw -Encoding UTF8 -LiteralPath $skillFile
-  if ($content -notmatch '(?s)^---\r?\n(.*?)\r?\n---') {
+  if ($content -notmatch '(?s)^\uFEFF?---\r?\n(.*?)\r?\n---') {
     Add-Error "Invalid frontmatter in $skillFile."
     continue
   }
@@ -190,6 +218,12 @@ $scanFiles += Get-ChildItem -Path (Join-Path $pluginRoot 'skills') -Recurse -Fil
 $scanFiles += Get-ChildItem -Path (Join-Path $pluginRoot 'assets\templates') -Recurse -File -Filter '*.md'
 $scanFiles += Get-ChildItem -Path (Join-Path $pluginRoot 'references\workflow') -Recurse -File -Filter '*.md' |
   Where-Object { $_.Name -ne 'windows-powershell.md' }
+
+$markdownFiles = Get-ChildItem -Path $root -Recurse -File -Filter '*.md' |
+  Where-Object { $_.FullName -notmatch '\\\.git\\' }
+foreach ($file in $markdownFiles) {
+  Test-Utf8Bom -Path $file.FullName -Label 'Markdown file'
+}
 
 $blockedPatterns = @(
   'pkill',

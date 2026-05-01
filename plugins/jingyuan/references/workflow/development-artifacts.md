@@ -1,4 +1,4 @@
-# Development Artifacts
+﻿# Development Artifacts
 
 JingYuan 使用两层开发制品：`docs/development/plan.md` 保存总览，`docs/changes/<change-id>/` 保存较大变更的可执行细节。
 

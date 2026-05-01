@@ -1,4 +1,4 @@
----
+﻿---
 name: research
 description: 景元横纵调研工作流。Use when Codex needs to produce source-backed deep research reports for products, companies, technical concepts, or people using diachronic and synchronic analysis.
 ---

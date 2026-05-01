@@ -1,4 +1,4 @@
-# Verification Gates
+﻿# Verification Gates
 
 完成声明必须有新鲜证据。证据包括命令、exit code、关键输出和未验证项。
 

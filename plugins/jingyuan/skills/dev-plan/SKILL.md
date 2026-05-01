@@ -1,4 +1,4 @@
----
+﻿---
 name: dev-plan
 description: 景元开发计划工作流。Use when Codex needs to create or update docs/development/plan.md from product requirements, design guidance, existing code, or change requests.
 ---

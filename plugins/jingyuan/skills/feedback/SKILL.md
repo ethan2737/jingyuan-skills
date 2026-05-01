@@ -1,4 +1,4 @@
----
+﻿---
 name: feedback
 description: 景元反馈记录工作流。Use when Codex detects user correction, dissatisfaction, workflow feedback, scope-boundary signals, or improvement signals and should write docs/feedback/ plus docs/feedback/index.md.
 ---

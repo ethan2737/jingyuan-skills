@@ -1,4 +1,4 @@
----
+﻿---
 name: skill-template
 description: 新 Skill 的骨架模板。创建新 Skill 时，复制此模板并替换 [占位符] 为实际内容。必须有的 Section 不可删除，推荐有的根据需要保留或删除，按需有的按实际情况添加。
 ---

@@ -1,4 +1,4 @@
----
+﻿---
 name: evolution
 description: 景元进化引擎工作流。Use when Codex should scan docs/feedback/ and docs/feedback/index.md for repeated patterns and propose workflow, rule, out-of-scope, or skill improvements.
 ---

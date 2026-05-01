@@ -1,4 +1,4 @@
----
+﻿---
 name: pm
 description: 景元产品经理需求澄清闸门。Use when Codex needs to collect, challenge, reverse-engineer, generate, or update product requirements for new ideas, existing PRDs, or old projects/codebases; clarify problem, audience, scenarios, scope, risks, and write outputs to docs/PRD/prd.md and docs/PRD/changelog.md.
 ---

@@ -1,4 +1,4 @@
----
+﻿---
 name: design-brief-template
 description: Design Brief 输出模板。通过设计采访后，按此模板结构填充内容，输出为 docs/design/design.md，供设计工具和 dev-builder 编码参照。
 ---

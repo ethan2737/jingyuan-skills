@@ -1,4 +1,4 @@
----
+﻿---
 name: setup
 description: 景元项目初始化工作流。Use when Codex needs to initialize JingYuan project conventions, create docs/PRD, docs/design, docs/development, docs/feedback, docs/context.md, docs/adr, docs/out-of-scope, and .jingyuan/config.json before using other jingyuan:* skills.
 ---

@@ -1,4 +1,4 @@
----
+﻿---
 name: dev-builder
 description: 景元开发实现工作流。Use when Codex needs to build or continue a project from docs/PRD/prd.md and docs/development/plan.md with review, testing, security, and performance gates.
 ---

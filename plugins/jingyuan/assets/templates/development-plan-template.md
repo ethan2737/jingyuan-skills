@@ -1,4 +1,4 @@
----
+﻿---
 name: dev-plan-template
 description: docs/development/plan.md 输出模板。用于生成可验证、可恢复、可审查的 JingYuan 开发计划。
 ---

@@ -1,4 +1,4 @@
-# JingYuan Codex 工作流总览
+﻿# JingYuan Codex 工作流总览
 
 JingYuan 把产品、设计、开发、审查、修复、发布、反馈和进化收口到同一套 `docs/` 制品和长期记忆。
 

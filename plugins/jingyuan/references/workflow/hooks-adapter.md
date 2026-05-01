@@ -1,4 +1,4 @@
-# JingYuan Hooks Codex 适配说明
+﻿# JingYuan Hooks Codex 适配说明
 
 ## 总原则
 

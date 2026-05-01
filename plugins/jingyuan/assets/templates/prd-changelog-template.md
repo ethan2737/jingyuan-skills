@@ -1,4 +1,4 @@
----
+﻿---
 name: changelog-template
 description: 变更记录模板。当 Product Spec 发生迭代变更时，按照此模板格式记录变更历史，输出为 docs/PRD/changelog.md 文件。
 ---

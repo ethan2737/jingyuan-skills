@@ -1,4 +1,4 @@
-# JingYuan Sub-Agent Codex 适配说明
+﻿# JingYuan Sub-Agent Codex 适配说明
 
 ## 总原则
 

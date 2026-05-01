@@ -1,4 +1,4 @@
----
+﻿---
 name: fix
 description: 景元 Bug 修复工作流。Use when Codex needs to investigate, root-cause, and fix bugs against docs/PRD/prd.md, docs/development/plan.md, and current code.
 ---

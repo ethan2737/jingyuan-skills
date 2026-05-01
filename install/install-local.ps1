@@ -45,6 +45,16 @@ function Write-Utf8NoBomFile {
   [System.IO.File]::WriteAllText($Path, $Value, $encoding)
 }
 
+function Write-Utf8BomFile {
+  param(
+    [Parameter(Mandatory = $true)][string]$Path,
+    [Parameter(Mandatory = $true)][string]$Value
+  )
+
+  $encoding = [System.Text.UTF8Encoding]::new($true)
+  [System.IO.File]::WriteAllText($Path, $Value, $encoding)
+}
+
 function ConvertTo-TomlBasicString {
   param([Parameter(Mandatory = $true)][string]$Value)
 
@@ -187,7 +197,7 @@ function Install-JingYuanSkillMirror {
       $content = [regex]::Replace($content, '(?m)^name:\s*.+$', "name: `"jingyuan:$skillName`"")
       $content = $content.Replace('../../assets/', '../../plugins/jingyuan/assets/')
       $content = $content.Replace('../../references/', '../../plugins/jingyuan/references/')
-      Write-Utf8NoBomFile -Path $skillFile -Value $content
+      Write-Utf8BomFile -Path $skillFile -Value $content
     }
   }
 }

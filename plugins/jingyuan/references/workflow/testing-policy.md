@@ -1,4 +1,4 @@
-# Testing Policy
+﻿# Testing Policy
 
 测试要证明公开行为，不证明私有实现。
 

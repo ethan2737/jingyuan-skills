@@ -1,4 +1,4 @@
-# Vertical Slice 开发切片
+﻿# Vertical Slice 开发切片
 
 JingYuan 的开发计划和实现优先按端到端可验证切片组织，而不是按数据库、API、UI、测试的水平层分批。
 

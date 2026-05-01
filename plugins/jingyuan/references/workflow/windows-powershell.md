@@ -1,4 +1,4 @@
-# JingYuan Windows PowerShell 命令基准
+﻿# JingYuan Windows PowerShell 命令基准
 
 ## 总原则
 

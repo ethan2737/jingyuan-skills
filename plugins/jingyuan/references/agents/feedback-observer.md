@@ -1,4 +1,4 @@
----
+﻿---
 name: jingyuan-feedback-observer-role
 description: 用户给出修正或反馈后，由主 Agent 派发。使用 feedback skill 分析并记录 feedback。
 skills: feedback

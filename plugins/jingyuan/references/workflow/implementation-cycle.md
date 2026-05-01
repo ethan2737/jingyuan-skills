@@ -1,4 +1,4 @@
-# Implementation Cycle
+﻿# Implementation Cycle
 
 `dev-builder` 按 apply 风格执行一个个 checkbox task。目标是每次只推进一个可验证 vertical slice。
 

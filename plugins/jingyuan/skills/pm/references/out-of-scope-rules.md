@@ -1,4 +1,4 @@
-# PM Out-of-Scope 规则
+﻿# PM Out-of-Scope 规则
 
 本文件在 `$jingyuan:pm` 做范围裁剪、记录本期不做或处理反复出现的拒绝需求时读取。
 

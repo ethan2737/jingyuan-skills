@@ -1,4 +1,4 @@
----
+﻿---
 name: mockup
 description: 景元设计稿/原型工作流。Use when Codex needs to create design mockup instructions or design-tool output from docs/PRD/prd.md and docs/design/design.md, writing docs/design/mockup.md.
 ---

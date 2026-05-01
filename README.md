@@ -1,4 +1,4 @@
-# JingYuan-Skill
+﻿# JingYuan-Skill
 
 JingYuan 是面向 Codex 的 Windows-first 工作流插件，把产品、设计、开发计划、实现、审查、修复、发布、反馈和进化流程收口为一组 `jingyuan:*` skills。
 
@@ -105,6 +105,12 @@ Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
 ```
 
 `-HomeRoot` 仅用于测试或高级场景；正常安装不需要传参。
+
+## 编码规范
+
+- Markdown 文档统一使用 UTF-8 with BOM，确保 Windows PowerShell 5.1、Codex、Claude Code 等不同读取链路首次读取中文内容时不乱码。
+- JSON、TOML、Shell 和 PowerShell 脚本继续使用显式 UTF-8 读写；结构化配置文件不添加 BOM。
+- 修改或新增 `.md` 后必须运行 `.\scripts\validate-plugin.ps1`，防止入口 Skill 或引用文档退回 UTF-8 无 BOM。
 
 ## 安全说明
 

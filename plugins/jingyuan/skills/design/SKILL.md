@@ -1,4 +1,4 @@
----
+﻿---
 name: design
 description: 景元设计规范工作流。Use when Codex needs to create or update product UI/UX design guidance from docs/PRD/prd.md and write docs/design/design.md.
 ---

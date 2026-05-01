@@ -1,4 +1,4 @@
----
+﻿---
 name: product-spec-template
 description: PRD 输出模板。当需要生成产品需求文档时，按照此模板填充内容，输出为 docs/PRD/prd.md。
 ---
