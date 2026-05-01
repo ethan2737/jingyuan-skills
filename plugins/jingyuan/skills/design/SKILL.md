@@ -1,9 +1,15 @@
-﻿---
+---
 name: design
-description: 景元设计规范工作流。Use when Codex needs to create or update product UI/UX design guidance from docs/PRD/prd.md and write docs/design/design.md.
+description: 景元设计规范工作流。Use when Codex or Claude Code needs to create or update product UI/UX design guidance from docs/PRD/prd.md and write docs/design/design.md.
 ---
 
 # JingYuan Design
+
+## 客户端入口与插件根目录
+
+- Codex 入口：`$jingyuan:design`。
+- Claude Code 入口：`/jingyuan:design`。
+- `<JINGYUAN_PLUGIN_ROOT>` 解析规则：Claude Code 使用 `${CLAUDE_PLUGIN_ROOT}`；Codex 优先使用 `$env:CODEX_HOME\plugins\jingyuan`，否则使用 `$HOME\.codex\plugins\jingyuan`。
 
 `$jingyuan:design` 基于 PRD、长期记忆和必要的设计取向访谈，输出可供 `$jingyuan:mockup` 和 `$jingyuan:dev-builder` 使用的 `docs/design/design.md`。
 

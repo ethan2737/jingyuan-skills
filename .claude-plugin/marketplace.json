@@ -1,0 +1,17 @@
+{
+  "name": "jingyuan-local",
+  "owner": {
+    "name": "JingYuan"
+  },
+  "metadata": {
+    "description": "Local JingYuan workflow skills marketplace for Claude Code."
+  },
+  "plugins": [
+    {
+      "name": "jingyuan",
+      "source": "./plugins/jingyuan",
+      "description": "JingYuan workflow skills for Codex and Claude Code.",
+      "category": "productivity"
+    }
+  ]
+}

@@ -6,11 +6,16 @@ $ErrorActionPreference = 'Stop'
 $root = Split-Path -Parent $PSScriptRoot
 $pluginRoot = Join-Path $root 'plugins\jingyuan'
 $manifestPath = Join-Path $pluginRoot '.codex-plugin\plugin.json'
+$claudeManifestPath = Join-Path $pluginRoot '.claude-plugin\plugin.json'
 $marketplacePath = Join-Path $root '.agents\plugins\marketplace.json'
+$claudeMarketplacePath = Join-Path $root '.claude-plugin\marketplace.json'
 $installerPath = Join-Path $root 'install\install-local.ps1'
+$claudeInstallerPath = Join-Path $root 'install\install-claude-local.ps1'
 $readmePath = Join-Path $root 'README.md'
 $validationReportPath = Join-Path $root 'validation-report.json'
 $errors = New-Object System.Collections.Generic.List[string]
+$manifest = $null
+$claudeManifest = $null
 
 function Add-Error {
   param([string]$Message)
@@ -87,6 +92,22 @@ if (-not (Test-Path -LiteralPath $manifestPath)) {
   }
 }
 
+if (-not (Test-Path -LiteralPath $claudeManifestPath)) {
+  Add-Error "Missing Claude Code plugin manifest: $claudeManifestPath"
+} else {
+  Test-Utf8JsonStartsClean -Path $claudeManifestPath -Label 'Claude Code plugin.json'
+  $claudeManifest = Get-Content -Raw -Encoding UTF8 -LiteralPath $claudeManifestPath | ConvertFrom-Json
+  if ($claudeManifest.name -ne 'jingyuan') { Add-Error "Claude Code plugin.json name must be 'jingyuan'." }
+  if ($claudeManifest.skills -ne './skills/') { Add-Error "Claude Code plugin.json skills must be './skills/'." }
+  if ([string]::IsNullOrWhiteSpace($claudeManifest.description)) { Add-Error 'Claude Code plugin.json must include description.' }
+  if (-not (Test-Path -LiteralPath (Join-Path $pluginRoot 'skills'))) { Add-Error 'Claude Code plugin skills path does not exist.' }
+  if ($null -ne $manifest) {
+    if ($claudeManifest.name -ne $manifest.name) { Add-Error 'Codex and Claude Code plugin manifests must use the same name.' }
+    if ($claudeManifest.version -ne $manifest.version) { Add-Error 'Codex and Claude Code plugin manifests must use the same version.' }
+    if ($claudeManifest.license -ne $manifest.license) { Add-Error 'Codex and Claude Code plugin manifests must use the same license.' }
+  }
+}
+
 if (-not (Test-Path -LiteralPath $installerPath)) {
   Add-Error "Missing installer: $installerPath"
 } else {
@@ -102,6 +123,27 @@ if (-not (Test-Path -LiteralPath $installerPath)) {
   }
 }
 
+if (-not (Test-Path -LiteralPath $claudeInstallerPath)) {
+  Add-Error "Missing Claude Code installer: $claudeInstallerPath"
+} else {
+  $claudeInstallerContent = Get-Content -Raw -Encoding UTF8 -LiteralPath $claudeInstallerPath
+  if ($claudeInstallerContent -notmatch "ValidateSet\('user', 'project', 'local'\)") {
+    Add-Error 'Claude Code installer must support user, project, and local scopes.'
+  }
+  if ($claudeInstallerContent -notmatch "'plugin', 'validate'") {
+    Add-Error 'Claude Code installer must run claude plugin validate.'
+  }
+  if ($claudeInstallerContent -notmatch "'plugin', 'marketplace', 'add'") {
+    Add-Error 'Claude Code installer must add the JingYuan marketplace.'
+  }
+  if ($claudeInstallerContent -notmatch "'plugin', 'install'") {
+    Add-Error 'Claude Code installer must install jingyuan@jingyuan-local.'
+  }
+  if ($claudeInstallerContent -match 'CODEX_HOME|\.codex|config\.toml|\.agents') {
+    Add-Error 'Claude Code installer must not write or depend on Codex home, config, or marketplace paths.'
+  }
+}
+
 if (-not (Test-Path -LiteralPath $marketplacePath)) {
   Add-Error "Missing marketplace file: $marketplacePath"
 } else {
@@ -111,6 +153,24 @@ if (-not (Test-Path -LiteralPath $marketplacePath)) {
   $entry = @($marketplace.plugins | Where-Object { $_.name -eq 'jingyuan' })
   if ($entry.Count -ne 1) { Add-Error 'marketplace must contain exactly one jingyuan entry.' }
   elseif ($entry[0].source.path -ne './plugins/jingyuan') { Add-Error "marketplace jingyuan source.path must be './plugins/jingyuan'." }
+}
+
+if (-not (Test-Path -LiteralPath $claudeMarketplacePath)) {
+  Add-Error "Missing Claude Code marketplace file: $claudeMarketplacePath"
+} else {
+  Test-Utf8JsonStartsClean -Path $claudeMarketplacePath -Label 'Claude Code marketplace.json'
+  $claudeMarketplace = Get-Content -Raw -Encoding UTF8 -LiteralPath $claudeMarketplacePath | ConvertFrom-Json
+  if ($claudeMarketplace.name -ne 'jingyuan-local') { Add-Error "Claude Code marketplace name must be 'jingyuan-local'." }
+  if ($null -eq $claudeMarketplace.owner -or [string]::IsNullOrWhiteSpace($claudeMarketplace.owner.name)) {
+    Add-Error 'Claude Code marketplace must include owner.name.'
+  }
+  $claudeEntry = @($claudeMarketplace.plugins | Where-Object { $_.name -eq 'jingyuan' })
+  if ($claudeEntry.Count -ne 1) { Add-Error 'Claude Code marketplace must contain exactly one jingyuan entry.' }
+  else {
+    if ($claudeEntry[0].source -ne './plugins/jingyuan') { Add-Error "Claude Code marketplace jingyuan source must be './plugins/jingyuan'." }
+    if ($claudeEntry[0].source -match '\.\.') { Add-Error 'Claude Code marketplace source must not contain .. path segments.' }
+    if ($null -ne $claudeEntry[0].version) { Add-Error 'Claude Code marketplace must not duplicate plugin version; plugin.json owns the version.' }
+  }
 }
 
 $skillRoot = Join-Path $pluginRoot 'skills'
@@ -147,9 +207,15 @@ if (-not (Test-Path -LiteralPath $readmePath)) {
   Add-Error "Missing README: $readmePath"
 } else {
   $readmeContent = Get-Content -Raw -Encoding UTF8 -LiteralPath $readmePath
+  if ($readmeContent -notmatch '## .+Claude Code') { Add-Error 'README must document Claude Code installation.' }
+  if ($readmeContent -notmatch 'install-claude-local\.ps1') { Add-Error 'README must mention install-claude-local.ps1.' }
+  if ($readmeContent -notmatch 'claude plugin validate \.') { Add-Error 'README must mention claude plugin validate .' }
   foreach ($expectedSkill in $expectedSkills) {
     if ($readmeContent -notmatch [regex]::Escape("`$jingyuan:$expectedSkill")) {
       Add-Error "README must mention `$jingyuan:$expectedSkill."
+    }
+    if ($readmeContent -notmatch [regex]::Escape("/jingyuan:$expectedSkill")) {
+      Add-Error "README must mention /jingyuan:$expectedSkill."
     }
   }
 }
@@ -174,9 +240,14 @@ foreach ($skill in $skills) {
     continue
   }
 
+  Test-StrictUtf8 -Path $skillFile -Label 'Plugin SKILL.md'
   $bytes = [System.IO.File]::ReadAllBytes($skillFile)
-  if ($bytes.Length -lt 6 -or $bytes[0] -ne 0xEF -or $bytes[1] -ne 0xBB -or $bytes[2] -ne 0xBF -or $bytes[3] -ne 0x2D -or $bytes[4] -ne 0x2D -or $bytes[5] -ne 0x2D) {
-    Add-Error "SKILL.md must be UTF-8 with BOM followed by --- frontmatter: $skillFile"
+  if ($bytes.Length -ge 3 -and $bytes[0] -eq 0xEF -and $bytes[1] -eq 0xBB -and $bytes[2] -eq 0xBF) {
+    Add-Error "Plugin SKILL.md must be UTF-8 without BOM for Claude Code frontmatter parsing: $skillFile"
+    continue
+  }
+  if ($bytes.Length -lt 3 -or $bytes[0] -ne 0x2D -or $bytes[1] -ne 0x2D -or $bytes[2] -ne 0x2D) {
+    Add-Error "Plugin SKILL.md must start with --- frontmatter: $skillFile"
     continue
   }
 
@@ -194,6 +265,15 @@ foreach ($skill in $skills) {
   if ([string]::IsNullOrWhiteSpace($description)) { Add-Error "Missing description in $skillFile." }
   if ($description.Length -gt 1024) { Add-Error "Description too long in $skillFile." }
   if ($description -match '[<>]') { Add-Error "Description contains angle brackets in $skillFile." }
+  if ($content -notmatch [regex]::Escape("`$jingyuan:$($skill.Name)")) {
+    Add-Error "Skill must mention Codex entry `$jingyuan:$($skill.Name): $skillFile"
+  }
+  if ($content -notmatch [regex]::Escape("/jingyuan:$($skill.Name)")) {
+    Add-Error "Skill must mention Claude Code entry /jingyuan:$($skill.Name): $skillFile"
+  }
+  if ($content -notmatch '\$\{CLAUDE_PLUGIN_ROOT\}') {
+    Add-Error "Skill must document Claude Code plugin root variable `${CLAUDE_PLUGIN_ROOT}: $skillFile"
+  }
 
   $matches = [regex]::Matches($content, '\.\./\.\./(?:assets|references)/[A-Za-z0-9_./*-]+')
   foreach ($match in $matches) {
@@ -220,7 +300,10 @@ $scanFiles += Get-ChildItem -Path (Join-Path $pluginRoot 'references\workflow') 
   Where-Object { $_.Name -ne 'windows-powershell.md' }
 
 $markdownFiles = Get-ChildItem -Path $root -Recurse -File -Filter '*.md' |
-  Where-Object { $_.FullName -notmatch '\\\.git\\' }
+  Where-Object {
+    $_.FullName -notmatch '\\\.git\\' -and
+    $_.FullName -notmatch '\\plugins\\jingyuan\\skills\\[^\\]+\\SKILL\.md$'
+  }
 foreach ($file in $markdownFiles) {
   Test-Utf8Bom -Path $file.FullName -Label 'Markdown file'
 }

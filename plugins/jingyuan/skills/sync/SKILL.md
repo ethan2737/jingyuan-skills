@@ -1,9 +1,15 @@
-﻿---
+---
 name: sync
-description: 景元同步对齐工作流。Use when Codex needs to audit and reconcile code, PRD, design document, design mockup, development plan, README, AGENTS.md, or CLAUDE.md after product, design, mockup, or code changes.
+description: 景元同步对齐工作流。Use when Codex or Claude Code needs to audit and reconcile code, PRD, design document, design mockup, development plan, README, AGENTS.md, or CLAUDE.md after product, design, mockup, or code changes.
 ---
 
 # JingYuan Sync
+
+## 客户端入口与插件根目录
+
+- Codex 入口：`$jingyuan:sync`。
+- Claude Code 入口：`/jingyuan:sync`。
+- `<JINGYUAN_PLUGIN_ROOT>` 解析规则：Claude Code 使用 `${CLAUDE_PLUGIN_ROOT}`；Codex 优先使用 `$env:CODEX_HOME\plugins\jingyuan`，否则使用 `$HOME\.codex\plugins\jingyuan`。
 
 `$jingyuan:sync` 审计并同步代码、PRD、设计、设计稿、开发计划、README 和项目内 Agent 约定，确保项目知识体系与真实实现对齐。
 

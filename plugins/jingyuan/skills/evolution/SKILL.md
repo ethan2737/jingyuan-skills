@@ -1,9 +1,15 @@
-﻿---
+---
 name: evolution
-description: 景元进化引擎工作流。Use when Codex should scan docs/feedback/ and docs/feedback/index.md for repeated patterns and propose workflow, rule, out-of-scope, or skill improvements.
+description: 景元进化引擎工作流。Use when Codex or Claude Code should scan docs/feedback/ and docs/feedback/index.md for repeated patterns and propose workflow, rule, out-of-scope, or skill improvements.
 ---
 
 # JingYuan Evolution
+
+## 客户端入口与插件根目录
+
+- Codex 入口：`$jingyuan:evolution`。
+- Claude Code 入口：`/jingyuan:evolution`。
+- `<JINGYUAN_PLUGIN_ROOT>` 解析规则：Claude Code 使用 `${CLAUDE_PLUGIN_ROOT}`；Codex 优先使用 `$env:CODEX_HOME\plugins\jingyuan`，否则使用 `$HOME\.codex\plugins\jingyuan`。
 
 `$jingyuan:evolution` 扫描 `docs/feedback/` 的重复模式，提出规则毕业、技能优化、新技能和 out-of-scope 沉淀建议。它只提出结构化建议；修改技能、workflow 或长期记忆前必须有用户确认。
 

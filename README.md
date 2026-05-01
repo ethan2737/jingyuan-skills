@@ -1,33 +1,34 @@
 ﻿# JingYuan-Skill
 
-JingYuan 是面向 Codex 的 Windows-first 工作流插件，把产品、设计、开发计划、实现、审查、修复、发布、反馈和进化流程收口为一组 `jingyuan:*` skills。
+JingYuan 是面向 Codex 与 Claude Code 的 Windows-first 工作流插件，把产品、设计、开发计划、实现、审查、修复、发布、反馈和进化流程收口为一组 `jingyuan:*` skills。
 
 ## 支持环境
 
 - Windows
 - PowerShell
 - Codex 本地插件目录
+- Claude Code 插件 marketplace
 
 命令示例默认使用 PowerShell。除非用户明确要求跨平台兼容，不把 Bash、sh、pkill、lsof、grep、find 等 Unix 命令作为主流程。
 
 ## 可用技能
 
-Codex 补全列表中显示为 `jingyuan:<skill>`。输入 `$jingyuan` 可看到以下子技能：
+Codex 补全列表中显示为 `jingyuan:<skill>`，输入 `$jingyuan` 可看到以下子技能；Claude Code 安装插件后使用 `/jingyuan:<skill>` 调用同一组技能：
 
-- `$jingyuan:setup`：初始化 JingYuan 项目目录、长期记忆和 `.jingyuan/config.json`
-- `$jingyuan:pm`：澄清产品问题、术语、场景、范围和风险，生成或更新 `docs/PRD/prd.md`
-- `$jingyuan:design`：生成或更新 `docs/design/design.md`
-- `$jingyuan:mockup`：生成设计稿说明 `docs/design/mockup.md`；如用户选择 Pencil，同步生成 `docs/design/ui-design.pen`
-- `$jingyuan:dev-plan`：生成或更新 `docs/development/plan.md`
-- `$jingyuan:dev-builder`：按开发计划实现项目
-- `$jingyuan:review`：审查代码、文档一致性、质量、安全、性能和测试覆盖
-- `$jingyuan:fix`：建立复现/验证循环后修复 Bug
-- `$jingyuan:release`：构建、打包和发布检查
-- `$jingyuan:research`：使用横纵分析法产出产品、公司、技术概念或人物的深度调研报告
-- `$jingyuan:feedback`：记录反馈到 `docs/feedback/`
-- `$jingyuan:evolution`：扫描反馈并提出进化建议
-- `$jingyuan:sync`：同步代码、PRD、设计、设计稿、开发计划和交接文档
-- `$jingyuan:skill-builder`：创建或维护 JingYuan skill
+- `$jingyuan:setup` / `/jingyuan:setup`：初始化 JingYuan 项目目录、长期记忆和 `.jingyuan/config.json`
+- `$jingyuan:pm` / `/jingyuan:pm`：澄清产品问题、术语、场景、范围和风险，生成或更新 `docs/PRD/prd.md`
+- `$jingyuan:design` / `/jingyuan:design`：生成或更新 `docs/design/design.md`
+- `$jingyuan:mockup` / `/jingyuan:mockup`：生成设计稿说明 `docs/design/mockup.md`；如用户选择 Pencil，同步生成 `docs/design/ui-design.pen`
+- `$jingyuan:dev-plan` / `/jingyuan:dev-plan`：生成或更新 `docs/development/plan.md`
+- `$jingyuan:dev-builder` / `/jingyuan:dev-builder`：按开发计划实现项目
+- `$jingyuan:review` / `/jingyuan:review`：审查代码、文档一致性、质量、安全、性能和测试覆盖
+- `$jingyuan:fix` / `/jingyuan:fix`：建立复现/验证循环后修复 Bug
+- `$jingyuan:release` / `/jingyuan:release`：构建、打包和发布检查
+- `$jingyuan:research` / `/jingyuan:research`：使用横纵分析法产出产品、公司、技术概念或人物的深度调研报告
+- `$jingyuan:feedback` / `/jingyuan:feedback`：记录反馈到 `docs/feedback/`
+- `$jingyuan:evolution` / `/jingyuan:evolution`：扫描反馈并提出进化建议
+- `$jingyuan:sync` / `/jingyuan:sync`：同步代码、PRD、设计、设计稿、开发计划和交接文档
+- `$jingyuan:skill-builder` / `/jingyuan:skill-builder`：创建或维护 JingYuan skill
 
 ## 文档收口
 
@@ -102,13 +103,55 @@ Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
 .\scripts\validate-plugin.ps1
 .\install\install-local.ps1 -WhatIf
 .\install\install-local.ps1 -HomeRoot "$env:TEMP\jingyuan-codex-test" -Force
+.\install\install-claude-local.ps1 -WhatIf
+claude plugin validate .
 ```
 
 `-HomeRoot` 仅用于测试或高级场景；正常安装不需要传参。
 
+## 安装到 Claude Code
+
+Claude Code 使用独立的 `.claude-plugin/` marketplace 和插件 manifest，不依赖 Codex 的 `.codex-plugin/`、`.agents/plugins/marketplace.json` 或 `$HOME\.codex`。
+
+开发期可直接从插件目录加载：
+
+```powershell
+claude --plugin-dir .\plugins\jingyuan
+```
+
+推荐使用本地 marketplace 安装：
+
+```powershell
+.\install\install-claude-local.ps1
+```
+
+默认安装到 Claude Code 的 `user` scope。需要安装到当前项目或仅本地仓库时：
+
+```powershell
+.\install\install-claude-local.ps1 -Scope project
+.\install\install-claude-local.ps1 -Scope local
+```
+
+手动安装等价命令：
+
+```powershell
+claude plugin validate .
+claude plugin marketplace add . --scope user
+claude plugin install jingyuan@jingyuan-local --scope user
+```
+
+如果 Claude Code 会话已打开，安装后运行：
+
+```text
+/reload-plugins
+```
+
+安装后使用 `/jingyuan:setup`、`/jingyuan:pm`、`/jingyuan:dev-plan` 等入口。Claude Code 插件内共享资源通过 `${CLAUDE_PLUGIN_ROOT}` 定位；Codex 继续通过 `$env:CODEX_HOME\plugins\jingyuan` 或 `$HOME\.codex\plugins\jingyuan` 定位。
+
 ## 编码规范
 
-- Markdown 文档统一使用 UTF-8 with BOM，确保 Windows PowerShell 5.1、Codex、Claude Code 等不同读取链路首次读取中文内容时不乱码。
+- 除插件入口 `plugins/jingyuan/skills/*/SKILL.md` 外，Markdown 文档统一使用 UTF-8 with BOM，确保 Windows PowerShell 5.1 等读取链路首次读取中文内容时不乱码。
+- 插件入口 `SKILL.md` 使用 UTF-8 without BOM，以满足 Claude Code 对 `---` frontmatter 的解析要求；Codex 安装脚本会继续把 `jy-*` flat skill mirrors 写成 UTF-8 with BOM。
 - JSON、TOML、Shell 和 PowerShell 脚本继续使用显式 UTF-8 读写；结构化配置文件不添加 BOM。
 - 修改或新增 `.md` 后必须运行 `.\scripts\validate-plugin.ps1`，防止入口 Skill 或引用文档退回 UTF-8 无 BOM。
 

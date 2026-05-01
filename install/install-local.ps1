@@ -248,7 +248,11 @@ Assert-ExpectedPath -Actual $cachePlugin -Expected $expectedCachePlugin
 
 if (Test-Path -LiteralPath $targetPlugin) {
   if (-not $Force) {
-    throw "Target plugin already exists: $targetPlugin. Use -Force to replace JingYuan."
+    if ($WhatIfPreference) {
+      Write-Warning "Target plugin already exists: $targetPlugin. Real install still requires -Force to replace JingYuan."
+    } else {
+      throw "Target plugin already exists: $targetPlugin. Use -Force to replace JingYuan."
+    }
   }
   if ($PSCmdlet.ShouldProcess($targetPlugin, 'Remove existing JingYuan plugin')) {
     Remove-Item -LiteralPath $targetPlugin -Recurse -Force
@@ -257,7 +261,11 @@ if (Test-Path -LiteralPath $targetPlugin) {
 
 if (Test-Path -LiteralPath $cachePluginParent) {
   if (-not $Force) {
-    throw "Target plugin cache already exists: $cachePluginParent. Use -Force to replace JingYuan."
+    if ($WhatIfPreference) {
+      Write-Warning "Target plugin cache already exists: $cachePluginParent. Real install still requires -Force to replace JingYuan."
+    } else {
+      throw "Target plugin cache already exists: $cachePluginParent. Use -Force to replace JingYuan."
+    }
   }
   if ($PSCmdlet.ShouldProcess($cachePluginParent, 'Remove existing JingYuan plugin cache')) {
     Remove-Item -LiteralPath $cachePluginParent -Recurse -Force
