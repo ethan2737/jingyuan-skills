@@ -150,8 +150,8 @@ claude plugin install jingyuan@jingyuan-local --scope user
 
 ## 编码规范
 
-- 除插件入口 `plugins/jingyuan/skills/*/SKILL.md` 外，Markdown 文档统一使用 UTF-8 with BOM，确保 Windows PowerShell 5.1 等读取链路首次读取中文内容时不乱码。
-- 插件入口 `SKILL.md` 使用 UTF-8 without BOM，以满足 Claude Code 对 `---` frontmatter 的解析要求；Codex 安装脚本会继续把 `jy-*` flat skill mirrors 写成 UTF-8 with BOM。
+- 除 skill 入口文件外，Markdown 文档统一使用 UTF-8 with BOM，确保 Windows PowerShell 5.1 等读取链路首次读取中文内容时不乱码。
+- `plugins/jingyuan/skills/*/SKILL.md` 与 Codex 安装生成的 `skills/jy-*/SKILL.md` 使用 UTF-8 without BOM，确保 Codex 和 Claude Code 都能从文件首字节解析 `---` frontmatter。
 - JSON、TOML、Shell 和 PowerShell 脚本继续使用显式 UTF-8 读写；结构化配置文件不添加 BOM。
 - 修改或新增 `.md` 后必须运行 `.\scripts\validate-plugin.ps1`，防止入口 Skill 或引用文档退回 UTF-8 无 BOM。
 

@@ -85,7 +85,7 @@
         "result": "passed",
         "installWhatIf": "passed; existing local installs warn in WhatIf but still show the planned Codex operations",
         "tempInstall": "passed: plugins/jingyuan, plugins/cache/local/jingyuan/local, and skills/jy-setup plus all existing jy-* mirrors exist",
-        "bomCheck": "passed: plugin SKILL.md files are UTF-8 without BOM for Claude Code; Codex jy-* mirrors are generated with UTF-8 BOM",
+        "bomCheck": "passed: plugin SKILL.md files and Codex jy-* mirrors are UTF-8 without BOM so frontmatter starts with raw ---",
         "marketplaceEncoding": "passed: marketplace.json is UTF-8 JSON without BOM",
         "configEnablement": "passed: installer removes jingyuan@local enablement to avoid plugin-only completion row",
         "cacheInstall": "passed: installer syncs plugins/cache/local/jingyuan/local as a plugin payload cache",
@@ -97,7 +97,7 @@
     "notes": [
         "Codex v0.122 shows every enabled plugin as a plugin-only completion row; JingYuan therefore uses flat skill mirrors for Codex discovery while keeping the complete plugin payload installed.",
         "Claude Code uses the native .claude-plugin marketplace and plugin manifest, with /jingyuan:<skill> namespaced skills.",
-        "Plugin SKILL.md files intentionally use UTF-8 without BOM because Claude Code validates frontmatter only when --- is the first bytes.",
+        "Plugin SKILL.md files and Codex jy-* mirrors intentionally use UTF-8 without BOM because both clients discover skills from raw --- frontmatter at the first bytes.",
         "The local installer defaults to the Codex home directory rather than the user home directory.",
         "The installer keeps the complete plugin under plugins/jingyuan, syncs plugins/cache/local/jingyuan/local, creates skills/jy-* mirrors with name: \"jingyuan:<skill>\", and removes obsolete flat skill discovery entries to avoid duplicate loading.",
         "Shared assets and references are kept under plugins/jingyuan and are installed with the plugin.",

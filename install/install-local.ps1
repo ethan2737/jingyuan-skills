@@ -197,7 +197,7 @@ function Install-JingYuanSkillMirror {
       $content = [regex]::Replace($content, '(?m)^name:\s*.+$', "name: `"jingyuan:$skillName`"")
       $content = $content.Replace('../../assets/', '../../plugins/jingyuan/assets/')
       $content = $content.Replace('../../references/', '../../plugins/jingyuan/references/')
-      Write-Utf8BomFile -Path $skillFile -Value $content
+      Write-Utf8NoBomFile -Path $skillFile -Value $content
     }
   }
 }
