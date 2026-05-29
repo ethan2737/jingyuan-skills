@@ -60,11 +60,13 @@ description: 景元项目初始化工作流。Use when Codex or Claude Code need
 [工作流程]
     [第一步：盘点]
         1. 检查目标项目根目录可写。
+           → 如不可写，提示用户选择其他目录或调整目录权限后重试。
         2. 读取已有 docs、.jingyuan、AGENTS.md、CLAUDE.md。
         3. 列出将创建、将保留和不会自动创建的内容。
 
     [第二步：创建目录]
-        创建缺失目录：
+        🔴 CHECKPOINT：向用户确认目标项目路径正确，避免在错误目录初始化。
+        创建缺失目录（目录已存在则跳过，不报错）：
         - docs/PRD
         - docs/design
         - docs/development
@@ -75,9 +77,13 @@ description: 景元项目初始化工作流。Use when Codex or Claude Code need
         - .jingyuan
 
     [第三步：创建骨架文件]
+        🔴 CHECKPOINT：列出将创建或覆盖的已有文件，获得用户确认后再写入。
         - 如 `docs/context.md` 不存在，使用 `context-template.md` 创建。
+          → 如 context-template.md 缺失，提示用户手动创建或跳过该文件。
         - 如 `docs/feedback/index.md` 不存在，使用 `feedback-index-template.md` 创建。
+          → 如 feedback-index-template.md 缺失，提示用户手动创建或跳过该文件。
         - 如 `.jingyuan/config.json` 不存在，创建默认配置。
+          → 如写入权限不足，提示用户手动创建或跳过该文件。
         - `docs/adr/` 只创建目录；`adr-template.md` 仅在用户确认具体架构决策时用于创建 ADR。
         - `docs/out-of-scope/` 只创建目录；`out-of-scope-template.md` 仅在用户确认长期不做事项时使用。
 
@@ -104,6 +110,16 @@ description: 景元项目初始化工作流。Use when Codex or Claude Code need
       "createdBy": "jingyuan:setup"
     }
     ```
+
+[不要做的事]
+    - 不要覆盖已有的配置文件（config.json 已存在时只补缺失字段）。
+    - 不要创建空文件（目录类只创建目录，不塞空文件）。
+    - 不要跳过 [第一步：盘点] 直接写目录。
+    - 不要编造业务 PRD、设计决策或架构记录。
+    - 不要自动创建 ADR 或 out-of-scope 记录（只创建目录，模板在用户确认后才使用）。
+    - 不要忽略已有 docs 内容（保留现有内容，只补缺失）。
+    - 不要使用非 Windows 路径格式（PowerShell 优先）。
+    - 不要在未确认项目路径的情况下开始创建目录。
 
 [初始化]
     执行 [第一步：盘点]。
