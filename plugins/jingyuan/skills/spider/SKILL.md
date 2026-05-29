@@ -104,6 +104,24 @@ When browser automation or CLI extraction is not possible, ask for one small art
 
 After each artifact, reassess the route. Stop asking for more information once the next debugging step is clear.
 
+## 失败模式与 Fallback
+
+当爬虫流程受阻时，按以下对照表诊断和降级：
+
+| 症状 | 可能原因 | 一线处理 | 仍失败后兜底 |
+|------|---------|---------|------------|
+| 请求返回空/错误页面 | 缺少必要 Headers / Cookie | 补全 User-Agent、Referer，启用 `requests.Session` | 进入 Session/Login 路线，分析登录流程 |
+| API 请求返回 403/418 | 反爬检测 / IP 频率限制 | 添加延时、轮换 User-Agent、使用代理 IP | 降低请求频率至 1 req/3s 以上，或切换 Selenium 路线 |
+| Network 中找不到 API | 页面可能是 SSR 或数据在 HTML | 检查 page source（Ctrl+U）而非 Elements 面板 | 如果 HTML 中也没有，进入 Selenium 路线 |
+| sign/token 参数逆向困难 | 加密逻辑复杂、Webpack 打包或 WASM | 用 XHR 断点定位 Initiator，搜索关键字如 `sign =` | 扣出关键 JS 用 `PyExecJS` 执行；仍不行则用 Selenium 渲染绕过 |
+| JS 代码在 Node 中报错（window is not defined 等） | 缺少浏览器全局对象 | 使用 `jsdom` 模拟 `window`、`document` | 切换到补环境路线（chapters 35-36）或 Selenium |
+| Selenium 被反爬检测 | 网站检测 WebDriver 标识 | 使用 `undetected-chromedriver` 或 Playwright | 启用 stealth 插件、禁用自动化标志、随机化浏览器指纹 |
+| 页面需要登录才能访问数据 | 认证态缺失 | 分析登录请求，用 `requests.Session` 复现表单/Cookie | 如果登录有验证码，引导用户手动登录后导出 Cookie |
+| 目标数据在 iframe 中 | 跨框架加载 | 直接用 URL 打开 iframe 的 src 地址 | 用 Selenium 切换到 iframe 上下文再提取 |
+| 页面有无限 debugger | 反调试 | 在 DevTools Sources 中禁用断点或条件跳过 | 使用 Script snippet 注入绕过，或补环境执行 |
+| 抓到的数据是乱码 | 编码不匹配 | 设置 `resp.encoding = resp.apparent_encoding` | 尝试 `utf-8`、`gbk`、`gb2312` 逐个测试 |
+| 成功抓取但字段缺失 | 页面结构变化 | 打印 HTML 源码确认选择器是否命中 | 用更宽松的选择器 + 提取后清洗 |
+
 ## Route Output Format
 
 When giving a crawling plan, answer in this order:
