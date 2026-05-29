@@ -54,17 +54,34 @@ description: 景元反馈记录工作流。Use when Codex or Claude Code detects
 [写入流程]
     1. 执行 [依赖检测]，确保 `docs/feedback/` 和 `docs/feedback/index.md` 可用。
     2. 判断是否有项目相关 feedback 信号；无则返回"无新 feedback"。
-    3. 提取主题、source_skill、触发语境、问题类型、建议处理方式和是否 out-of-scope 候选。
+       → 如无法判断是否项目相关，记录为"待分类"并提示用户下次确认。
+    3. 🔴 CHECKPOINT：向用户确认反馈分类和主题是否准确，避免归类错误。
+       提取主题、source_skill、触发语境、问题类型、建议处理方式和是否 out-of-scope 候选。
+       🛑 STOP：如反馈内容涉及敏感信息（密钥、账号、私有路径），在提取前过滤脱敏，不写入原始内容。
     4. 读取 `docs/feedback/index.md` 查找同主题记录。
+       → 如 `docs/feedback/index.md` 不存在，用模板创建。
     5. 已存在则更新文件内容、occurrences 和 updated。
+       → 如同主题但内容矛盾，暂停并请用户判断是更新还是新建。
     6. 不存在则用 `feedback-topic-template.md` 创建 kebab-case 文件，并更新索引。
-    7. 如果属于长期范围边界，检查 `docs/out-of-scope/` 是否已有同主题记录；没有则建议用户确认后用 `out-of-scope-template.md` 创建，不把一次性偏好直接永久化。
+    7. 如果属于长期范围边界，检查 `docs/out-of-scope/` 是否已有同主题记录。
+       → 如 `docs/out-of-scope/` 不存在，不阻塞反馈记录，建议先运行 `$jingyuan:setup`。
+       没有已有记录则建议用户确认后用 `out-of-scope-template.md` 创建，不把一次性偏好直接永久化。
 
 [返回格式]
     - 新记录：`记录了 1 条 feedback：[标题]（docs/feedback/[file].md）`
     - 更新记录：`更新了 docs/feedback/[file].md，occurrences: N -> N+1`
     - Out-of-scope 候选：附 `建议沉淀到 docs/out-of-scope/[topic].md，等待用户确认`
     - 无信号：`无新 feedback`
+
+[不要做的事]
+    - 不要记录未确认的猜测或假设（必须有真实反馈信号）。
+    - 不要跳过分类直接写入（主题不明确时应先询问用户）。
+    - 不要复制敏感信息（密钥、密码、私有路径）。
+    - 不要为日常普通对话创建反馈记录（仅记录项目或技能相关）。
+    - 不要重复创建同主题文件（先去重，更新 occurrences）。
+    - 不要把一次性用户偏好自动转为 out-of-scope 记录（需用户确认）。
+    - 不要覆盖已有反馈文件内容（只 append 或更新 occurrences）。
+    - 不要在没有 `docs/feedback/` 目录时阻塞写入（先创建目录再记录）。
 
 [初始化]
     执行 [依赖检测]，然后进入 [写入流程]。

@@ -55,6 +55,13 @@ description: 景元开发实现工作流。Use when Codex or Claude Code needs t
 - **状态协议**：最终状态只能是 `DONE`、`DONE_WITH_CONCERNS`、`NEEDS_CONTEXT`、`BLOCKED`。
 - **专项技能边界**：dev-builder 只编排 bugfix 和 review 门禁。根因诊断和修复执行交给 `$jingyuan:fix`；规格符合度和代码质量审查交给 `$jingyuan:review`。dev-builder 不复制二者完整流程，只定义触发条件、输入输出和回到当前 slice 的验收规则。
 
+## 检查点 (Checkpoints)
+
+- 🔴 CHECKPOINT: 开始实现前确认计划就绪
+  Preflight 完成后，必须确认所有输入（PRD、plan、design、context、ADR、out-of-scope）完整可读、当前 slice 可验证且不越界、测试命令已知且可用，再进入 Apply 循环。发现任何缺失或模糊项，先回 `$jingyuan:dev-plan` 或 `$jingyuan:sync` 补齐，不得跳过。
+- 🔴 CHECKPOINT: 提交代码前
+  Apply 循环每个 Task 完成后，确认已通过两阶段 review 门禁、验证命令已运行并附证据、无 scope drift、无残留临时日志、无用户无关文件混入 commit。commit 由主 Agent 执行，dev-builder 不得自动提交。
+
 ## Preflight
 
 每个 Phase/Slice 开始前执行：
@@ -126,3 +133,16 @@ Phase/Slice 完成前必须通过：
 - 框架、SDK、外部 API 必须联网确认当前用法。
 - 脚手架完成不算 Phase 完成；必须接上第一个可验证 tracer 行为。
 - GitHub 仓库创建、push、发布等副作用操作必须先展示命令、目标和影响范围，并取得用户明确确认。
+
+## 不要做的事
+
+以下行为在 dev-builder 流程中禁止：
+
+- ❌ 不读计划就直接写代码：必须先确认 `docs/development/plan.md` 和当前 Task 定义再动代码。没有计划的实现等于盲目开发。
+- ❌ 批量写一坨代码再统一验证：必须按 Vertical Slice 逐个 Task 实现并验证，不做批量代码堆积。
+- ❌ 用"编译通过"或"文件已创建"作为完成标准：每个 Task 必须对应可验证行为（测试通过、接口响应正确、UI 交互正常）。
+- ❌ 跳过 review 门禁直接完成：未通过 `$jingyuan:review` Phase 不能标记为 DONE。Stage 1 没过不进 Stage 2，Stage 2 没过不能完成。
+- ❌ 修 bug 时不经 fix skill 就直接改代码：遇到 bug 必须转入 `$jingyuan:fix` 建立复现/验证循环，不允许猜修。
+- ❌ 把用户无关改动混入提交：commit 必须只包含当前 Task 的改动。scope drift 必须标记说明。
+- ❌ 看到不熟悉的报错不搜索就猜：第三方库报错、框架版本冲突等必须先 WebSearch 确认。
+- ❌ 连续失败三次还在同一方向硬修：停下来审视——可能是计划本身错了、架构选型有问题或理解偏差。状态改为 BLOCKED 或 NEEDS_CONTEXT。
