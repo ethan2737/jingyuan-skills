@@ -32,6 +32,7 @@ description: 景元爬虫分析与实战案例工作流。Use when Codex or Clau
 2. Read only the chapter files needed from `references/notes/`.
 3. Use `references/case-index.md` when the user needs implementation examples, route comparison, or code patterns from `E:\Project\Spider`.
 4. State assumptions before giving code or a concrete approach when the target page, login state, anti-crawler mechanism, or expected output is unclear.
+   🔴 CHECKPOINT：将所有假设列给用户确认后再继续。不确定的信息（登录态、反爬类型、目标数据位置）必须标为"假设"，不能默认为已知。
 5. Classify the crawler task with the decision tree below before choosing tools.
 6. Prefer the lowest-complexity route that explains the evidence. Do not jump to Selenium, JS reverse engineering, or browser environment emulation if `requests` can reproduce the data.
 7. When writing code, include only necessary structure. Add timeouts, explicit encodings where relevant, minimal retries/backoff for network calls, and safe handling of missing fields.
@@ -39,7 +40,9 @@ description: 景元爬虫分析与实战案例工作流。Use when Codex or Clau
 
 ## Crawler Classification
 
-Use this sequence when the user asks "how should I crawl this" or when the target difficulty is unclear:
+Use this sequence when the user asks "how should I crawl this" or when the target difficulty is unclear.
+
+🛑 CHECKPOINT 前：确认用户已提供目标 URL 和期望获取的数据内容。如果用户只说了网站名、没给具体页面，先追问完整 URL 和想爬取的具体字段。
 
 1. Check page source or initial HTML.
    - Data exists in HTML: use the static page route.
@@ -73,6 +76,13 @@ Use this sequence when the user asks "how should I crawl this" or when the targe
 
 For JS reverse engineering, signature analysis, anti-debugging, webpack, WASM, RPC, or browser environment emulation, treat browser DevTools evidence as required. Do not pretend a CLI-only workflow can see runtime-only values, call stacks, live cookies, breakpoints, or browser API behavior.
 
+🔴 CHECKPOINT：进入逆向调试前确认：
+1. 用户是否能访问目标页面？（登录、验证码、付费墙等）
+2. 用户是否有浏览器 DevTools 操作能力？（F12 → Network/Sources）
+3. 需要用户提供的最小 artifact 是什么？
+
+如果用户无法提供浏览器环境，跳过自动化方案，直接走"逐条引导提供 artifact"流程。
+
 Use browser automation when available and appropriate:
 
 1. Open the target page in a real browser.
@@ -94,9 +104,33 @@ When browser automation or CLI extraction is not possible, ask for one small art
 
 After each artifact, reassess the route. Stop asking for more information once the next debugging step is clear.
 
+## 失败模式与 Fallback
+
+当爬虫流程受阻时，按以下对照表诊断和降级：
+
+| 症状 | 可能原因 | 一线处理 | 仍失败后兜底 |
+|------|---------|---------|------------|
+| 请求返回空/错误页面 | 缺少必要 Headers / Cookie | 补全 User-Agent、Referer，启用 `requests.Session` | 进入 Session/Login 路线，分析登录流程 |
+| API 请求返回 403/418 | 反爬检测 / IP 频率限制 | 添加延时、轮换 User-Agent、使用代理 IP | 降低请求频率至 1 req/3s 以上，或切换 Selenium 路线 |
+| Network 中找不到 API | 页面可能是 SSR 或数据在 HTML | 检查 page source（Ctrl+U）而非 Elements 面板 | 如果 HTML 中也没有，进入 Selenium 路线 |
+| sign/token 参数逆向困难 | 加密逻辑复杂、Webpack 打包或 WASM | 用 XHR 断点定位 Initiator，搜索关键字如 `sign =` | 扣出关键 JS 用 `PyExecJS` 执行；仍不行则用 Selenium 渲染绕过 |
+| JS 代码在 Node 中报错（window is not defined 等） | 缺少浏览器全局对象 | 使用 `jsdom` 模拟 `window`、`document` | 切换到补环境路线（chapters 35-36）或 Selenium |
+| Selenium 被反爬检测 | 网站检测 WebDriver 标识 | 使用 `undetected-chromedriver` 或 Playwright | 启用 stealth 插件、禁用自动化标志、随机化浏览器指纹 |
+| 页面需要登录才能访问数据 | 认证态缺失 | 分析登录请求，用 `requests.Session` 复现表单/Cookie | 如果登录有验证码，引导用户手动登录后导出 Cookie |
+| 目标数据在 iframe 中 | 跨框架加载 | 直接用 URL 打开 iframe 的 src 地址 | 用 Selenium 切换到 iframe 上下文再提取 |
+| 页面有无限 debugger | 反调试 | 在 DevTools Sources 中禁用断点或条件跳过 | 使用 Script snippet 注入绕过，或补环境执行 |
+| 抓到的数据是乱码 | 编码不匹配 | 设置 `resp.encoding = resp.apparent_encoding` | 尝试 `utf-8`、`gbk`、`gb2312` 逐个测试 |
+| 成功抓取但字段缺失 | 页面结构变化 | 打印 HTML 源码确认选择器是否命中 | 用更宽松的选择器 + 提取后清洗 |
+
 ## Route Output Format
 
 When giving a crawling plan, answer in this order:
+
+🔴 CHECKPOINT：路线、工具和证据链已确认后，再输出实现方案。输出前先问自己——
+- 路线分类是否得到了用户确认？
+- 是否已经收集了必要的证据（页面源码、API 请求、或用户提供的 artifact）？
+- 是否声明了所有假设？（目标可访问性、登录态、反爬类型）
+- 这个方案是否是当前证据下的最低复杂度方案？
 
 1. Classification: name the route and why.
 2. Evidence to collect: HTML, Network request, headers, payload, response, Initiator, cookies, JS call stack, or runtime errors.
@@ -129,6 +163,23 @@ Before reading a case file, confirm it matches the route. If a case contains coo
 - Scrapy and distributed crawling: chapter 18.
 - JavaScript fundamentals for crawler analysis: chapters 19-20.
 - Reverse engineering and anti-scraping: chapters 21-36 and 102.
+
+## 不要做的事（反例黑名单）
+
+以下反模式在爬虫开发和调试中反复出现，每个都来自真实教训：
+
+| # | 反模式 | 为什么不要做 | 替代做法 |
+|---|--------|------------|---------|
+| 1 | **一上来就上 Selenium** | 比 requests 慢 10-50 倍，资源消耗大，更容易被检测 | 先用 requests + 核对 HTML/API 是否可拿到数据 |
+| 2 | **报 403 就认定必须 Selenium** | 403 通常是缺 Header/Cookie，不是浏览器指纹问题 | 先补全 User-Agent、Referer、Cookie，启用 Session |
+| 3 | **把浏览器调试复制来的 Cookie 硬编码到代码里** | Cookie 会过期，硬编码的代码换个环境就废了 | 用 `requests.Session` 先登录获取 Cookie，或用环境变量注入 |
+| 4 | **逆向加密时全部翻译成 Python** | 加密逻辑可能依赖复杂闭包、原型链或多次调用，翻译极易出错 | 优先扣 JS 用 `PyExecJS` 直接执行，仅在 MD5/SHA 等纯算法时才翻译 |
+| 5 | **不看 Initiator 直接全局搜 sign** | 全局搜索返回大量无关结果，80% 是 HTML 里的 `sign` class 名 | 优先点 Initiator 调用栈定位源头，搜不到再全局搜 |
+| 6 | **拷贝案例代码不换占位符** | `E:\Project\Spider` 的案例含有本地路径、旧 Cookie 和账号信息 | 所有 Cookie、token、路径替换为 `<COOKIE>`、`<TOKEN>` 或环境变量 |
+| 7 | **同时改多处再试** | 改了 Header + URL + 参数 + 解析逻辑一起试，不知道哪个修好了问题 | 每次只改一个变量，改完验证再改下一个 |
+| 8 | **不加延时直接并发大批量请求** | 轻则被封 IP，重则对目标服务器造成压力 | 加 `time.sleep(1-3)`、限速、分页控制、增量存储 |
+| 9 | **requests 能搞定却上了 Scrapy** | 单次或少量页面用 Scrapy 项目结构太重 | 单次任务用 requests 脚本；多爬虫/管道/分布式时再升级到 Scrapy |
+| 10 | **逆向受阻就放弃改 Selenium** | 跳过调试过程意味着学不到逆向方法，下次遇到同样问题还是不会 | 按失败模式表逐级降级：先扣 JS → PyExecJS → 补环境 → 最后才 Selenium |
 
 ## Safety And Quality
 
