@@ -32,6 +32,7 @@ description: 景元爬虫分析与实战案例工作流。Use when Codex or Clau
 2. Read only the chapter files needed from `references/notes/`.
 3. Use `references/case-index.md` when the user needs implementation examples, route comparison, or code patterns from `E:\Project\Spider`.
 4. State assumptions before giving code or a concrete approach when the target page, login state, anti-crawler mechanism, or expected output is unclear.
+   🔴 CHECKPOINT：将所有假设列给用户确认后再继续。不确定的信息（登录态、反爬类型、目标数据位置）必须标为"假设"，不能默认为已知。
 5. Classify the crawler task with the decision tree below before choosing tools.
 6. Prefer the lowest-complexity route that explains the evidence. Do not jump to Selenium, JS reverse engineering, or browser environment emulation if `requests` can reproduce the data.
 7. When writing code, include only necessary structure. Add timeouts, explicit encodings where relevant, minimal retries/backoff for network calls, and safe handling of missing fields.
@@ -39,7 +40,9 @@ description: 景元爬虫分析与实战案例工作流。Use when Codex or Clau
 
 ## Crawler Classification
 
-Use this sequence when the user asks "how should I crawl this" or when the target difficulty is unclear:
+Use this sequence when the user asks "how should I crawl this" or when the target difficulty is unclear.
+
+🛑 CHECKPOINT 前：确认用户已提供目标 URL 和期望获取的数据内容。如果用户只说了网站名、没给具体页面，先追问完整 URL 和想爬取的具体字段。
 
 1. Check page source or initial HTML.
    - Data exists in HTML: use the static page route.
@@ -73,6 +76,13 @@ Use this sequence when the user asks "how should I crawl this" or when the targe
 
 For JS reverse engineering, signature analysis, anti-debugging, webpack, WASM, RPC, or browser environment emulation, treat browser DevTools evidence as required. Do not pretend a CLI-only workflow can see runtime-only values, call stacks, live cookies, breakpoints, or browser API behavior.
 
+🔴 CHECKPOINT：进入逆向调试前确认：
+1. 用户是否能访问目标页面？（登录、验证码、付费墙等）
+2. 用户是否有浏览器 DevTools 操作能力？（F12 → Network/Sources）
+3. 需要用户提供的最小 artifact 是什么？
+
+如果用户无法提供浏览器环境，跳过自动化方案，直接走"逐条引导提供 artifact"流程。
+
 Use browser automation when available and appropriate:
 
 1. Open the target page in a real browser.
@@ -97,6 +107,12 @@ After each artifact, reassess the route. Stop asking for more information once t
 ## Route Output Format
 
 When giving a crawling plan, answer in this order:
+
+🔴 CHECKPOINT：路线、工具和证据链已确认后，再输出实现方案。输出前先问自己——
+- 路线分类是否得到了用户确认？
+- 是否已经收集了必要的证据（页面源码、API 请求、或用户提供的 artifact）？
+- 是否声明了所有假设？（目标可访问性、登录态、反爬类型）
+- 这个方案是否是当前证据下的最低复杂度方案？
 
 1. Classification: name the route and why.
 2. Evidence to collect: HTML, Network request, headers, payload, response, Initiator, cookies, JS call stack, or runtime errors.
