@@ -34,7 +34,7 @@
         "pluginRootVariable": "${CLAUDE_PLUGIN_ROOT}",
         "entrySkillEncoding": "UTF-8 without BOM for Claude Code frontmatter parsing"
     },
-    "skillCount": 14,
+    "skillCount": 16,
     "skills": [
         "setup",
         "pm",
@@ -46,7 +46,9 @@
         "fix",
         "release",
         "research",
+        "spider",
         "feedback",
+        "humanizer",
         "evolution",
         "sync",
         "skill-builder"
@@ -91,7 +93,7 @@
         "cacheInstall": "passed: installer syncs plugins/cache/local/jingyuan/local as a plugin payload cache",
         "claudeMarketplaceValidate": "passed: claude plugin validate .",
         "claudePluginValidate": "passed: claude plugin validate .\\plugins\\jingyuan",
-        "claudePluginDirLoad": "passed: claude --plugin-dir .\\plugins\\jingyuan loaded 14 skills from plugin jingyuan in debug output",
+        "claudePluginDirLoad": "passed: claude --plugin-dir .\\plugins\\jingyuan loaded 16 skills from plugin jingyuan in debug output",
         "promptInput": "not run: verified flat mirror frontmatter names directly in temporary install"
     },
     "notes": [

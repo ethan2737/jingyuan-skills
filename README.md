@@ -25,7 +25,9 @@ Codex 补全列表中显示为 `jingyuan:<skill>`，输入 `$jingyuan` 可看到
 - `$jingyuan:fix` / `/jingyuan:fix`：建立复现/验证循环后修复 Bug
 - `$jingyuan:release` / `/jingyuan:release`：构建、打包和发布检查
 - `$jingyuan:research` / `/jingyuan:research`：使用横纵分析法产出产品、公司、技术概念或人物的深度调研报告
+- `$jingyuan:spider` / `/jingyuan:spider`：判断 Python 爬虫路线，结合笔记和案例处理普通采集、Scrapy、Selenium、JS 逆向和补环境问题
 - `$jingyuan:feedback` / `/jingyuan:feedback`：记录反馈到 `docs/feedback/`
+- `$jingyuan:humanizer` / `/jingyuan:humanizer`：去除文本中的 AI 生成痕迹，检测 24 种 AI 写作模式并人性化改写
 - `$jingyuan:evolution` / `/jingyuan:evolution`：扫描反馈并提出进化建议
 - `$jingyuan:sync` / `/jingyuan:sync`：同步代码、PRD、设计、设计稿、开发计划和交接文档
 - `$jingyuan:skill-builder` / `/jingyuan:skill-builder`：创建或维护 JingYuan skill

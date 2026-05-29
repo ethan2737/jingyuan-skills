@@ -13,10 +13,11 @@ JingYuan 把产品、设计、开发、审查、修复、发布、反馈和进�
 6. `$jingyuan:review`：先做规格符合度审查，再做代码质量、安全、性能和测试覆盖审查。
 7. `$jingyuan:fix`：建立复现/验证循环后定位根因并修复 bug 或性能问题。
 8. `$jingyuan:release`：构建、打包、隐私审计、安装/部署验证和发布确认。
-9. `$jingyuan:feedback`：把用户修正、范围边界、流程缺口和质量信号写入 `docs/feedback/`。
-10. `$jingyuan:evolution`：扫描反馈，提出规则毕业、技能优化、新技能和 out-of-scope 沉淀建议。
-11. `$jingyuan:sync`：在产品、设计、代码或计划变化后同步文档和项目知识。
-12. `$jingyuan:skill-builder`：按新版结构创建或维护 JingYuan 技能。
+9. `$jingyuan:spider`：判断 Python 爬虫路线，结合笔记和案例处理普通采集、Scrapy、Selenium、JS 逆向和补环境问题。
+10. `$jingyuan:feedback`：把用户修正、范围边界、流程缺口和质量信号写入 `docs/feedback/`。
+11. `$jingyuan:evolution`：扫描反馈，提出规则毕业、技能优化、新技能和 out-of-scope 沉淀建议。
+12. `$jingyuan:sync`：在产品、设计、代码或计划变化后同步文档和项目知识。
+13. `$jingyuan:skill-builder`：按新版结构创建或维护 JingYuan 技能。
 
 ## 全局门禁
 

@@ -257,6 +257,7 @@ $jingyuanSkillNames = @(
   'fix',
   'release',
   'research',
+  'spider',
   'feedback',
   'evolution',
   'sync',
