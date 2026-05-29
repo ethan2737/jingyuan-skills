@@ -164,6 +164,23 @@ Before reading a case file, confirm it matches the route. If a case contains coo
 - JavaScript fundamentals for crawler analysis: chapters 19-20.
 - Reverse engineering and anti-scraping: chapters 21-36 and 102.
 
+## 不要做的事（反例黑名单）
+
+以下反模式在爬虫开发和调试中反复出现，每个都来自真实教训：
+
+| # | 反模式 | 为什么不要做 | 替代做法 |
+|---|--------|------------|---------|
+| 1 | **一上来就上 Selenium** | 比 requests 慢 10-50 倍，资源消耗大，更容易被检测 | 先用 requests + 核对 HTML/API 是否可拿到数据 |
+| 2 | **报 403 就认定必须 Selenium** | 403 通常是缺 Header/Cookie，不是浏览器指纹问题 | 先补全 User-Agent、Referer、Cookie，启用 Session |
+| 3 | **把浏览器调试复制来的 Cookie 硬编码到代码里** | Cookie 会过期，硬编码的代码换个环境就废了 | 用 `requests.Session` 先登录获取 Cookie，或用环境变量注入 |
+| 4 | **逆向加密时全部翻译成 Python** | 加密逻辑可能依赖复杂闭包、原型链或多次调用，翻译极易出错 | 优先扣 JS 用 `PyExecJS` 直接执行，仅在 MD5/SHA 等纯算法时才翻译 |
+| 5 | **不看 Initiator 直接全局搜 sign** | 全局搜索返回大量无关结果，80% 是 HTML 里的 `sign` class 名 | 优先点 Initiator 调用栈定位源头，搜不到再全局搜 |
+| 6 | **拷贝案例代码不换占位符** | `E:\Project\Spider` 的案例含有本地路径、旧 Cookie 和账号信息 | 所有 Cookie、token、路径替换为 `<COOKIE>`、`<TOKEN>` 或环境变量 |
+| 7 | **同时改多处再试** | 改了 Header + URL + 参数 + 解析逻辑一起试，不知道哪个修好了问题 | 每次只改一个变量，改完验证再改下一个 |
+| 8 | **不加延时直接并发大批量请求** | 轻则被封 IP，重则对目标服务器造成压力 | 加 `time.sleep(1-3)`、限速、分页控制、增量存储 |
+| 9 | **requests 能搞定却上了 Scrapy** | 单次或少量页面用 Scrapy 项目结构太重 | 单次任务用 requests 脚本；多爬虫/管道/分布式时再升级到 Scrapy |
+| 10 | **逆向受阻就放弃改 Selenium** | 跳过调试过程意味着学不到逆向方法，下次遇到同样问题还是不会 | 按失败模式表逐级降级：先扣 JS → PyExecJS → 补环境 → 最后才 Selenium |
+
 ## Safety And Quality
 
 - Treat copied cookies, tokens, passwords, proxy credentials, and account identifiers as secrets. The bundled note copies were sanitized, but generated examples must use placeholders such as `<COOKIE>` or environment variables.
