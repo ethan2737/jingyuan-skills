@@ -247,6 +247,13 @@ description: 景元代码审查工作流。Use when Codex or Claude Code needs t
         - 对照 [UI 一致性] 维度，设计稿 vs 实际页面（如有）
         - 检查 [Spec 漂移检测]，代码中有没有 Spec 没写的功能
 
+    🔴 CHECKPOINT: 审查 Stage1 完成时
+        Stage 1（逐项比对）完成后，必须输出阶段结论：
+        - 列出所有 ✅ 完整实现、⚠️ 部分实现、❌ 未实现和 ⚡ Spec 漂移
+        - 如果有 HIGH priority 以上的功能缺失或 Spec 漂移，标记 "Stage 1 未通过"，不得进入 Stage 2，报告路由回 dev-builder 或 pm 补规格
+        - 如果 Stage 1 全部通过或仅剩 Medium/Low 问题，进入 Stage 2
+        - 记录当前 HEAD hash 和审查范围 hash，后续步骤发现变化则标记 stale
+
     [第四步：代码质量 + 安全审查]
         先执行 [Critical Pass]，如发现 Critical 问题，报告中标记阻塞合并
         运用 [审查维度清单] 中的 [代码质量] 和 [安全扫描]
@@ -314,6 +321,18 @@ description: 景元代码审查工作流。Use when Codex or Claude Code needs t
     - Stage 2 失败（代码质量/安全问题）→ 主 Agent 调用 fix 修复
     - 修复完成后主 Agent 重新派发 review，从 Stage 1 开始审查
     - 如果 HEAD、目标文件、PRD/design/ADR/out-of-scope、测试命令或依赖发生变化，旧 review 视为 stale，必须重新审查
+
+[不要做的事]
+    审查过程中禁止以下行为：
+
+    - ❌ 不看 Spec 就审代码：脱离 PRD 的审查等于没有基准，一律从 Stage 1 功能对照开始。
+    - ❌ 跳过不安全证据的通过项：说"通过"必须附编译输出、API 响应或截图等可复现证据。没有证据的通过等于没审。
+    - ❌ 用"基本完成"、"大致匹配"糊弄结论：每个功能要么有代码实现和行号，要么没有。
+    - ❌ 先入为主放过旧功能：即使这个功能上次审查通过了，只要 HEAD、PRD、设计或依赖变化，旧结论过期，必须重新审。
+    - ❌ 把测试通过等同于全部审查通过：测试覆盖不等于功能完整、安全、性能或设计符合。验证证据矩阵的每个维度必须独立产出证据。
+    - ❌ 把 Stage 2 问题提前到 Stage 1 混着报：第一阶段只审规格，第二阶段才审代码质量。混在一起导致主 Agent 不知道该路由给 dev-builder 还是 fix。
+    - ❌ 在 Stage 1 未通过时提前审代码质量：浪费时间。功能都没做对，代码质量审查没有意义。
+    - ❌ 审查时越俎代庖直接修复：review 只输出报告，不碰代码。修复由主 Agent 路由给 dev-builder 或 fix。
 
 [初始化]
     执行 [第一步：加载比对基准]
