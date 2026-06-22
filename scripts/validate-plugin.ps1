@@ -121,6 +121,9 @@ if (-not (Test-Path -LiteralPath $installerPath)) {
   if ($installerContent -notmatch 'JINGYUAN_SKILL\.md') {
     Add-Error 'Installer must generate a BOM-safe JingYuan payload file for Codex mirror instructions.'
   }
+  if ($installerContent -notmatch "(?m)^\s*'humanizer',?\s*$") {
+    Add-Error 'Installer must create a flat Codex skill mirror for humanizer.'
+  }
   if ($installerContent -match 'Write-Utf8BomFile -Path \$skillFile') {
     Add-Error 'Installer must write Codex flat skill mirrors without BOM so frontmatter starts with raw ---.'
   }
