@@ -20,8 +20,8 @@
 | 较大变更需求 delta | `docs/changes/<change-id>/spec.md` |
 | 较大变更设计约束 | `docs/changes/<change-id>/design.md` |
 | 较大变更任务清单 | `docs/changes/<change-id>/tasks.md` |
-| 代码审查报告 | `docs/review/review-rNN-<scope-or-date>.md` |
-| Bug 修复报告 | `docs/bug-fix/fix-rNN-<scope-or-date>.md` |
+| 代码审查报告 | `docs/review/review-<task-id>.md` |
+| Bug 修复报告 | `docs/bug-fix/fix-<task-id>.md` |
 | 反馈索引 | `docs/feedback/index.md` |
 | 反馈记录 | `docs/feedback/*.md` |
 | 项目术语和长期上下文 | `docs/context.md` |

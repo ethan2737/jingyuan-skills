@@ -258,12 +258,12 @@ $contentChecks = @(
   @{
     Path = $reviewSkillPath
     Label = 'review skill'
-    Patterns = @('docs/review/review-rNN-', 'review_round', 'source_fix_report')
+    Patterns = @('docs/review/review-<task-id>.md', 'Review Round', 'task_id', 'review_rounds', 'source_fix_report', 'git commit', 'commit hash')
   },
   @{
     Path = $fixSkillPath
     Label = 'fix skill'
-    Patterns = @('docs/review/', 'docs/bug-fix/fix-rNN-', 'fix_round', 'source_review_report', 'addressed_findings')
+    Patterns = @('docs/review/', 'docs/bug-fix/fix-<task-id>.md', 'Fix Round', 'task_id', 'fix_rounds', 'source_review_report', 'addressed_findings', 'git commit', 'commit hash')
   }
 )
 

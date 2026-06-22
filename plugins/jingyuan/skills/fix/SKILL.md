@@ -32,7 +32,7 @@ description: 景元 Bug 修复工作流。Use when Codex or Claude Code needs to
 
     可选（增强调试能力）：
     - 用户指定的 review 报告路径 → 优先读取
-    - docs/review/ 最新未通过报告 → 未指定 review 报告时读取最新 `status != passed` 的 `review-rNN-*.md`
+    - docs/review/ 最新未关闭报告 → 未指定 review 报告时读取最新 `status != passed/closed` 的 `review-<task-id>.md`
     - docs/PRD/prd.md → 有则可对照预期行为判断是 bug 还是 feature
     - docs/development/plan.md → 有则可定位相关 Phase 和文件
     - 设计工具 MCP（Pencil / Figma 等）→ 有则可对照设计判断 UI 是否正确；Pencil 优先读取 docs/design/ui-design.pen，Figma 按 docs/design/mockup.md 记录的文件定位信息读取
@@ -91,15 +91,18 @@ description: 景元 Bug 修复工作流。Use when Codex or Claude Code needs to
         - 最近的代码变更（git log、git diff——哪些提交可能引入了问题）
         - 相关日志（console 输出、网络请求、数据库查询）
         - 如来自 issue / review 报告，先整理为修复简报：当前行为、期望行为、复现方式、验收标准、out-of-scope、已知风险。
-        - 来自 review 报告时必须记录 `source_review_report`、`review_round`、待修 finding ID、priority、stage、route、file:line、evidence、minimal_fix。
+        - 来自 review 报告时必须记录 `source_review_report`、`review_rounds`、待修 finding ID、priority、stage、route、file:line、evidence、minimal_fix。
 
     [修复报告规则]
-        - 修复完成后必须写入 `docs/bug-fix/fix-rNN-<scope-or-date>.md`；目录不存在则创建。
-        - `fix_round` 从 `docs/bug-fix/` 中已有 `fix-rNN-*.md` 推断并递增；首轮为 `1`，文件名使用两位数 `r01`。
-        - 修复报告 frontmatter 必须包含：`type: bug-fix-report`、`workflow_id`、`fix_round`、`source_review_report`、`review_round`、`addressed_findings`、`remaining_findings`、`head_before`、`head_after`、`status`、`created`。
-        - `addressed_findings` 只能列本轮实际处理并验证的 review finding ID；未处理或验证失败的 ID 必须放入 `remaining_findings`。
+        - 每个审查任务只维护一份修复报告：`docs/bug-fix/fix-<task-id>.md`；目录不存在则创建。
+        - `task_id` 必须从 `source_review_report` 的 frontmatter 读取；没有 review 报告时从用户指定 scope 生成。
+        - 同 task_id 报告已存在且未关闭时，追加 `## Fix Round N`；报告不存在或已关闭时，新建报告。
+        - `fix_rounds` 是同一报告内累计轮次；首轮为 `1`。轮次只写在正文标题中，不写进文件名。
+        - 修复报告 frontmatter 必须包含：`type: bug-fix-report`、`workflow_id`、`task_id`、`source_review_report`、`status`、`fix_rounds`、`addressed_findings`、`remaining_findings`、`latest_head_before`、`latest_head_after`、`latest_report_commit`、`created`、`updated`。
+        - `addressed_findings` 累计列出已处理并验证的 review finding ID；未处理或验证失败的 ID 必须保留在 `remaining_findings`。
         - 报告正文必须包含：修复简报、根因、改动范围、验证命令、回归结果、未修复项、下一步。
         - 下一步必须写明：重新运行 `$jingyuan:review`，并让 review 读取本修复报告验证 `addressed_findings`。
+        - 修复完成后必须执行本地 `git commit`，commit 范围包含本轮修复代码、测试更新和 `docs/bug-fix/fix-<task-id>.md`，commit message 使用 `fix: address <task-id> review findings`。提交后把 commit hash 写回报告的 `latest_report_commit`；如果目标项目不是 git 仓库或 git 身份未配置，报告状态改为 `blocked` 并说明。
 
     [假设规则]
         - 每次列出 3-5 个可证伪假设，按可能性排序
@@ -162,6 +165,13 @@ description: 景元 Bug 修复工作流。Use when Codex or Claude Code needs to
         - 完成前必须确认没有遗留临时日志、throwaway harness、无关截图或临时代码。
         - 如果保留诊断日志是正式修复的一部分，必须说明目的、级别和安全影响。
 
+    [修复提交门禁]
+        - 写入或追加 fix 报告后，必须运行 `git status --short`。
+        - 只允许暂存本轮修复代码、测试更新、必要配置和 `docs/bug-fix/fix-<task-id>.md`；不得混入无关文件。
+        - 如果工作区存在无关改动，必须只 stage 本轮相关文件；无法区分时停止并说明，不能提交。
+        - 执行 `git commit -m "fix: address <task-id> review findings"`。
+        - commit 成功后读取 commit hash，并更新修复报告 frontmatter 的 `latest_report_commit`；如更新 hash 需要第二次提交，允许执行同名 amend 或补充提交，但最终报告必须记录真实 hash。
+
 [调试策略]
     四阶段系统性调试法，不允许跳阶段。
 
@@ -218,11 +228,11 @@ description: 景元 Bug 修复工作流。Use when Codex or Claude Code needs to
             执行 [依赖检测]
 
         第二步：收集 bug 信息
-            若用户指定 review 报告路径，先读取该报告；否则读取 `docs/review/` 中最新且 `status != passed` 的报告。
+            若用户指定 review 报告路径，先读取该报告；否则读取 `docs/review/` 中最新且 `status != passed/closed` 的报告。
             如找到 review 报告，从报告中提取待修 finding：
             - finding ID、priority、stage、route
             - file:line、evidence、minimal_fix
-            - source_review_report、review_round、workflow_id
+            - source_review_report、task_id、review_rounds、workflow_id
             - addressed/remaining 上下文（如有）
             并整理为修复简报后进入调试流程。
             如没有可用 review 报告，再从用户描述中提取：
@@ -258,29 +268,32 @@ description: 景元 Bug 修复工作流。Use when Codex or Claude Code needs to
         7. 完成声明证据：命令、exit code、关键输出、截图/结果、未验证项和原因
 
     [完成阶段]
-        先确定修复报告路径：`docs/bug-fix/fix-rNN-<scope-or-date>.md`。
+        先确定 `task_id` 和修复报告路径：`docs/bug-fix/fix-<task-id>.md`。
+        如果报告已存在且未关闭，保留旧内容并追加本轮 `## Fix Round N`；如果不存在或已关闭，创建新报告。
         报告文件必须包含如下 frontmatter：
         ```yaml
         ---
         type: bug-fix-report
         workflow_id: [沿用 source_review_report；没有则新建]
-        fix_round: [N]
-        source_review_report: [docs/review/review-rNN-*.md 或 null]
-        review_round: [N 或 null]
-        addressed_findings: [RNN-PRIORITY-XXX]
-        remaining_findings: [RNN-PRIORITY-XXX]
-        head_before: [修复前 HEAD hash 或 unknown]
-        head_after: [修复后 HEAD hash 或 unknown]
-        status: [fixed | partially-fixed | blocked]
+        task_id: [phase1 | task-auth-login | change-id | diff-short-hash]
+        source_review_report: [docs/review/review-<task-id>.md 或 null]
+        status: [open | fixed | partially-fixed | blocked | closed]
+        fix_rounds: [N]
+        addressed_findings: [R<round>-PRIORITY-XXX]
+        remaining_findings: [R<round>-PRIORITY-XXX]
+        latest_head_before: [修复前 HEAD hash 或 unknown]
+        latest_head_after: [修复后 HEAD hash 或 unknown]
+        latest_report_commit: [commit hash 或 null]
         created: YYYY-MM-DD
+        updated: YYYY-MM-DD
         ---
         ```
         向用户汇报：
         "🔧 **Bug 已修复**
 
-         **修复报告**：docs/bug-fix/fix-rNN-<scope-or-date>.md
+         **修复报告**：docs/bug-fix/fix-<task-id>.md
          **来源审查报告**：[source_review_report 或 N/A]
-         **修复轮次**：fix_round = [N]；对应审查轮次 review_round = [N]
+         **修复轮次**：fix_rounds = [N]；对应审查任务 task_id = [task_id]
          **根因**：[一句话说明根因]
          **修复**：[修改了哪些文件，做了什么改动]
          **验证**：
@@ -292,9 +305,9 @@ description: 景元 Bug 修复工作流。Use when Codex or Claude Code needs to
          - 未受影响：[列出关键旧行为]
          - 未修复项：[remaining_findings 或无]
          - 下一步：重新运行 `$jingyuan:review`，从 Stage 1 开始验证本轮修复
+         - Git commit：[latest_report_commit]
 
-         需要我 commit 吗？（commit message: fix: [问题描述]）
-         还是还有其他问题要修？"
+         已完成本地 commit；如果 commit 失败，本次状态必须标记为 BLOCKED 并说明原因。"
 
 ## 失败模式与 Fallback
 
@@ -323,4 +336,3 @@ description: 景元 Bug 修复工作流。Use when Codex or Claude Code needs to
 
 [初始化]
     执行 [启动阶段]
-

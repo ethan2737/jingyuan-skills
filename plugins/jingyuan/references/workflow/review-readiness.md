@@ -17,7 +17,7 @@ Review 不是最后的礼节，而是完成门禁。
 1. **Spec compliance review**：是否按计划做完，是否少做、多做或偏离范围。
 2. **Code quality review**：只在规格通过后检查架构、测试、安全、性能、类型和维护性。
 
-Stage 1 未通过不得进入 Stage 2。任一阶段发现问题，review 必须写入 `docs/review/review-rNN-*.md`，修复流程必须读取该报告；修复后必须写入 `docs/bug-fix/fix-rNN-*.md`，再从 Stage 1 重新 review。
+Stage 1 未通过不得进入 Stage 2。任一阶段发现问题，review 必须写入或追加 `docs/review/review-<task-id>.md` 并完成本地 commit，修复流程必须读取该报告；修复后必须写入或追加 `docs/bug-fix/fix-<task-id>.md` 并完成本地 commit，再从 Stage 1 重新 review。
 
 ## Stale Review
 
@@ -36,6 +36,6 @@ Stage 1 未通过不得进入 Stage 2。任一阶段发现问题，review 必须
 - Plan completion audit：`DONE`、`PARTIAL`、`NOT DONE`、`CHANGED`。
 - Test status：通过、失败、未运行及原因。
 - Review status：Stage 1、Stage 2、是否 stale。
-- Review rounds / Fix rounds：审查轮次、修复轮次、最新 `docs/review/` 和 `docs/bug-fix/` 报告路径。
+- Review rounds / Fix rounds：审查轮次、修复轮次、最新 `docs/review/` 和 `docs/bug-fix/` 报告路径、Latest report commit。
 - Scope drift：有无计划外变更。
 - Risk：剩余风险和下一步。
