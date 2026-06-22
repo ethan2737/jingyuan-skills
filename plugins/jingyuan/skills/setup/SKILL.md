@@ -1,6 +1,6 @@
 ---
 name: setup
-description: 景元项目初始化工作流。Use when Codex or Claude Code needs to initialize JingYuan project conventions, create docs/PRD, docs/design, docs/development, docs/feedback, docs/context.md, docs/adr, docs/out-of-scope, and .jingyuan/config.json before using other jingyuan:* skills.
+description: 景元项目初始化工作流。Use when Codex or Claude Code needs to initialize JingYuan project conventions, create docs/PRD, docs/design, docs/development, docs/review, docs/bug-fix, docs/feedback, docs/context.md, docs/adr, docs/out-of-scope, and .jingyuan/config.json before using other jingyuan:* skills.
 ---
 
 # JingYuan Setup
@@ -48,6 +48,8 @@ description: 景元项目初始化工作流。Use when Codex or Claude Code need
     ├── design/
     ├── development/
     ├── changes/
+    ├── review/
+    ├── bug-fix/
     ├── feedback/
     │   └── index.md
     ├── context.md
@@ -71,6 +73,8 @@ description: 景元项目初始化工作流。Use when Codex or Claude Code need
         - docs/design
         - docs/development
         - docs/changes
+        - docs/review
+        - docs/bug-fix
         - docs/feedback
         - docs/adr
         - docs/out-of-scope
@@ -101,6 +105,8 @@ description: 景元项目初始化工作流。Use when Codex or Claude Code need
         "mockup": "docs/design/mockup.md",
         "developmentPlan": "docs/development/plan.md",
         "changesDir": "docs/changes",
+        "reviewDir": "docs/review",
+        "bugFixDir": "docs/bug-fix",
         "feedbackIndex": "docs/feedback/index.md",
         "context": "docs/context.md",
         "adrDir": "docs/adr",

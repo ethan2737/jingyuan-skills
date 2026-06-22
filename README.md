@@ -47,6 +47,8 @@ Codex 补全列表中显示为 `jingyuan:<skill>`，输入 `$jingyuan` 可看到
 <target-project>/docs/changes/<change-id>/spec.md
 <target-project>/docs/changes/<change-id>/design.md
 <target-project>/docs/changes/<change-id>/tasks.md
+<target-project>/docs/review/
+<target-project>/docs/bug-fix/
 <target-project>/docs/research/<research-id>.md
 <target-project>/docs/feedback/index.md
 <target-project>/docs/feedback/

@@ -16,21 +16,23 @@ description: 景元 Bug 修复工作流。Use when Codex or Claude Code needs to
 
 [任务]
     通过系统性调试流程定位 bug 根因并修复。
-    一次只改一个问题，每次修改前评估影响范围，修复后回归验证。
+    一次只改一个问题，每次修改前评估影响范围，修复后回归验证，并将修复报告写入 docs/bug-fix/。
 
 [调用上下文]
     fix 可能在两个场景被调用：
     1. 用户直接报告 bug → 主 Agent 调用 fix → 修复后建议用户 $jingyuan:review 验证
-    2. review Stage 2 失败（代码质量问题）→ 主 Agent 调用 fix，传入 review 报告中的失败项 → 修复后主 Agent 重新派发 review 从 Stage 1 开始审查
+    2. review Stage 2 失败（代码质量问题）→ 主 Agent 调用 fix，传入 docs/review/ 审查报告路径 → fix 读取报告中的失败项 → 修复后主 Agent 重新派发 review 从 Stage 1 开始审查
 
 [依赖检测]
     Skill 启动时第一步自动执行：
 
     必需：
     - 项目代码已存在 → 无代码则提示先调用 $jingyuan:dev-builder
-    - bug 描述 → 用户提供症状，或 review 报告中的失败项描述
+    - bug 描述 → 用户提供症状，或 docs/review/ 审查报告中的失败项描述
 
     可选（增强调试能力）：
+    - 用户指定的 review 报告路径 → 优先读取
+    - docs/review/ 最新未通过报告 → 未指定 review 报告时读取最新 `status != passed` 的 `review-rNN-*.md`
     - docs/PRD/prd.md → 有则可对照预期行为判断是 bug 还是 feature
     - docs/development/plan.md → 有则可定位相关 Phase 和文件
     - 设计工具 MCP（Pencil / Figma 等）→ 有则可对照设计判断 UI 是否正确；Pencil 优先读取 docs/design/ui-design.pen，Figma 按 docs/design/mockup.md 记录的文件定位信息读取
@@ -89,6 +91,15 @@ description: 景元 Bug 修复工作流。Use when Codex or Claude Code needs to
         - 最近的代码变更（git log、git diff——哪些提交可能引入了问题）
         - 相关日志（console 输出、网络请求、数据库查询）
         - 如来自 issue / review 报告，先整理为修复简报：当前行为、期望行为、复现方式、验收标准、out-of-scope、已知风险。
+        - 来自 review 报告时必须记录 `source_review_report`、`review_round`、待修 finding ID、priority、stage、route、file:line、evidence、minimal_fix。
+
+    [修复报告规则]
+        - 修复完成后必须写入 `docs/bug-fix/fix-rNN-<scope-or-date>.md`；目录不存在则创建。
+        - `fix_round` 从 `docs/bug-fix/` 中已有 `fix-rNN-*.md` 推断并递增；首轮为 `1`，文件名使用两位数 `r01`。
+        - 修复报告 frontmatter 必须包含：`type: bug-fix-report`、`workflow_id`、`fix_round`、`source_review_report`、`review_round`、`addressed_findings`、`remaining_findings`、`head_before`、`head_after`、`status`、`created`。
+        - `addressed_findings` 只能列本轮实际处理并验证的 review finding ID；未处理或验证失败的 ID 必须放入 `remaining_findings`。
+        - 报告正文必须包含：修复简报、根因、改动范围、验证命令、回归结果、未修复项、下一步。
+        - 下一步必须写明：重新运行 `$jingyuan:review`，并让 review 读取本修复报告验证 `addressed_findings`。
 
     [假设规则]
         - 每次列出 3-5 个可证伪假设，按可能性排序
@@ -207,11 +218,19 @@ description: 景元 Bug 修复工作流。Use when Codex or Claude Code needs to
             执行 [依赖检测]
 
         第二步：收集 bug 信息
-            从用户描述中提取：
+            若用户指定 review 报告路径，先读取该报告；否则读取 `docs/review/` 中最新且 `status != passed` 的报告。
+            如找到 review 报告，从报告中提取待修 finding：
+            - finding ID、priority、stage、route
+            - file:line、evidence、minimal_fix
+            - source_review_report、review_round、workflow_id
+            - addressed/remaining 上下文（如有）
+            并整理为修复简报后进入调试流程。
+            如没有可用 review 报告，再从用户描述中提取：
             - 错误信息 / 异常行为
             - 复现步骤
             - 期望行为 vs 实际行为
             如信息不足 → 追问用户补充
+            来自 review 报告时，一次只修一个 finding，或同一根因下的一组 finding；多个独立问题必须拆成多轮修复。
 
         第三步：加载上下文
             如有 docs/PRD/prd.md → 读取相关功能的预期行为
@@ -239,9 +258,29 @@ description: 景元 Bug 修复工作流。Use when Codex or Claude Code needs to
         7. 完成声明证据：命令、exit code、关键输出、截图/结果、未验证项和原因
 
     [完成阶段]
+        先确定修复报告路径：`docs/bug-fix/fix-rNN-<scope-or-date>.md`。
+        报告文件必须包含如下 frontmatter：
+        ```yaml
+        ---
+        type: bug-fix-report
+        workflow_id: [沿用 source_review_report；没有则新建]
+        fix_round: [N]
+        source_review_report: [docs/review/review-rNN-*.md 或 null]
+        review_round: [N 或 null]
+        addressed_findings: [RNN-PRIORITY-XXX]
+        remaining_findings: [RNN-PRIORITY-XXX]
+        head_before: [修复前 HEAD hash 或 unknown]
+        head_after: [修复后 HEAD hash 或 unknown]
+        status: [fixed | partially-fixed | blocked]
+        created: YYYY-MM-DD
+        ---
+        ```
         向用户汇报：
         "🔧 **Bug 已修复**
 
+         **修复报告**：docs/bug-fix/fix-rNN-<scope-or-date>.md
+         **来源审查报告**：[source_review_report 或 N/A]
+         **修复轮次**：fix_round = [N]；对应审查轮次 review_round = [N]
          **根因**：[一句话说明根因]
          **修复**：[修改了哪些文件，做了什么改动]
          **验证**：
@@ -251,6 +290,8 @@ description: 景元 Bug 修复工作流。Use when Codex or Claude Code needs to
          - 功能：[复现步骤] 不再触发 bug
          - 回归：[相关功能列表] 验证正常
          - 未受影响：[列出关键旧行为]
+         - 未修复项：[remaining_findings 或无]
+         - 下一步：重新运行 `$jingyuan:review`，从 Stage 1 开始验证本轮修复
 
          需要我 commit 吗？（commit message: fix: [问题描述]）
          还是还有其他问题要修？"
@@ -282,5 +323,4 @@ description: 景元 Bug 修复工作流。Use when Codex or Claude Code needs to
 
 [初始化]
     执行 [启动阶段]
-
 

@@ -234,6 +234,52 @@ if (-not (Test-Path -LiteralPath $readmePath)) {
   }
 }
 
+$documentConventionsPath = Join-Path $pluginRoot 'references\workflow\document-conventions.md'
+$setupSkillPath = Join-Path $pluginRoot 'skills\setup\SKILL.md'
+$reviewSkillPath = Join-Path $pluginRoot 'skills\review\SKILL.md'
+$fixSkillPath = Join-Path $pluginRoot 'skills\fix\SKILL.md'
+
+$contentChecks = @(
+  @{
+    Path = $documentConventionsPath
+    Label = 'document-conventions.md'
+    Patterns = @('docs/review', 'docs/bug-fix')
+  },
+  @{
+    Path = $readmePath
+    Label = 'README.md'
+    Patterns = @('docs/review', 'docs/bug-fix')
+  },
+  @{
+    Path = $setupSkillPath
+    Label = 'setup skill'
+    Patterns = @('docs/review', 'docs/bug-fix', 'reviewDir', 'bugFixDir')
+  },
+  @{
+    Path = $reviewSkillPath
+    Label = 'review skill'
+    Patterns = @('docs/review/review-rNN-', 'review_round', 'source_fix_report')
+  },
+  @{
+    Path = $fixSkillPath
+    Label = 'fix skill'
+    Patterns = @('docs/review/', 'docs/bug-fix/fix-rNN-', 'fix_round', 'source_review_report', 'addressed_findings')
+  }
+)
+
+foreach ($check in $contentChecks) {
+  if (-not (Test-Path -LiteralPath $check.Path)) {
+    Add-Error "Missing file for report-loop validation: $($check.Path)"
+    continue
+  }
+  $checkedContent = Get-Content -Raw -Encoding UTF8 -LiteralPath $check.Path
+  foreach ($pattern in $check.Patterns) {
+    if ($checkedContent -notmatch [regex]::Escape($pattern)) {
+      Add-Error "$($check.Label) must mention $pattern for review/fix report loop."
+    }
+  }
+}
+
 if (Test-Path -LiteralPath $validationReportPath) {
   Test-Utf8JsonStartsClean -Path $validationReportPath -Label 'validation-report.json'
   $validationReport = Get-Content -Raw -Encoding UTF8 -LiteralPath $validationReportPath | ConvertFrom-Json

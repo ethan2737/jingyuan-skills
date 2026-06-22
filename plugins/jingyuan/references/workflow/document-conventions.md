@@ -2,7 +2,7 @@
 
 ## 统一输出目录
 
-所有 JingYuan 技能产出的产品、设计、开发计划、变更、反馈、进化和发布说明文档，必须写入目标项目的 `docs/` 目录。项目运行配置写入 `.jingyuan/`。
+所有 JingYuan 技能产出的产品、设计、开发计划、变更、审查、修复、反馈、进化和发布说明文档，必须写入目标项目的 `docs/` 目录。项目运行配置写入 `.jingyuan/`。
 
 代码项目本体仍按项目技术栈放在项目代码目录，不放入 `docs/`。
 
@@ -20,6 +20,8 @@
 | 较大变更需求 delta | `docs/changes/<change-id>/spec.md` |
 | 较大变更设计约束 | `docs/changes/<change-id>/design.md` |
 | 较大变更任务清单 | `docs/changes/<change-id>/tasks.md` |
+| 代码审查报告 | `docs/review/review-rNN-<scope-or-date>.md` |
+| Bug 修复报告 | `docs/bug-fix/fix-rNN-<scope-or-date>.md` |
 | 反馈索引 | `docs/feedback/index.md` |
 | 反馈记录 | `docs/feedback/*.md` |
 | 项目术语和长期上下文 | `docs/context.md` |

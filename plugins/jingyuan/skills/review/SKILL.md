@@ -16,7 +16,7 @@ description: 景元代码审查工作流。Use when Codex or Claude Code needs t
 
 [任务]
     对照 docs/PRD/prd.md 和设计稿，审查代码实现的完整度和质量。
-    输出结构化审查报告。修复由主 Agent 拿到报告后使用 dev-builder 或 fix skill 执行。
+    输出结构化审查报告，并写入 docs/review/。修复由主 Agent 拿到报告后使用 dev-builder 或 fix skill 执行。
 
 [依赖检测]
     Skill 启动时第一步自动执行：
@@ -31,6 +31,7 @@ description: 景元代码审查工作流。Use when Codex or Claude Code needs t
     - 设计工具 MCP（Pencil / Figma 等）→ 有则可提取设计数值与代码对比；Pencil 优先读取 docs/design/ui-design.pen，Figma 按 docs/design/mockup.md 记录的文件定位信息读取
     - Playwright plugin → 有则可自动化 UI 交互测试
     - git → 有则可用 git diff 追溯变更范围
+    - docs/bug-fix/ 最新修复报告 → 存在时必须读取 source_review_report、fix_round、addressed_findings 和 remaining_findings，并在本轮审查中验证已修复项是否真正消除。
 
 [第一性原则]
     **不信任声明**：不接受"已实现"、"大致匹配"这种模糊结论。每个功能要么有代码实现（附文件路径和行号），要么没有。
@@ -159,6 +160,17 @@ description: 景元代码审查工作流。Use when Codex or Claude Code needs t
 [审查策略]
     审查过程中的方法论。
 
+    **报告文件协议**
+    - 每次审查结束都必须写入 `docs/review/review-rNN-<scope-or-date>.md`；目录不存在则创建。
+    - `review_round` 从 `docs/review/` 中已有 `review-rNN-*.md` 推断并递增；首轮为 `1`，文件名使用两位数 `r01`。
+    - `fix_round_seen` 从本轮读取到的最新 `docs/bug-fix/fix-rNN-*.md` 推断；没有修复报告则为 `0`。
+    - 报告 frontmatter 必须包含：`type: review-report`、`workflow_id`、`review_round`、`fix_round_seen`、`status`、`head`、`scope`、`source_fix_report`、`created`。
+    - `status` 只能使用 `passed`、`needs-fix`、`blocked`、`stale`。Stage 1 未通过也必须落盘，通常为 `needs-fix`；无法继续审查时为 `blocked`；全部通过才为 `passed`。
+    - 每个问题必须有稳定 ID，格式为 `RNN-PRIORITY-XXX`，例如 `R01-HIGH-001`；同一轮内不得复用 ID。
+    - 每个问题必须写明：`priority`、`stage`、`route`、`file:line`、`evidence`、`minimal_fix`。无法定位行号时写明原因。
+    - 如果上一轮存在修复报告，本轮必须逐项验证 `addressed_findings`，报告中单独列出 `Verified fixes`，不能只重新扫代码。
+    - 报告正文和最终回复都必须给出报告路径，作为后续 `$jingyuan:fix` 的输入。
+
     **逐项对照法**
     Spec 功能列表的每一条，在代码中找到对应实现：
     1. 读 Spec 条目
@@ -227,6 +239,7 @@ description: 景元代码审查工作流。Use when Codex or Claude Code needs t
         如有 docs/design/design.md → 读取审查范围内涉及的视觉方向和页面备注
         如有 docs/context.md、docs/adr/、docs/out-of-scope/ → 读取术语、架构决策和明确不做事项
         如有变更包 / delta spec / proposal / tasks → 读取变更意图、行为契约和执行清单
+        如有 docs/bug-fix/ 最新修复报告 → 读取并记录 `source_fix_report`、`fix_round_seen`、`addressed_findings`，本轮审查必须验证这些 finding。
         如有设计工具 MCP → 通过设计工具找到审查范围对应的设计页面，读取这些页面及其组件的精确数值，作为 UI 一致性比对的基准
         确定审查范围：
         - 全量审查（$jingyuan:review）→ Spec 所有功能
@@ -263,6 +276,21 @@ description: 景元代码审查工作流。Use when Codex or Claude Code needs t
         编译验证：tsc --noEmit
 
     [第五步：输出审查报告]
+        先确定报告路径：`docs/review/review-rNN-<scope-or-date>.md`。
+        报告文件必须包含如下 frontmatter：
+        ```yaml
+        ---
+        type: review-report
+        workflow_id: [稳定工作流 ID；同一审查/修复循环复用]
+        review_round: [N]
+        fix_round_seen: [N 或 0]
+        status: [passed | needs-fix | blocked | stale]
+        head: [当前 HEAD hash 或 unknown]
+        scope: [full | phase | task | diff | 用户指定范围]
+        source_fix_report: [docs/bug-fix/fix-rNN-*.md 或 null]
+        created: YYYY-MM-DD
+        ---
+        ```
         格式：
         "📋 **代码审查报告**
 
@@ -281,6 +309,18 @@ description: 景元代码审查工作流。Use when Codex or Claude Code needs t
 
          **⚡ Spec 漂移（X 项）**
          - [描述]：代码位置 — Spec 中无对应需求
+
+         **🧩 Findings（X 项）**
+         - R01-HIGH-001
+           priority: High
+           stage: Stage 1
+           route: fix
+           file: src/example.ts:12
+           evidence: [Spec / diff / 命令输出 / 截图]
+           minimal_fix: [最小修复路径]
+
+         **🔁 Verified fixes（X 项）**
+         - [来自 source_fix_report 的 finding ID]：[已验证通过/仍失败] — [证据]
 
          **🔴 安全问题（X 项）**
          - [描述]：[文件:行号]
@@ -317,10 +357,10 @@ description: 景元代码审查工作流。Use when Codex or Claude Code needs t
          - 原因：[一句话说明阻塞项或剩余风险]"
 
     注意：本 Skill 范围到输出报告为止。修复由主 Agent 拿到报告后路由执行：
-    - Stage 1 失败（功能缺失/不符合 Spec）→ 主 Agent 调用 dev-builder 补实现
-    - Stage 2 失败（代码质量/安全问题）→ 主 Agent 调用 fix 修复
+    - Stage 1 失败（功能缺失/不符合 Spec）→ 主 Agent 把 `docs/review/review-rNN-*.md` 路径交给 dev-builder 或 fix 补实现
+    - Stage 2 失败（代码质量/安全问题）→ 主 Agent 把 `docs/review/review-rNN-*.md` 路径交给 fix 修复
     - 修复完成后主 Agent 重新派发 review，从 Stage 1 开始审查
-    - 如果 HEAD、目标文件、PRD/design/ADR/out-of-scope、测试命令或依赖发生变化，旧 review 视为 stale，必须重新审查
+    - 如果 HEAD、目标文件、PRD/design/ADR/out-of-scope、测试命令、依赖或 source_fix_report 发生变化，旧 review 视为 stale，必须重新审查
 
 [失败模式与 Fallback]
 
@@ -349,5 +389,4 @@ description: 景元代码审查工作流。Use when Codex or Claude Code needs t
 
 [初始化]
     执行 [第一步：加载比对基准]
-
 
