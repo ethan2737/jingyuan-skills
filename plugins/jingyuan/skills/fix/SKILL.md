@@ -13,6 +13,10 @@ description: 景元 Bug 修复工作流。Use when Codex or Claude Code needs to
 
 `$jingyuan:fix` 通过可重复反馈循环定位根因并修复 bug 或性能问题。启动时读取 `document-conventions.md`、`dependency-policy.md`、`project-memory.md`、`diagnostics-loop.md`、`testing-policy.md`、`verification-gates.md` 和 `windows-powershell.md`；PRD、context、ADR 是软依赖，缺失不阻塞修复。
 
+## 多 Agent 状态协议
+
+读取 `<JINGYUAN_PLUGIN_ROOT>/references/workflow/agent-collaboration-state.md`。配置版本 2 且状态已启用时，以 `fix` 角色执行 `StartSession → Status → Claim`。本地提交前调用 `CheckCommit`；修复、报告和 commit 完成后为 review 创建单接收方任务，只引用修复报告、commit 和 addressed finding ID，再调用 `Complete`。状态不存在时保持现有 task-scoped 修复流程。
+
 
 [任务]
     通过系统性调试流程定位 bug 根因并修复。

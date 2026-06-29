@@ -31,6 +31,10 @@ description: 景元开发计划工作流。Use when Codex or Claude Code needs t
 - `<JINGYUAN_PLUGIN_ROOT>/references/workflow/review-readiness.md`
 - `<JINGYUAN_PLUGIN_ROOT>/references/workflow/windows-powershell.md`
 
+## 多 Agent 状态协议
+
+读取 `<JINGYUAN_PLUGIN_ROOT>/references/workflow/agent-collaboration-state.md`。配置版本 2 且状态已启用时，以 `dev-plan` 角色执行 `StartSession → Status → Claim`，只加载任务指向的 PRD/design/change 章节。完成计划后创建单接收方 dev-builder 任务，写清 plan/change task、写入范围、依赖和验收标准，再调用 `Complete`。状态不存在时保持原流程并提示运行 `$jingyuan:setup`。
+
 ## 输出目标
 
 默认输出总览计划：

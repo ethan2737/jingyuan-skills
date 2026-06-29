@@ -1,6 +1,6 @@
 ---
 name: setup
-description: 景元项目初始化工作流。Use when Codex or Claude Code needs to initialize JingYuan project conventions, create docs/PRD, docs/design, docs/development, docs/review, docs/bug-fix, docs/feedback, docs/context.md, docs/adr, docs/out-of-scope, and .jingyuan/config.json before using other jingyuan:* skills.
+description: 景元项目初始化工作流。Use when Codex or Claude Code needs to initialize JingYuan project conventions, long-term docs, versioned config, and local multi-agent collaboration state before using other jingyuan:* skills.
 ---
 
 # JingYuan Setup
@@ -14,7 +14,7 @@ description: 景元项目初始化工作流。Use when Codex or Claude Code need
 `$jingyuan:setup` 为目标项目创建 JingYuan 工作流骨架。它只初始化目录、模板和配置，不编造业务 PRD、设计决策或代码项目。
 
 [任务]
-    初始化 `docs/`、长期记忆目录和 `.jingyuan/config.json`，让后续 `$jingyuan:pm`、`$jingyuan:design`、`$jingyuan:dev-plan`、`$jingyuan:dev-builder`、`$jingyuan:review`、`$jingyuan:fix` 使用同一套路径和项目记忆。
+    初始化 `docs/`、长期记忆目录、`.jingyuan/config.json` 和本机协作状态，让后续 `$jingyuan:pm`、`$jingyuan:design`、`$jingyuan:dev-plan`、`$jingyuan:dev-builder`、`$jingyuan:review`、`$jingyuan:fix`、`$jingyuan:handoff` 使用同一套路径和状态协议。
 
 [依赖检测]
     必需：
@@ -22,13 +22,15 @@ description: 景元项目初始化工作流。Use when Codex or Claude Code need
     - `<JINGYUAN_PLUGIN_ROOT>/references/workflow/document-conventions.md`。
     - `<JINGYUAN_PLUGIN_ROOT>/references/workflow/project-memory.md`。
     - `<JINGYUAN_PLUGIN_ROOT>/references/workflow/dependency-policy.md`。
+    - `<JINGYUAN_PLUGIN_ROOT>/references/workflow/agent-collaboration-state.md`。
+    - `<JINGYUAN_PLUGIN_ROOT>/scripts/jingyuan-state.ps1`。
     - `<JINGYUAN_PLUGIN_ROOT>/assets/templates/context-template.md`。
     - `<JINGYUAN_PLUGIN_ROOT>/assets/templates/feedback-index-template.md`。
 
     可选：
     - AGENTS.md 或 CLAUDE.md → 存在时读取已有项目约定。
     - docs/ → 存在时保留现有内容，只补缺失目录和骨架文件。
-    - .jingyuan/config.json → 存在时只补缺失字段，不覆盖用户配置。
+    - .jingyuan/config.json → 版本 2 时只补缺失骨架；版本 1 必须先展示迁移影响并取得明确确认，再使用状态工具的 `-Migrate`。
     - `<JINGYUAN_PLUGIN_ROOT>/assets/templates/adr-template.md` → 作为 ADR 示例模板引用，不自动创建空 ADR。
     - `<JINGYUAN_PLUGIN_ROOT>/assets/templates/out-of-scope-template.md` → 作为明确不做事项模板引用，不自动创建空记录。
 
@@ -56,7 +58,16 @@ description: 景元项目初始化工作流。Use when Codex or Claude Code need
     ├── adr/
     └── out-of-scope/
     .jingyuan/
-    └── config.json
+    ├── config.json
+    └── state/
+        ├── records/
+        ├── sessions/
+        ├── locks/
+        ├── current.md
+        ├── inbox.md
+        ├── events.md
+        ├── locks.md
+        └── handoff.md
     ```
 
 [工作流程]
@@ -86,8 +97,10 @@ description: 景元项目初始化工作流。Use when Codex or Claude Code need
           → 如 context-template.md 缺失，提示用户手动创建或跳过该文件。
         - 如 `docs/feedback/index.md` 不存在，使用 `feedback-index-template.md` 创建。
           → 如 feedback-index-template.md 缺失，提示用户手动创建或跳过该文件。
-        - 如 `.jingyuan/config.json` 不存在，创建默认配置。
-          → 如写入权限不足，提示用户手动创建或跳过该文件。
+        - 调用 `<JINGYUAN_PLUGIN_ROOT>/scripts/jingyuan-state.ps1 -Action Init -ProjectRoot <目标项目>` 创建版本 2 配置、JSON 状态目录和只读 Markdown 视图。
+        - 已有版本 1 配置时先展示迁移影响并确认，再追加 `-Migrate`；未确认时保持原配置和无状态工作流。
+        - 状态工具负责把 `/.jingyuan/state/` 写入 `.git/info/exclude`，不修改项目 `.gitignore`。
+          → 如写入权限不足或状态工具返回非零退出码，停止并输出 JSON 错误，不手工补写状态文件。
         - `docs/adr/` 只创建目录；`adr-template.md` 仅在用户确认具体架构决策时用于创建 ADR。
         - `docs/out-of-scope/` 只创建目录；`out-of-scope-template.md` 仅在用户确认长期不做事项时使用。
 
@@ -97,7 +110,7 @@ description: 景元项目初始化工作流。Use when Codex or Claude Code need
 [.jingyuan/config.json 默认内容]
     ```json
     {
-      "version": 1,
+      "version": 2,
       "docs": {
         "prd": "docs/PRD/prd.md",
         "prdChangelog": "docs/PRD/changelog.md",
@@ -112,13 +125,23 @@ description: 景元项目初始化工作流。Use when Codex or Claude Code need
         "adrDir": "docs/adr",
         "outOfScopeDir": "docs/out-of-scope"
       },
+      "state": {
+        "enabled": true,
+        "mode": "local",
+        "root": ".jingyuan/state",
+        "leaseMinutes": 120,
+        "eventViewLimit": 20,
+        "handoffViewLimit": 3,
+        "archiveDays": 30
+      },
       "contextMode": "single",
       "createdBy": "jingyuan:setup"
     }
     ```
 
 [不要做的事]
-    - 不要覆盖已有的配置文件（config.json 已存在时只补缺失字段）。
+    - 不要静默升级已有配置；版本 1 → 2 必须显式确认并通过状态工具迁移。
+    - 不要直接编辑 `.jingyuan/state/` 中的 JSON 或 Markdown 视图。
     - 不要创建空文件（目录类只创建目录，不塞空文件）。
     - 不要跳过 [第一步：盘点] 直接写目录。
     - 不要编造业务 PRD、设计决策或架构记录。

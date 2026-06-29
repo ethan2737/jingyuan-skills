@@ -17,7 +17,10 @@ JingYuan 把产品、设计、开发、审查、修复、发布、反馈和进�
 10. `$jingyuan:feedback`：把用户修正、范围边界、流程缺口和质量信号写入 `docs/feedback/`。
 11. `$jingyuan:evolution`：扫描反馈，提出规则毕业、技能优化、新技能和 out-of-scope 沉淀建议。
 12. `$jingyuan:sync`：在产品、设计、代码或计划变化后同步文档和项目知识。
-13. `$jingyuan:skill-builder`：按新版结构创建或维护 JingYuan 技能。
+13. `$jingyuan:handoff`：在阶段完成、暂停、阻塞、异常恢复或上下文耗尽时收口本机协作状态。
+14. `$jingyuan:skill-builder`：按新版结构创建或维护 JingYuan 技能。
+
+配置版本 2 且 `state.enabled=true` 时，角色 Skill 在正式流程前后遵循 `agent-collaboration-state.md`：先按角色领取单接收方任务，再读取正式文档并修改独占写入范围，最后写验证证据和下游任务。状态 Markdown 是只读视图，不替代 `docs/` 正式产物。
 
 ## 全局门禁
 

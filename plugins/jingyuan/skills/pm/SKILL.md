@@ -18,6 +18,10 @@ description: 景元产品经理需求澄清闸门。Use when Codex or Claude Cod
 - PM 细则按需读取本目录 `references/`：`clarifying-questions.md`、`context-rules.md`、`prd-readiness-gate.md`、`out-of-scope-rules.md`、`reverse-engineering.md`、`pm-frameworks.md`。
 - `<JINGYUAN_PLUGIN_ROOT>` 解析规则：Claude Code 使用 `${CLAUDE_PLUGIN_ROOT}`；Codex 优先使用 `$env:CODEX_HOME\plugins\jingyuan`，否则使用 `$HOME\.codex\plugins\jingyuan`。
 
+## 多 Agent 状态协议
+
+读取 `<JINGYUAN_PLUGIN_ROOT>/references/workflow/agent-collaboration-state.md`。配置版本 2 且状态已启用时，以 `pm` 角色执行 `StartSession → Status → Claim`；只有领取成功后才修改任务写入范围。完成 PRD 变更后，为 design、dev-plan 等每个下游角色分别创建任务并共享 `change_id`，再调用 `Complete`。状态不存在时保持原流程并提示运行 `$jingyuan:setup`；禁止直接编辑状态 JSON 或 Markdown 视图。
+
 # 核心任务
 
 本 Skill 是 JingYuan 工作流的源头闸门。目标不是尽快写 PRD，而是先把问题聊清楚，避免后续 design、dev-plan、dev-builder 把错误需求放大。

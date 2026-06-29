@@ -13,6 +13,10 @@ description: 景元代码审查工作流。Use when Codex or Claude Code needs t
 
 `$jingyuan:review` 对照 PRD、设计、开发计划、长期记忆和代码进行两阶段审查。启动时读取 `document-conventions.md`、`project-memory.md`、`dependency-policy.md`、`review-readiness.md`、`testing-policy.md`、`verification-gates.md` 和 `windows-powershell.md`；审查必须尊重 `docs/context.md`、`docs/adr/`、`docs/out-of-scope/`。
 
+## 多 Agent 状态协议
+
+读取 `<JINGYUAN_PLUGIN_ROOT>/references/workflow/agent-collaboration-state.md`。配置版本 2 且状态已启用时，以 `review` 角色执行 `StartSession → Status → Claim`。提交 review 报告前调用 `CheckCommit`；发现 finding 时为 fix 创建单接收方任务，只引用 `docs/review/review-<task-id>.md`、finding ID 和验证要求，不复制报告正文，然后调用 `Complete`。状态不存在时保持现有 task-scoped 报告流程。
+
 
 [任务]
     对照 docs/PRD/prd.md 和设计稿，审查代码实现的完整度和质量。

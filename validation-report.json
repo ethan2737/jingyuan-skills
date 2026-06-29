@@ -1,5 +1,5 @@
 {
-    "generatedAt": "2026-04-29T19:20:00+08:00",
+    "generatedAt": "2026-06-30T06:16:39+08:00",
     "status": "passed",
     "pluginMode": "complete-plugin-payload-with-flat-codex-skill-discovery-and-claude-code-plugin",
     "targetPlatform": "Windows, Codex, Claude Code",
@@ -34,7 +34,7 @@
         "pluginRootVariable": "${CLAUDE_PLUGIN_ROOT}",
         "entrySkillEncoding": "UTF-8 without BOM for Claude Code frontmatter parsing"
     },
-    "skillCount": 16,
+    "skillCount": 17,
     "skills": [
         "setup",
         "pm",
@@ -51,6 +51,7 @@
         "humanizer",
         "evolution",
         "sync",
+        "handoff",
         "skill-builder"
     ],
     "architectureUpgrade": {
@@ -70,7 +71,8 @@
         "feedbackEvolutionDependencies": "feedback and evolution now declare startup dependencies, missing feedback behavior, and out-of-scope routing explicitly.",
         "documentConventionsChanges": "document-conventions.md now includes docs/changes/<change-id>/ proposal/spec/design/tasks artifacts and old-path read-only compatibility.",
         "adrTemplateUse": "setup now references adr-template.md as a decision-record template without creating empty ADR files.",
-        "validationConsistency": "validate-plugin.ps1 checks README skill mentions and validation-report skill count/list consistency."
+        "validationConsistency": "validate-plugin.ps1 checks README skill mentions and validation-report skill count/list consistency.",
+        "agentCollaborationState": "Version 2 config enables local JSON task records, generated Markdown views, atomic resource locks, leases, handoff recovery, and scoped commit checks."
     },
     "windowsPowerShellAdaptation": {
         "reference": "plugins/jingyuan/references/workflow/windows-powershell.md",
@@ -86,14 +88,15 @@
         "script": "scripts/validate-plugin.ps1",
         "result": "passed",
         "installWhatIf": "passed; existing local installs warn in WhatIf but still show the planned Codex operations",
-        "tempInstall": "passed: plugins/jingyuan, plugins/cache/local/jingyuan/local, and skills/jy-setup plus all existing jy-* mirrors exist",
+        "tempInstall": "passed: plugin payload, local cache, all 17 jy-* mirrors, jy-handoff payload, state runtime, and task schema exist",
+        "stateProtocolTests": "passed: 135 assertions cover migration, concurrency, lock rollback, path safety, stale sources, commit scope, recovery, generated views, dependency cycles, and the PM-to-review/fix workflow",
         "bomCheck": "passed: plugin SKILL.md files and Codex jy-* mirrors are UTF-8 without BOM so frontmatter starts with raw ---",
         "marketplaceEncoding": "passed: marketplace.json is UTF-8 JSON without BOM",
         "configEnablement": "passed: installer removes jingyuan@local enablement to avoid plugin-only completion row",
         "cacheInstall": "passed: installer syncs plugins/cache/local/jingyuan/local as a plugin payload cache",
         "claudeMarketplaceValidate": "passed: claude plugin validate .",
         "claudePluginValidate": "passed: claude plugin validate .\\plugins\\jingyuan",
-        "claudePluginDirLoad": "passed: claude --plugin-dir .\\plugins\\jingyuan loaded 16 skills from plugin jingyuan in debug output",
+        "claudePluginDirLoad": "not rerun: expected skill inventory is now 17 and is validated by scripts/validate-plugin.ps1",
         "promptInput": "not run: verified flat mirror frontmatter names directly in temporary install"
     },
     "notes": [

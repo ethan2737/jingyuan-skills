@@ -36,6 +36,10 @@ description: 景元开发实现工作流。Use when Codex or Claude Code needs t
 - `<JINGYUAN_PLUGIN_ROOT>/references/workflow/sub-agent-adapter.md`
 - `<JINGYUAN_PLUGIN_ROOT>/references/workflow/windows-powershell.md`
 
+## 多 Agent 状态协议
+
+读取 `<JINGYUAN_PLUGIN_ROOT>/references/workflow/agent-collaboration-state.md`。配置版本 2 且状态已启用时，以 `dev-builder` 角色执行 `StartSession → Status → Claim`；依赖、来源哈希、未知工作区修改或文件锁不通过时不得编码。提交前必须调用 `CheckCommit`，完成验证后创建 review 任务并调用 `Complete`。状态不存在时保持原流程并提示运行 `$jingyuan:setup`。
+
 ## 模式选择
 
 - **初始化模式**：无项目代码 + 有 `docs/development/plan.md`。搭建项目骨架后立刻完成第一个可验证 tracer 行为。

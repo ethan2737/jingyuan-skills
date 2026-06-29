@@ -206,6 +206,7 @@ $expectedSkills = @(
   'humanizer',
   'evolution',
   'sync',
+  'handoff',
   'skill-builder'
 )
 
@@ -238,6 +239,10 @@ $documentConventionsPath = Join-Path $pluginRoot 'references\workflow\document-c
 $setupSkillPath = Join-Path $pluginRoot 'skills\setup\SKILL.md'
 $reviewSkillPath = Join-Path $pluginRoot 'skills\review\SKILL.md'
 $fixSkillPath = Join-Path $pluginRoot 'skills\fix\SKILL.md'
+$handoffSkillPath = Join-Path $pluginRoot 'skills\handoff\SKILL.md'
+$stateReferencePath = Join-Path $pluginRoot 'references\workflow\agent-collaboration-state.md'
+$stateScriptPath = Join-Path $pluginRoot 'scripts\jingyuan-state.ps1'
+$stateSchemaPath = Join-Path $pluginRoot 'assets\schemas\state-task.schema.json'
 
 $contentChecks = @(
   @{
@@ -264,8 +269,30 @@ $contentChecks = @(
     Path = $fixSkillPath
     Label = 'fix skill'
     Patterns = @('docs/review/', 'docs/bug-fix/fix-<task-id>.md', 'Fix Round', 'task_id', 'fix_rounds', 'source_review_report', 'addressed_findings', 'git commit', 'commit hash')
+  },
+  @{
+    Path = $handoffSkillPath
+    Label = 'handoff skill'
+    Patterns = @('jingyuan-state.ps1', 'CheckCommit', 'Recover', 'RebuildViews', '.jingyuan/state/')
+  },
+  @{
+    Path = $stateReferencePath
+    Label = 'agent collaboration state reference'
+    Patterns = @('StartSession', 'CreateTask', 'Claim', 'Complete', 'Doctor', 'AdoptDirty')
   }
 )
+
+foreach ($requiredStateFile in @($stateScriptPath, $stateSchemaPath)) {
+  if (-not (Test-Path -LiteralPath $requiredStateFile -PathType Leaf)) {
+    Add-Error "Missing collaboration state file: $requiredStateFile"
+  }
+}
+if (Test-Path -LiteralPath $stateSchemaPath -PathType Leaf) {
+  Test-Utf8JsonStartsClean -Path $stateSchemaPath -Label 'state-task.schema.json'
+  try { [void](Get-Content -Raw -Encoding UTF8 -LiteralPath $stateSchemaPath | ConvertFrom-Json) } catch {
+    Add-Error "state-task.schema.json is invalid JSON: $($_.Exception.Message)"
+  }
+}
 
 foreach ($check in $contentChecks) {
   if (-not (Test-Path -LiteralPath $check.Path)) {

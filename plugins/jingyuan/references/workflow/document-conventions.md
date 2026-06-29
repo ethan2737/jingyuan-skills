@@ -28,6 +28,10 @@
 | 架构决策记录 | `docs/adr/*.md` |
 | 明确不做事项 | `docs/out-of-scope/*.md` |
 | JingYuan 配置 | `.jingyuan/config.json` |
+| 本机协作机器状态 | `.jingyuan/state/records/*.json` |
+| 本机协作可读视图 | `.jingyuan/state/current.md`、`inbox.md`、`events.md`、`locks.md`、`handoff.md` |
+
+`.jingyuan/state/` 默认通过 `.git/info/exclude` 留在本机。JSON 记录是唯一机器事实；状态 Markdown 由 `jingyuan-state.ps1` 生成，禁止手工编辑。正式需求、设计、计划、审查、修复和长期决策仍写入 `docs/`。
 
 ## 旧版兼容
 

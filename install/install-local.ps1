@@ -262,6 +262,7 @@ $jingyuanSkillNames = @(
   'humanizer',
   'evolution',
   'sync',
+  'handoff',
   'skill-builder'
 )
 $mirrorSkillDirs = @($jingyuanSkillNames | ForEach-Object { "jy-$_" })

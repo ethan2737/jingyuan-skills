@@ -30,6 +30,7 @@ Codex 补全列表中显示为 `jingyuan:<skill>`，输入 `$jingyuan` 可看到
 - `$jingyuan:humanizer` / `/jingyuan:humanizer`：去除文本中的 AI 生成痕迹，检测 24 种 AI 写作模式并人性化改写
 - `$jingyuan:evolution` / `/jingyuan:evolution`：扫描反馈并提出进化建议
 - `$jingyuan:sync` / `/jingyuan:sync`：同步代码、PRD、设计、设计稿、开发计划和交接文档
+- `$jingyuan:handoff` / `/jingyuan:handoff`：完成、阻塞、释放或恢复本机多 Agent 协作任务
 - `$jingyuan:skill-builder` / `/jingyuan:skill-builder`：创建或维护 JingYuan skill
 
 ## 文档收口
@@ -56,9 +57,17 @@ Codex 补全列表中显示为 `jingyuan:<skill>`，输入 `$jingyuan` 可看到
 <target-project>/docs/adr/
 <target-project>/docs/out-of-scope/
 <target-project>/.jingyuan/config.json
+<target-project>/.jingyuan/state/records/
+<target-project>/.jingyuan/state/current.md
+<target-project>/.jingyuan/state/inbox.md
+<target-project>/.jingyuan/state/events.md
+<target-project>/.jingyuan/state/locks.md
+<target-project>/.jingyuan/state/handoff.md
 ```
 
 其中 `docs/context.md`、`docs/adr/`、`docs/out-of-scope/` 是项目长期记忆，用来固定术语、记录关键取舍和保存明确不做的范围。`docs/changes/<change-id>/` 用于较大开发变更的 proposal/spec/design/tasks 生命周期，`docs/development/plan.md` 继续作为开发总览。
+
+`.jingyuan/state/records/` 保存本机短期协作 JSON，五个 Markdown 文件由状态工具生成，仅供阅读。`$jingyuan:setup` 默认把 `/.jingyuan/state/` 写入仓库本地 `.git/info/exclude`，不会污染提交；状态迁移和交接统一通过 `$jingyuan:handoff` 或各角色 Skill 调用状态工具完成。
 
 ## 安装到本机 Codex
 
@@ -105,6 +114,7 @@ Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
 
 ```powershell
 .\scripts\validate-plugin.ps1
+.\scripts\test-jingyuan-state.ps1
 .\install\install-local.ps1 -WhatIf
 .\install\install-local.ps1 -HomeRoot "$env:TEMP\jingyuan-codex-test" -Force
 .\install\install-claude-local.ps1 -WhatIf

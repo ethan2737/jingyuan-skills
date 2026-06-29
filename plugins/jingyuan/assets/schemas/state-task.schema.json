@@ -1,0 +1,76 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://jingyuan.local/schemas/state-task.schema.json",
+  "title": "JingYuan Collaboration Task",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "schema_version",
+    "task_id",
+    "title",
+    "from_role",
+    "to_role",
+    "status",
+    "priority",
+    "read_refs",
+    "write_scopes",
+    "depends_on",
+    "acceptance_criteria",
+    "created_at",
+    "updated_at"
+  ],
+  "properties": {
+    "schema_version": { "const": 1 },
+    "task_id": { "type": "string", "pattern": "^task-[0-9]{8}T[0-9]{6}Z-[0-9a-f]{8}$" },
+    "change_id": { "type": ["string", "null"], "maxLength": 120 },
+    "title": { "type": "string", "minLength": 1, "maxLength": 120 },
+    "from_role": { "$ref": "#/$defs/role" },
+    "to_role": { "$ref": "#/$defs/role" },
+    "status": {
+      "enum": ["pending", "in_progress", "done", "blocked", "needs_context", "needs_decision", "superseded", "cancelled"]
+    },
+    "priority": { "enum": ["High", "Medium", "Low"] },
+    "read_refs": {
+      "type": "array",
+      "maxItems": 20,
+      "items": { "$ref": "#/$defs/read_ref" }
+    },
+    "write_scopes": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 20,
+      "uniqueItems": true,
+      "items": { "$ref": "#/$defs/relative_path" }
+    },
+    "depends_on": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": { "type": "string", "pattern": "^task-" }
+    },
+    "acceptance_criteria": { "type": "array", "items": { "type": "string" } },
+    "owner_session": { "type": ["string", "null"] },
+    "lease_expires_at": { "type": ["string", "null"], "format": "date-time" },
+    "base_head": { "type": ["string", "null"] },
+    "concerns": { "type": "array", "items": { "type": "string" } },
+    "completion": { "type": "object" },
+    "created_at": { "type": "string", "format": "date-time" },
+    "updated_at": { "type": "string", "format": "date-time" }
+  },
+  "$defs": {
+    "role": { "type": "string", "pattern": "^[a-z][a-z0-9-]{1,31}$" },
+    "relative_path": {
+      "type": "string",
+      "minLength": 1,
+      "not": { "pattern": "(^[A-Za-z]:)|(^[/\\\\])|((^|[/\\\\])\\.\\.([/\\\\]|$))" }
+    },
+    "read_ref": {
+      "type": "object",
+      "required": ["path", "sha256"],
+      "properties": {
+        "path": { "$ref": "#/$defs/relative_path" },
+        "anchor": { "type": ["string", "null"] },
+        "sha256": { "type": "string", "pattern": "^[A-F0-9]{64}$" }
+      }
+    }
+  }
+}

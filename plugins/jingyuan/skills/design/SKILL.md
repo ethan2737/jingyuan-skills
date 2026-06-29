@@ -13,6 +13,10 @@ description: 景元设计规范工作流。Use when Codex or Claude Code needs t
 
 `$jingyuan:design` 基于 PRD、长期记忆和必要的设计取向访谈，输出可供 `$jingyuan:mockup` 和 `$jingyuan:dev-builder` 使用的 `docs/design/design.md`。
 
+## 多 Agent 状态协议
+
+读取 `<JINGYUAN_PLUGIN_ROOT>/references/workflow/agent-collaboration-state.md`。配置版本 2 且状态已启用时，以 `design` 角色执行 `StartSession → Status → Claim`，按任务 `read_refs` 读取 PRD，只修改 `write_scopes`。完成后需要开发评估时创建单接收方 dev-plan 任务，再调用 `Complete`；暂停或缺少决策时调用 `Release`/`Block`。状态不存在时保持原流程并提示运行 `$jingyuan:setup`。
+
 [任务]
     把产品需求转成设计规范：视觉方向、信息架构、页面密度、设计系统、交互原则、状态规则、可用性护栏和实现注意事项。
 
