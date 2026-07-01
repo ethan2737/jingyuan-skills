@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:github.com)",
+      "Bash(grep -nE \"\\(在 Claude Code|Claude Code skill|Claude Code 用户|Cursor only|Codex 中|^\\\\[!\\\\[Claude Code|~/\\\\.claude/skills/[a-z]|/plugin install\\\\b\\)\" SKILL.md README.md)",
+      "Bash(echo \"---exit: $?\")",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)",
+      "Bash(git checkout *)",
+      "Bash(git merge --no-ff auto-optimize/20260529-1215 -m ' *)",
+      "Bash(git commit *)"
+    ]
+  }
+}
