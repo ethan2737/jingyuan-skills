@@ -1,13 +1,15 @@
 [CmdletBinding()]
 param(
   [Parameter(Mandatory = $true)]
-  [ValidateSet('Init', 'StartSession', 'CreateTask', 'Claim', 'Renew', 'Complete', 'Block', 'Release', 'Status', 'Doctor', 'Recover', 'CheckCommit', 'RebuildViews')]
+  [ValidateSet('Init', 'Migrate', 'StartSession', 'CreateTask', 'Claim', 'Renew', 'Complete', 'Block', 'Release', 'Status', 'Doctor', 'Recover', 'CheckCommit', 'RebuildViews')]
   [string]$Action,
 
   [Parameter(Mandatory = $true)]
   [string]$ProjectRoot,
 
   [switch]$Migrate,
+  [switch]$Preview,
+  [switch]$ConfirmDestructiveMigration,
   [string]$Role,
   [string]$SessionId,
   [string]$TaskId,
@@ -102,17 +104,15 @@ function Write-AtomicJson {
 
 function Get-DefaultConfig {
   [ordered]@{
-    version = 2
+    version = 3
     docs = [ordered]@{
       prd = 'docs/PRD/prd.md'
-      prdChangelog = 'docs/PRD/changelog.md'
       design = 'docs/design/design.md'
-      mockup = 'docs/design/mockup.md'
       developmentPlan = 'docs/development/plan.md'
       changesDir = 'docs/changes'
       reviewDir = 'docs/review'
       bugFixDir = 'docs/bug-fix'
-      feedbackIndex = 'docs/feedback/index.md'
+      feedbackDir = 'docs/feedback'
       context = 'docs/context.md'
       adrDir = 'docs/adr'
       outOfScopeDir = 'docs/out-of-scope'
@@ -131,11 +131,21 @@ function Get-DefaultConfig {
   }
 }
 
-function Add-StateConfig {
+function Complete-Version3Config {
   param([Parameter(Mandatory = $true)][object]$Config)
 
   $default = Get-DefaultConfig
-  $Config.version = 2
+  $nextDocs = [ordered]@{}
+  foreach ($key in $default.docs.Keys) {
+    $property = if ($null -ne $Config.docs) { $Config.docs.PSObject.Properties[$key] } else { $null }
+    $nextDocs[$key] = if ($null -ne $property -and -not [string]::IsNullOrWhiteSpace([string]$property.Value)) { $property.Value } else { $default.docs[$key] }
+  }
+  $Config.version = 3
+  if ($null -eq $Config.PSObject.Properties['docs']) {
+    $Config | Add-Member -NotePropertyName docs -NotePropertyValue ([pscustomobject]$nextDocs)
+  } else {
+    $Config.docs = [pscustomobject]$nextDocs
+  }
   if ($null -eq $Config.PSObject.Properties['state']) {
     $Config | Add-Member -NotePropertyName state -NotePropertyValue ([pscustomobject]$default.state)
   } else {
@@ -166,8 +176,8 @@ function Get-Config {
   } catch {
     Write-JsonResult -Ok $false -Code 'INVALID_CONFIG' -Message 'Existing .jingyuan/config.json is not valid JSON.' -ExitCode 2
   }
-  if ([int]$config.version -ne 2 -or $null -eq $config.state -or $config.state.enabled -ne $true) {
-    Write-JsonResult -Ok $false -Code 'STATE_NOT_ENABLED' -Message 'Collaboration state requires config version 2 with state.enabled=true.' -ExitCode 2
+  if ([int]$config.version -ne 3 -or $null -eq $config.state -or $config.state.enabled -ne $true) {
+    Write-JsonResult -Ok $false -Code 'STATE_NOT_ENABLED' -Message 'Collaboration state requires config version 3 with state.enabled=true.' -ExitCode 2
   }
   return $config
 }
@@ -1213,6 +1223,172 @@ function Set-LocalStateExcluded {
   }
 }
 
+function Get-ConfiguredDocPath {
+  param(
+    [Parameter(Mandatory = $true)][object]$Config,
+    [Parameter(Mandatory = $true)][string]$Key,
+    [Parameter(Mandatory = $true)][string]$Fallback
+  )
+  if ($null -ne $Config.docs) {
+    $property = $Config.docs.PSObject.Properties[$Key]
+    if ($null -ne $property -and -not [string]::IsNullOrWhiteSpace([string]$property.Value)) {
+      return ([string]$property.Value).Replace('/', '\')
+    }
+  }
+  return $Fallback.Replace('/', '\')
+}
+
+function Get-NormalizedText {
+  param([string]$Value)
+  if ($null -eq $Value) { return '' }
+  return (($Value -replace "`r`n", "`n") -replace "`r", "`n").Trim()
+}
+
+function Invoke-DocumentMigration {
+  $configPath = Join-Path $script:ProjectPath '.jingyuan\config.json'
+  if (-not (Test-Path -LiteralPath $configPath -PathType Leaf)) {
+    Write-JsonResult -Ok $false -Code 'STATE_NOT_INITIALIZED' -Message 'Run Init before migrating configuration.' -ExitCode 5
+  }
+  try {
+    $config = Get-Content -LiteralPath $configPath -Raw -Encoding UTF8 | ConvertFrom-Json
+  } catch {
+    Write-JsonResult -Ok $false -Code 'INVALID_CONFIG' -Message 'Existing .jingyuan/config.json is not valid JSON.' -ExitCode 2
+  }
+  $version = [int]$config.version
+  if ($version -eq 3) {
+    Write-JsonResult -Ok $true -Code 'ALREADY_CURRENT' -Message 'Configuration already uses version 3.' -Data ([ordered]@{ config_version = 3 })
+  }
+  if ($version -lt 1 -or $version -gt 3) {
+    Write-JsonResult -Ok $false -Code 'UNSUPPORTED_CONFIG' -Message "Config version $version cannot be migrated by this tool." -ExitCode 2
+  }
+
+  $insideGit = Invoke-GitCapture -GitArguments @('rev-parse', '--is-inside-work-tree')
+  if ($insideGit.ExitCode -ne 0 -or [string]$insideGit.Output[0] -ne 'true') {
+    Write-JsonResult -Ok $false -Code 'MIGRATION_REQUIRES_GIT' -Message 'Version 3 document migration requires a Git repository.' -ExitCode 2
+  }
+  $gitStatus = Invoke-GitCapture -GitArguments @('status', '--porcelain')
+  if ($gitStatus.ExitCode -ne 0) {
+    Write-JsonResult -Ok $false -Code 'GIT_ERROR' -Message 'Unable to inspect working tree before migration.' -ExitCode 1
+  }
+  if (@($gitStatus.Output | Where-Object { -not [string]::IsNullOrWhiteSpace([string]$_) }).Count -gt 0) {
+    Write-JsonResult -Ok $false -Code 'MIGRATION_REQUIRES_CLEAN_GIT' -Message 'Commit or stash all changes before version 3 migration.' -Data $gitStatus.Output -ExitCode 3
+  }
+
+  $writeFiles = New-Object System.Collections.Generic.List[object]
+  $deleteFiles = New-Object System.Collections.Generic.List[string]
+  $deleteDirs = New-Object System.Collections.Generic.List[string]
+  $operations = New-Object System.Collections.Generic.List[object]
+
+  $mockupPath = Join-Path $script:ProjectPath (Get-ConfiguredDocPath -Config $config -Key 'mockup' -Fallback 'docs\design\mockup.md')
+  $designPath = Join-Path $script:ProjectPath (Get-ConfiguredDocPath -Config $config -Key 'design' -Fallback 'docs\design\design.md')
+  if (Test-Path -LiteralPath $mockupPath -PathType Leaf) {
+    $designContent = if (Test-Path -LiteralPath $designPath -PathType Leaf) { Get-Content -LiteralPath $designPath -Raw -Encoding UTF8 } else { "# Design`r`n" }
+    if ($designContent -match '(?m)^## Design Artifacts\s*$') {
+      Write-JsonResult -Ok $false -Code 'MIGRATION_CONFLICT' -Message 'design.md already contains a Design Artifacts section.' -Data $designPath -ExitCode 3
+    }
+    $mockupContent = Get-Content -LiteralPath $mockupPath -Raw -Encoding UTF8
+    $mergedDesign = $designContent.TrimEnd() + "`r`n`r`n## Design Artifacts`r`n`r`n" + $mockupContent.Trim() + "`r`n"
+    $writeFiles.Add([pscustomobject]@{ Path = $designPath; Content = $mergedDesign; Encoding = $script:Utf8Bom })
+    $deleteFiles.Add($mockupPath)
+    $operations.Add([ordered]@{ action = 'merge-delete'; source = $mockupPath; target = $designPath })
+  }
+
+  $changesPath = Join-Path $script:ProjectPath (Get-ConfiguredDocPath -Config $config -Key 'changesDir' -Fallback 'docs\changes')
+  if (Test-Path -LiteralPath $changesPath -PathType Container) {
+    foreach ($changeDirectory in @(Get-ChildItem -LiteralPath $changesPath -Directory -Force)) {
+      $allowedNames = @('proposal.md', 'spec.md', 'design.md', 'tasks.md')
+      $files = @(Get-ChildItem -LiteralPath $changeDirectory.FullName -File -Force)
+      $extraFiles = @($files | Where-Object { $_.Name -notin $allowedNames })
+      $childDirs = @(Get-ChildItem -LiteralPath $changeDirectory.FullName -Directory -Force)
+      if ($extraFiles.Count -gt 0 -or $childDirs.Count -gt 0) {
+        Write-JsonResult -Ok $false -Code 'MIGRATION_CONFLICT' -Message "Legacy change directory contains unsupported content: $($changeDirectory.FullName)" -ExitCode 3
+      }
+      if ($files.Count -eq 0) { continue }
+      $targetPath = Join-Path $changesPath ($changeDirectory.Name + '.md')
+      if (Test-Path -LiteralPath $targetPath) {
+        Write-JsonResult -Ok $false -Code 'MIGRATION_CONFLICT' -Message "Change migration target already exists: $targetPath" -ExitCode 3
+      }
+      $sections = New-Object System.Collections.Generic.List[string]
+      $sectionMap = [ordered]@{ 'proposal.md' = 'Intent'; 'spec.md' = 'Behavior Contract'; 'design.md' = 'Design Constraints'; 'tasks.md' = 'Tasks' }
+      foreach ($sourceName in $sectionMap.Keys) {
+        $sourcePath = Join-Path $changeDirectory.FullName $sourceName
+        $body = if (Test-Path -LiteralPath $sourcePath -PathType Leaf) { (Get-Content -LiteralPath $sourcePath -Raw -Encoding UTF8).Trim() } else { '(not provided)' }
+        $sections.Add("## $($sectionMap[$sourceName])`r`n`r`n$body")
+      }
+      $changeContent = "# Change: $($changeDirectory.Name)`r`n`r`n" + ($sections -join "`r`n`r`n") + "`r`n"
+      $writeFiles.Add([pscustomobject]@{ Path = $targetPath; Content = $changeContent; Encoding = $script:Utf8Bom })
+      foreach ($file in $files) { $deleteFiles.Add($file.FullName) }
+      $deleteDirs.Add($changeDirectory.FullName)
+      $operations.Add([ordered]@{ action = 'merge-directory'; source = $changeDirectory.FullName; target = $targetPath })
+    }
+  }
+
+  $feedbackIndexPath = Join-Path $script:ProjectPath (Get-ConfiguredDocPath -Config $config -Key 'feedbackIndex' -Fallback 'docs\feedback\index.md')
+  if (Test-Path -LiteralPath $feedbackIndexPath -PathType Leaf) {
+    $indexContent = Get-Content -LiteralPath $feedbackIndexPath -Raw -Encoding UTF8
+    foreach ($match in [regex]::Matches($indexContent, '\(([^)]+\.md)\)')) {
+      $linkedPath = [IO.Path]::GetFullPath((Join-Path (Split-Path -Parent $feedbackIndexPath) $match.Groups[1].Value))
+      if (-not (Test-Path -LiteralPath $linkedPath -PathType Leaf)) {
+        Write-JsonResult -Ok $false -Code 'MIGRATION_CONFLICT' -Message "Feedback index entry has no topic file: $($match.Groups[1].Value)" -ExitCode 3
+      }
+    }
+    $deleteFiles.Add($feedbackIndexPath)
+    $operations.Add([ordered]@{ action = 'delete-index'; source = $feedbackIndexPath })
+  }
+
+  $changelogPath = Join-Path $script:ProjectPath (Get-ConfiguredDocPath -Config $config -Key 'prdChangelog' -Fallback 'docs\PRD\changelog.md')
+  if (Test-Path -LiteralPath $changelogPath -PathType Leaf) {
+    $deleteFiles.Add($changelogPath)
+    $operations.Add([ordered]@{ action = 'delete-git-backed-log'; source = $changelogPath })
+  }
+
+  $contextPath = Join-Path $script:ProjectPath (Get-ConfiguredDocPath -Config $config -Key 'context' -Fallback 'docs\context.md')
+  $contextTemplatePath = Join-Path (Split-Path -Parent $PSScriptRoot) 'assets\templates\context-template.md'
+  if ((Test-Path -LiteralPath $contextPath -PathType Leaf) -and (Test-Path -LiteralPath $contextTemplatePath -PathType Leaf)) {
+    $contextContent = Get-Content -LiteralPath $contextPath -Raw -Encoding UTF8
+    $templateContent = Get-Content -LiteralPath $contextTemplatePath -Raw -Encoding UTF8
+    if ((Get-NormalizedText $contextContent) -eq (Get-NormalizedText $templateContent)) {
+      $deleteFiles.Add($contextPath)
+      $operations.Add([ordered]@{ action = 'delete-empty-template'; source = $contextPath })
+    }
+  }
+
+  $nextConfig = Complete-Version3Config -Config $config
+  $operations.Add([ordered]@{ action = 'update-config'; source_version = $version; target_version = 3 })
+  if ($Preview) {
+    Write-JsonResult -Ok $true -Code 'MIGRATION_PREVIEW' -Message 'Version 3 migration preview completed without changes.' -Data ([ordered]@{ operations = $operations.ToArray() })
+  }
+  if (-not $ConfirmDestructiveMigration) {
+    Write-JsonResult -Ok $false -Code 'MIGRATION_CONFIRMATION_REQUIRED' -Message 'Re-run with -ConfirmDestructiveMigration after reviewing -Preview.' -Data ([ordered]@{ operations = $operations.ToArray() }) -ExitCode 2
+  }
+
+  $snapshotPaths = New-Object System.Collections.Generic.List[string]
+  foreach ($item in $writeFiles) { if ($snapshotPaths -notcontains $item.Path) { $snapshotPaths.Add($item.Path) } }
+  foreach ($path in $deleteFiles) { if ($snapshotPaths -notcontains $path) { $snapshotPaths.Add($path) } }
+  if ($snapshotPaths -notcontains $configPath) { $snapshotPaths.Add($configPath) }
+  $snapshots = @($snapshotPaths | ForEach-Object {
+    [pscustomobject]@{ Path = $_; Existed = (Test-Path -LiteralPath $_ -PathType Leaf); Bytes = if (Test-Path -LiteralPath $_ -PathType Leaf) { [IO.File]::ReadAllBytes($_) } else { $null } }
+  })
+  try {
+    foreach ($item in $writeFiles) { Write-AtomicText -Path $item.Path -Content $item.Content -Encoding $item.Encoding }
+    foreach ($path in $deleteFiles) { if (Test-Path -LiteralPath $path -PathType Leaf) { Remove-Item -LiteralPath $path -Force } }
+    foreach ($path in $deleteDirs) { if (Test-Path -LiteralPath $path -PathType Container) { Remove-Item -LiteralPath $path -Force } }
+    Write-AtomicJson -Path $configPath -Value $nextConfig
+  } catch {
+    foreach ($snapshot in $snapshots) {
+      if ($snapshot.Existed) {
+        $parent = Split-Path -Parent $snapshot.Path
+        if (-not (Test-Path -LiteralPath $parent -PathType Container)) { New-Item -ItemType Directory -Path $parent -Force | Out-Null }
+        [IO.File]::WriteAllBytes($snapshot.Path, $snapshot.Bytes)
+      } elseif (Test-Path -LiteralPath $snapshot.Path -PathType Leaf) {
+        Remove-Item -LiteralPath $snapshot.Path -Force
+      }
+    }
+    throw
+  }
+  Write-JsonResult -Ok $true -Code 'MIGRATED' -Message 'Configuration and documents migrated to version 3.' -Data ([ordered]@{ operations = $operations.ToArray(); config_version = 3 })
+}
+
 function Initialize-State {
   $configDirectory = Join-Path $script:ProjectPath '.jingyuan'
   $configPath = Join-Path $configDirectory 'config.json'
@@ -1226,16 +1402,13 @@ function Initialize-State {
     } catch {
       Write-JsonResult -Ok $false -Code 'INVALID_CONFIG' -Message 'Existing .jingyuan/config.json is not valid JSON.' -ExitCode 2
     }
-    if ([int]$config.version -lt 2) {
-      if (-not $Migrate) {
-        Write-JsonResult -Ok $false -Code 'MIGRATION_REQUIRED' -Message 'Config version 1 requires explicit -Migrate confirmation.' -ExitCode 2
-      }
-      $config = Add-StateConfig -Config $config
-      Write-AtomicJson -Path $configPath -Value $config
-    } elseif ([int]$config.version -gt 2) {
+    if ([int]$config.version -lt 3) {
+      $message = if ($Migrate) { 'Init -Migrate is deprecated. Use -Action Migrate -Preview, then -Action Migrate -ConfirmDestructiveMigration.' } else { 'Config version requires explicit version 3 migration.' }
+      Write-JsonResult -Ok $false -Code 'MIGRATION_REQUIRED' -Message $message -ExitCode 2
+    } elseif ([int]$config.version -gt 3) {
       Write-JsonResult -Ok $false -Code 'UNSUPPORTED_CONFIG' -Message "Config version $($config.version) is newer than this tool supports." -ExitCode 2
     } else {
-      $config = Add-StateConfig -Config $config
+      $config = Complete-Version3Config -Config $config
       Write-AtomicJson -Path $configPath -Value $config
     }
   } else {
@@ -1258,7 +1431,7 @@ function Initialize-State {
   Write-JsonResult -Ok $true -Code 'INITIALIZED' -Message 'JingYuan local collaboration state is ready.' -Data ([ordered]@{
     project_root = $script:ProjectPath
     state_root = $script:StatePath
-    config_version = 2
+    config_version = 3
   })
 }
 
@@ -1270,11 +1443,12 @@ try {
   $script:StatePath = Join-Path $script:ProjectPath '.jingyuan\state'
 
   $mutex = $null
-  $mutatingActions = @('Init', 'StartSession', 'CreateTask', 'Claim', 'Renew', 'Complete', 'Block', 'Release', 'Recover', 'RebuildViews')
+  $mutatingActions = @('Init', 'Migrate', 'StartSession', 'CreateTask', 'Claim', 'Renew', 'Complete', 'Block', 'Release', 'Recover', 'RebuildViews')
   try {
     if ($Action -in $mutatingActions) { $mutex = Enter-StateMutex }
     switch ($Action) {
       'Init' { Initialize-State }
+      'Migrate' { Invoke-DocumentMigration }
       'StartSession' { Start-StateSession }
       'CreateTask' { New-StateTask }
       'Claim' { Claim-StateTask }
