@@ -239,6 +239,8 @@ $documentConventionsPath = Join-Path $pluginRoot 'references\workflow\document-c
 $setupSkillPath = Join-Path $pluginRoot 'skills\setup\SKILL.md'
 $reviewSkillPath = Join-Path $pluginRoot 'skills\review\SKILL.md'
 $fixSkillPath = Join-Path $pluginRoot 'skills\fix\SKILL.md'
+$devBuilderSkillPath = Join-Path $pluginRoot 'skills\dev-builder\SKILL.md'
+$reviewReadinessPath = Join-Path $pluginRoot 'references\workflow\review-readiness.md'
 $handoffSkillPath = Join-Path $pluginRoot 'skills\handoff\SKILL.md'
 $stateReferencePath = Join-Path $pluginRoot 'references\workflow\agent-collaboration-state.md'
 $stateScriptPath = Join-Path $pluginRoot 'scripts\jingyuan-state.ps1'
@@ -263,12 +265,22 @@ $contentChecks = @(
   @{
     Path = $reviewSkillPath
     Label = 'review skill'
-    Patterns = @('docs/review/review-<task-id>.md', 'Review Round', 'task_id', 'review_rounds', 'source_fix_report', 'git commit', 'commit hash')
+    Patterns = @('docs/review/review-<task-id>.md', 'current_stage', 'active_findings', 'next_role', 'next_action', 'Closure Ledger', 'Round Summary', 'SNAPSHOT_REWRITE_NO_FULL_ROUND_APPEND', 'task_id', 'review_rounds', 'source_fix_report', 'git commit', 'commit hash')
   },
   @{
     Path = $fixSkillPath
     Label = 'fix skill'
-    Patterns = @('docs/review/', 'docs/bug-fix/fix-<task-id>.md', 'Fix Round', 'task_id', 'fix_rounds', 'source_review_report', 'addressed_findings', 'git commit', 'commit hash')
+    Patterns = @('docs/review/', 'docs/bug-fix/fix-<task-id>.md', 'pending_verification_findings', 'remaining_findings', 'Closure Ledger', 'SNAPSHOT_REWRITE_NO_FULL_ROUND_APPEND', 'task_id', 'fix_rounds', 'source_review_report', 'git commit', 'commit hash')
+  },
+  @{
+    Path = $devBuilderSkillPath
+    Label = 'dev-builder skill'
+    Patterns = @('Active Findings', 'Current Verification', 'route: dev-builder', 'Closure Ledger')
+  },
+  @{
+    Path = $reviewReadinessPath
+    Label = 'review-readiness.md'
+    Patterns = @('current_stage', 'pending_verification_findings', 'Closure Ledger', 'Git')
   },
   @{
     Path = $handoffSkillPath
@@ -278,7 +290,7 @@ $contentChecks = @(
   @{
     Path = $stateReferencePath
     Label = 'agent collaboration state reference'
-    Patterns = @('StartSession', 'CreateTask', 'Claim', 'Complete', 'Doctor', 'AdoptDirty')
+    Patterns = @('StartSession', 'CreateTask', 'Claim', 'Complete', 'Doctor', 'AdoptDirty', 'active finding', 'pending verification finding')
   }
 )
 
@@ -303,6 +315,16 @@ foreach ($check in $contentChecks) {
   foreach ($pattern in $check.Patterns) {
     if ($checkedContent -notmatch [regex]::Escape($pattern)) {
       Add-Error "$($check.Label) must mention $pattern for review/fix report loop."
+    }
+  }
+}
+
+$appendOnlyMarkers = @('## Review Round N', '## Fix Round N')
+foreach ($reportSkillPath in @($reviewSkillPath, $fixSkillPath)) {
+  $reportSkillContent = Get-Content -Raw -Encoding UTF8 -LiteralPath $reportSkillPath
+  foreach ($marker in $appendOnlyMarkers) {
+    if ($reportSkillContent.Contains($marker)) {
+      Add-Error "Snapshot report skill must not contain append-only marker ${marker}: $reportSkillPath"
     }
   }
 }

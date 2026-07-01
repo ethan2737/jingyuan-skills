@@ -15,7 +15,7 @@ description: 景元 Bug 修复工作流。Use when Codex or Claude Code needs to
 
 ## 多 Agent 状态协议
 
-读取 `<JINGYUAN_PLUGIN_ROOT>/references/workflow/agent-collaboration-state.md`。配置版本 2 且状态已启用时，以 `fix` 角色执行 `StartSession → Status → Claim`。本地提交前调用 `CheckCommit`；修复、报告和 commit 完成后为 review 创建单接收方任务，只引用修复报告、commit 和 addressed finding ID，再调用 `Complete`。状态不存在时保持现有 task-scoped 修复流程。
+读取 `<JINGYUAN_PLUGIN_ROOT>/references/workflow/agent-collaboration-state.md`。配置版本 2 且状态已启用时，以 `fix` 角色执行 `StartSession → Status → Claim`。本地提交前调用 `CheckCommit`；修复、报告和 commit 完成后为 review 创建单接收方任务，只引用修复报告、commit 和 pending verification finding ID，再调用 `Complete`。状态不存在时保持现有 task-scoped 修复流程。
 
 
 [任务]
@@ -100,12 +100,13 @@ description: 景元 Bug 修复工作流。Use when Codex or Claude Code needs to
     [修复报告规则]
         - 每个审查任务只维护一份修复报告：`docs/bug-fix/fix-<task-id>.md`；目录不存在则创建。
         - `task_id` 必须从 `source_review_report` 的 frontmatter 读取；没有 review 报告时从用户指定 scope 生成。
-        - 同 task_id 报告已存在且未关闭时，追加 `## Fix Round N`；报告不存在或已关闭时，新建报告。
-        - `fix_rounds` 是同一报告内累计轮次；首轮为 `1`。轮次只写在正文标题中，不写进文件名。
-        - 修复报告 frontmatter 必须包含：`type: bug-fix-report`、`workflow_id`、`task_id`、`source_review_report`、`status`、`fix_rounds`、`addressed_findings`、`remaining_findings`、`latest_head_before`、`latest_head_after`、`latest_report_commit`、`created`、`updated`。
-        - `addressed_findings` 累计列出已处理并验证的 review finding ID；未处理或验证失败的 ID 必须保留在 `remaining_findings`。
-        - 报告正文必须包含：修复简报、根因、改动范围、验证命令、回归结果、未修复项、下一步。
-        - 下一步必须写明：重新运行 `$jingyuan:review`，并让 review 读取本修复报告验证 `addressed_findings`。
+        - `SNAPSHOT_REWRITE_NO_FULL_ROUND_APPEND`：同 task_id 报告未关闭时，必须重写当前快照，禁止追加完整轮次正文；`fix_rounds` 只累计轮次数值。
+        - 旧 fix 报告缺少快照字段时，仅把最后一个 `Fix Round` 作为当前状态；确认项目是 Git 仓库且 fresh fix 成功后才重写，非 Git 项目必须标记 `blocked` 并保留旧正文。
+        - 修复报告 frontmatter 必须包含：`type: bug-fix-report`、`workflow_id`、`task_id`、`source_review_report`、`status`、`fix_rounds`、`pending_verification_findings`、`remaining_findings`、`latest_head_before`、`latest_head_after`、`latest_report_commit`、`created`、`updated`。
+        - `remaining_findings` 只列当前未修复 finding；本轮已修复并由 fix 验证的 finding 移入 `pending_verification_findings`，必须等待 review 复审后才能进入 Closure Ledger。
+        - 正文只保留当前修复简报、当前根因、当前改动、当前验证、remaining/pending 项、`Closure Ledger` 和每轮一行的 `Round Summary`；不得复制旧轮证据。
+        - 下一步必须写明：重新运行 `$jingyuan:review`，并让 review 先验证 `pending_verification_findings`。
+        - Git 历史是完整修复轮次、根因细节和验证证据的权威载体。
         - 修复完成后必须执行本地 `git commit`，commit 范围包含本轮修复代码、测试更新和 `docs/bug-fix/fix-<task-id>.md`，commit message 使用 `fix: address <task-id> review findings`。提交后把 commit hash 写回报告的 `latest_report_commit`；如果目标项目不是 git 仓库或 git 身份未配置，报告状态改为 `blocked` 并说明。
 
     [假设规则]
@@ -170,7 +171,7 @@ description: 景元 Bug 修复工作流。Use when Codex or Claude Code needs to
         - 如果保留诊断日志是正式修复的一部分，必须说明目的、级别和安全影响。
 
     [修复提交门禁]
-        - 写入或追加 fix 报告后，必须运行 `git status --short`。
+        - 重写 fix 当前快照后，必须运行 `git status --short`。
         - 只允许暂存本轮修复代码、测试更新、必要配置和 `docs/bug-fix/fix-<task-id>.md`；不得混入无关文件。
         - 如果工作区存在无关改动，必须只 stage 本轮相关文件；无法区分时停止并说明，不能提交。
         - 执行 `git commit -m "fix: address <task-id> review findings"`。
@@ -233,12 +234,14 @@ description: 景元 Bug 修复工作流。Use when Codex or Claude Code needs to
 
         第二步：收集 bug 信息
             若用户指定 review 报告路径，先读取该报告；否则读取 `docs/review/` 中最新且 `status != passed/closed` 的报告。
-            如找到 review 报告，从报告中提取待修 finding：
+            如找到新格式 review 报告，只读取 frontmatter、`Active Findings` 和 `Current Verification`，并从中提取 `route: fix` 的待修 finding：
             - finding ID、priority、stage、route
             - file:line、evidence、minimal_fix
             - source_review_report、task_id、review_rounds、workflow_id
-            - addressed/remaining 上下文（如有）
+            - active_findings、next_role 和当前验证要求
             并整理为修复简报后进入调试流程。
+            不读取 Stage Gate 已通过项、Closure Ledger 详情或旧轮次正文。若没有 `route: fix` 的 active finding，停止并报告路由不匹配，禁止越权处理。
+            旧格式报告缺少快照字段时，仅读取最后一个 `Review Round`；下一次成功修复时重写 fix 报告为快照格式。非 Git 项目不得压缩旧正文，必须标记 `blocked`。
             如没有可用 review 报告，再从用户描述中提取：
             - 错误信息 / 异常行为
             - 复现步骤
@@ -273,7 +276,7 @@ description: 景元 Bug 修复工作流。Use when Codex or Claude Code needs to
 
     [完成阶段]
         先确定 `task_id` 和修复报告路径：`docs/bug-fix/fix-<task-id>.md`。
-        如果报告已存在且未关闭，保留旧内容并追加本轮 `## Fix Round N`；如果不存在或已关闭，创建新报告。
+        如果报告已存在且未关闭，增加 `fix_rounds` 后重写当前快照；如果不存在或已关闭，创建新报告。不得追加完整轮次正文。
         报告文件必须包含如下 frontmatter：
         ```yaml
         ---
@@ -283,7 +286,7 @@ description: 景元 Bug 修复工作流。Use when Codex or Claude Code needs to
         source_review_report: [docs/review/review-<task-id>.md 或 null]
         status: [open | fixed | partially-fixed | blocked | closed]
         fix_rounds: [N]
-        addressed_findings: [R<round>-PRIORITY-XXX]
+        pending_verification_findings: [R<round>-PRIORITY-XXX]
         remaining_findings: [R<round>-PRIORITY-XXX]
         latest_head_before: [修复前 HEAD hash 或 unknown]
         latest_head_after: [修复后 HEAD hash 或 unknown]
@@ -292,6 +295,7 @@ description: 景元 Bug 修复工作流。Use when Codex or Claude Code needs to
         updated: YYYY-MM-DD
         ---
         ```
+        正文按顺序包含 `Current Fix`、`Current Verification`、`Pending Verification`、`Remaining Findings`、`Closure Ledger`、`Round Summary`。Closure Ledger 单行格式为 `ID | route | verified | review round | fix commit`；review 未验证前不得写入。review 不直接修改 fix 报告；后续再次运行 fix 时，从 source review 的 Closure Ledger 同步已验证项并从 pending 移除。
         向用户汇报：
         "🔧 **Bug 已修复**
 

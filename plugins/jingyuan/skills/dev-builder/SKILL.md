@@ -97,7 +97,7 @@ description: 景元开发实现工作流。Use when Codex or Claude Code needs t
 dev-builder 遇到 bug、测试失败、性能异常或回归失败时，只负责判断是否进入专项修复流程：
 
 - 没有可重复失败信号，不允许猜修；先转入 `$jingyuan:fix` 建立复现/验证循环。
-- `$jingyuan:fix` 返回后，dev-builder 读取 `docs/bug-fix/fix-<task-id>.md` 修复报告和 latest report commit，回到当前 slice，重新执行目标验证、review 和 completion protocol。
+- `$jingyuan:fix` 返回后，dev-builder 只读取 `docs/bug-fix/fix-<task-id>.md` 的 frontmatter、`Pending Verification`、`Remaining Findings` 和 `Current Verification`，不加载 Closure Ledger 或旧轮次正文；随后回到当前 slice，重新执行目标验证、review 和 completion protocol。
 - 连续 3 个假设失败、修复触及超过 5 个文件、或安全敏感但无法验证时，状态改为 `BLOCKED` 或 `NEEDS_CONTEXT`。
 - 性能问题必须由 `$jingyuan:fix` 或等价诊断流程先建立 baseline；dev-builder 只接受带 baseline、优化后数据和测量命令的修复结果。
 - 临时日志统一使用 `[DEBUG-xxxx]` 前缀，完成前用 `Select-String` 搜索并清理。
@@ -112,7 +112,7 @@ Phase/Slice 完成前必须通过：
 - **Fresh verification gate**：重新运行目标验证命令，附 exit code 和关键输出。
 - **Smoke gate**：用户可见功能需要浏览器、接口或手动 smoke；高风险 CLI/工作流需要可重复 smoke harness。
 
-`$jingyuan:review` 失败时，dev-builder 只负责编排返工：必须记录 `docs/review/review-<task-id>.md` 路径，并把该路径交给 `$jingyuan:fix` 或实现返工流程。Stage 1 失败回到规格补齐，Stage 2 失败回到质量修复；返工后必须先写入或追加 `docs/bug-fix/fix-<task-id>.md` 修复报告并完成本地 commit，再重新调用 `$jingyuan:review`，不能由实现者自称已修复即通过。
+`$jingyuan:review` 失败时，dev-builder 只读取报告 frontmatter、`Active Findings` 和 `Current Verification`，仅处理 `route: dev-builder` 的 finding；不得加载已通过的 Stage Gate、Closure Ledger 详情或旧轮次正文。没有匹配 finding 时停止并报告路由不匹配。Stage 1 的其他问题按 route 交给 pm、design、sync 或 human，Stage 2 交给 fix；返工后重写 `docs/bug-fix/fix-<task-id>.md` 当前快照并完成本地 commit，再调用 `$jingyuan:review`，不能由实现者自称已修复即通过。
 
 Review/Fix 闭环必须显示轮次：
 - `Review rounds: N`

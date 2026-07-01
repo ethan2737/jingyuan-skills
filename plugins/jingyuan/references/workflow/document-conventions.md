@@ -55,3 +55,33 @@
 - `docs/changes/<change-id>/` 用于跨模块、跨会话、改变用户行为或需要独立验证矩阵的较大变更；小改动可以只更新 `docs/development/plan.md`。
 - `docs/context.md`、`docs/adr/`、`docs/out-of-scope/` 是长期记忆，后续技能必须读取并尊重。
 - 新建项目建议先运行 `$jingyuan:setup` 初始化目录和长期记忆骨架。
+
+## 文档最小化原则
+
+正式文档至少满足以下一项，否则不得新增：
+
+- 是不可替代的正式事实源。
+- 是跨角色交接契约。
+- 是发布或质量门禁证据。
+- 是必须长期保留的决策。
+
+仅重复其他文档、Git 历史或 `.jingyuan/state/` 机器状态的信息，不得另建正式文档。报告正文面向当前决策和交接，详细事件历史由 Git commit 保存。
+
+## 现有产物分类
+
+| 分类 | 产物 | 规则 |
+|---|---|---|
+| 保留 | PRD、开发计划、context、ADR、out-of-scope | 各自承担需求、执行或长期决策事实；存在内容时持续维护 |
+| 保留 | review/fix 报告 | 每个 task 各一份当前快照；不得按轮次新增文件或累计完整正文 |
+| 条件生成 | PRD changelog、design、mockup、Pencil、release、feedback、evolution | 仅在对应行为真实发生或下游确实需要时生成，不创建空壳 |
+| 条件生成 | `docs/changes/<change-id>/` 四件套 | 仅用于跨模块、跨会话、改变用户行为或需要独立验证矩阵的较大变更 |
+| 可合并候选 | 小改动的 proposal/spec/design/tasks | 优先合并到 `docs/development/plan.md` 的单个 slice，不为形式完整拆成四份文档 |
+
+本分类只约束后续生成和更新，本次不删除既有标准路径或历史文档。删除或迁移必须另行评估引用关系并获得用户确认。
+
+## Review/Fix 当前快照
+
+- review/fix 报告只展开当前阶段、当前 finding 和当前验证要求。
+- 已通过阶段只保留门禁摘要；已验证 finding 只保留 Closure Ledger 单行索引。
+- 下游角色只读取 frontmatter、与自身 route 匹配的 active finding 及 Current Verification。
+- 旧格式报告惰性兼容：读取最后一轮，下一次 fresh review/fix 成功后再重写；非 Git 项目不得自动压缩旧正文。

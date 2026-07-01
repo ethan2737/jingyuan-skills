@@ -27,6 +27,7 @@ JingYuan 把产品、设计、开发、审查、修复、发布、反馈和进�
 - 所有技能读取并尊重 `docs/context.md`、`docs/adr/`、`docs/out-of-scope/`；缺失时按依赖策略降级。
 - 开发 slice 完成前必须有 fresh verification：命令、exit code、关键输出和未验证项。
 - Review 分两阶段：Stage 1 规格符合度未通过，不进入 Stage 2 质量审查。
+- Review/fix 使用单任务当前快照：只展开当前阶段和未关闭 finding，保留 finding 路由；已关闭详情由紧凑索引与 Git 历史追溯，下游角色不得加载无关历史正文。
 - Bug 和性能问题先建立反馈循环或 baseline，不猜修。
 - 计划外变更必须标记 scope drift，并在必要时调用 `$jingyuan:sync`。
 - 反馈闭环不是可选礼节：反复修正、范围冲突和流程缺口要进入 `docs/feedback/`，再由 evolution 判断是否升级为正式规则。
