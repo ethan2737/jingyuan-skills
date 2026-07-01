@@ -256,6 +256,25 @@ function Get-StringSha256 {
   }
 }
 
+function Invoke-GitCapture {
+  param([string[]]$GitArguments = @())
+  if ($null -eq (Get-Command git -ErrorAction SilentlyContinue)) {
+    return [pscustomobject]@{ ExitCode = 127; Output = @() }
+  }
+  $previousErrorActionPreference = $ErrorActionPreference
+  try {
+    $ErrorActionPreference = 'Continue'
+    $output = @(& git -C $script:ProjectPath @GitArguments 2>$null)
+    $exitCode = $LASTEXITCODE
+  } catch {
+    $output = @()
+    $exitCode = 1
+  } finally {
+    $ErrorActionPreference = $previousErrorActionPreference
+  }
+  return [pscustomobject]@{ ExitCode = $exitCode; Output = $output }
+}
+
 function Enter-StateMutex {
   $mutexName = 'JingYuanState-' + (Get-StringSha256 -Value $script:ProjectPath.ToLowerInvariant()).Substring(0, 24)
   $mutex = New-Object System.Threading.Mutex($false, $mutexName)
@@ -278,9 +297,9 @@ function Enter-StateMutex {
 }
 
 function Get-GitHead {
-  $head = & git -C $script:ProjectPath rev-parse HEAD 2>$null
-  if ($LASTEXITCODE -ne 0) { return $null }
-  return ([string]$head).Trim()
+  $result = Invoke-GitCapture -GitArguments @('rev-parse', 'HEAD')
+  if ($result.ExitCode -ne 0 -or $result.Output.Count -eq 0) { return $null }
+  return ([string]$result.Output[0]).Trim()
 }
 
 function Get-SessionRecord {
@@ -390,9 +409,9 @@ function Get-GitPathStatus {
   if (-not (Test-Path -LiteralPath $absolutePath) -and -not (Test-Path -LiteralPath $parentPath -PathType Container)) {
     return @()
   }
-  $output = & git -C $script:ProjectPath status --porcelain=v1 --untracked-files=all -- $RelativePath 2>$null
-  if ($LASTEXITCODE -ne 0) { return @() }
-  return @($output | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
+  $result = Invoke-GitCapture -GitArguments @('status', '--porcelain=v1', '--untracked-files=all', '--', $RelativePath)
+  if ($result.ExitCode -ne 0) { return @() }
+  return @($result.Output | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
 }
 
 function Test-TaskSourcesCurrent {
@@ -438,8 +457,9 @@ function Get-RelatedHeadDrift {
       $Task.base_head -eq $currentHead) {
     return @()
   }
-  $changed = & git -C $script:ProjectPath diff --name-only "$($Task.base_head)..$currentHead" 2>$null
-  if ($LASTEXITCODE -ne 0) { return @() }
+  $result = Invoke-GitCapture -GitArguments @('diff', '--name-only', "$($Task.base_head)..$currentHead")
+  if ($result.ExitCode -ne 0) { return @() }
+  $changed = $result.Output
   $readPaths = @($Task.read_refs | ForEach-Object { $_.path })
   $related = New-Object System.Collections.Generic.List[string]
   foreach ($path in @($changed)) {
@@ -799,6 +819,7 @@ function Claim-StateTask {
     status = 'in_progress'
     lease_expires_at = $leaseExpiresAt
     base_head = $task.base_head
+    task = $task
   })
 }
 
@@ -977,10 +998,11 @@ function Test-StagedCommitScope {
   if ($task.owner_session -ne $SessionId -or $session.role -ne $task.to_role) {
     Write-JsonResult -Ok $false -Code 'NOT_TASK_OWNER' -Message 'Only the task owner can validate a commit.' -ExitCode 3
   }
-  $staged = @(& git -C $script:ProjectPath diff --cached --name-only 2>$null | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
-  if ($LASTEXITCODE -ne 0) {
+  $result = Invoke-GitCapture -GitArguments @('diff', '--cached', '--name-only')
+  if ($result.ExitCode -ne 0) {
     Write-JsonResult -Ok $false -Code 'GIT_ERROR' -Message 'Unable to inspect staged files.' -ExitCode 1
   }
+  $staged = @($result.Output | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
   $violations = @($staged | Where-Object { -not (Test-PathInWriteScopes -RelativePath $_ -Scopes @($task.write_scopes)) })
   if ($violations.Count -gt 0) {
     Write-JsonResult -Ok $false -Code 'STAGED_SCOPE_VIOLATION' -Message 'Staged files include paths outside the task write scopes.' -Data $violations -ExitCode 3
@@ -990,6 +1012,16 @@ function Test-StagedCommitScope {
 
 function Get-StateStatus {
   [void](Get-Config)
+  if (-not [string]::IsNullOrWhiteSpace($TaskId)) {
+    $taskContainer = Get-TaskRecord -Id $TaskId
+    if (-not [string]::IsNullOrWhiteSpace($Role) -and $taskContainer.Record.to_role -ne $Role) {
+      Write-JsonResult -Ok $false -Code 'ROLE_MISMATCH' -Message "Task is assigned to $($taskContainer.Record.to_role), not $Role." -ExitCode 3
+    }
+    Write-JsonResult -Ok $true -Code 'TASK_STATUS' -Message 'Complete task envelope loaded.' -Data ([ordered]@{
+      task = $taskContainer.Record
+      archived = [bool]$taskContainer.IsArchive
+    })
+  }
   $tasks = @(Get-JsonRecords -Directory (Join-Path $script:StatePath 'records\tasks\active'))
   if (-not [string]::IsNullOrWhiteSpace($Role)) {
     if (-not (Test-ValidRole -Value $Role)) {
@@ -997,9 +1029,22 @@ function Get-StateStatus {
     }
     $tasks = @($tasks | Where-Object { $_.to_role -eq $Role })
   }
+  $summaries = @($tasks | ForEach-Object {
+    [pscustomobject][ordered]@{
+      task_id = $_.task_id
+      change_id = $_.change_id
+      title = $_.title
+      to_role = $_.to_role
+      status = $_.status
+      priority = $_.priority
+      owner_session = $_.owner_session
+      lease_expires_at = $_.lease_expires_at
+      depends_on = @($_.depends_on)
+    }
+  })
   Write-JsonResult -Ok $true -Code 'STATUS' -Message 'Active collaboration state loaded.' -Data ([ordered]@{
-    active_tasks = $tasks
-    active_task_count = $tasks.Count
+    active_tasks = $summaries
+    active_task_count = $summaries.Count
   })
 }
 
@@ -1143,12 +1188,12 @@ function Recover-StateTask {
 }
 
 function Set-LocalStateExcluded {
-  $gitPathOutput = & git -C $script:ProjectPath rev-parse --git-path info/exclude 2>$null
-  if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace($gitPathOutput)) {
+  $result = Invoke-GitCapture -GitArguments @('rev-parse', '--git-path', 'info/exclude')
+  if ($result.ExitCode -ne 0 -or $result.Output.Count -eq 0 -or [string]::IsNullOrWhiteSpace([string]$result.Output[0])) {
     return
   }
 
-  $excludePath = [string]$gitPathOutput
+  $excludePath = [string]$result.Output[0]
   if (-not [IO.Path]::IsPathRooted($excludePath)) {
     $excludePath = Join-Path $script:ProjectPath $excludePath
   }

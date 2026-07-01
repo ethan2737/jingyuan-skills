@@ -99,6 +99,25 @@ try {
   $secondInit = Invoke-State -Arguments @('-Action', 'Init', '-ProjectRoot', $project)
   Assert-True ($secondInit.ExitCode -eq 0) 'Init should be idempotent.'
 
+  $noGitProject = Join-Path $env:TEMP ("jingyuan-state-nogit-" + [guid]::NewGuid().ToString('N'))
+  New-Item -ItemType Directory -Path $noGitProject | Out-Null
+  $projects.Add($noGitProject)
+  $noGitInit = Invoke-State -Arguments @('-Action', 'Init', '-ProjectRoot', $noGitProject)
+  Assert-True ($noGitInit.ExitCode -eq 0) 'Init should support a readable project that is not a Git repository.'
+  $noGitSession = Invoke-State -Arguments @('-Action', 'StartSession', '-ProjectRoot', $noGitProject, '-Role', 'pm')
+  $noGitSessionId = [string]$noGitSession.Json.data.session_id
+  $noGitTask = Invoke-State -Arguments @(
+    '-Action', 'CreateTask', '-ProjectRoot', $noGitProject, '-SessionId', $noGitSessionId,
+    '-Title', 'No Git fallback', '-FromRole', 'pm', '-ToRole', 'pm', '-WriteScope', 'docs/output.md'
+  )
+  $noGitClaim = Invoke-State -Arguments @(
+    '-Action', 'Claim', '-ProjectRoot', $noGitProject, '-SessionId', $noGitSessionId,
+    '-TaskId', ([string]$noGitTask.Json.data.task_id)
+  )
+  Assert-True ($noGitClaim.ExitCode -eq 0) 'Claim should use a null HEAD and skip Git dirtiness checks outside a Git repository.'
+  $noGitClaimedRecord = Get-Content -LiteralPath (Join-Path $noGitProject ".jingyuan\state\records\tasks\active\$($noGitTask.Json.data.task_id).json") -Raw -Encoding UTF8 | ConvertFrom-Json
+  Assert-True ($null -eq $noGitClaimedRecord.base_head) 'Non-Git task should persist base_head=null.'
+
   New-Item -ItemType Directory -Path (Join-Path $project 'docs\PRD') -Force | Out-Null
   New-Item -ItemType Directory -Path (Join-Path $project 'docs\design') -Force | Out-Null
   [IO.File]::WriteAllText(
@@ -143,6 +162,15 @@ try {
   Assert-True ($taskRecord.read_refs[0].sha256 -match '^[A-F0-9]{64}$') 'Task should snapshot the source SHA-256.'
   Assert-True ($taskRecord.write_scopes[0] -eq 'docs/design/design.md') 'Task should persist normalized write scopes.'
 
+  $compactStatus = Invoke-State -Arguments @('-Action', 'Status', '-ProjectRoot', $project, '-Role', 'design')
+  Assert-True ($compactStatus.ExitCode -eq 0) 'Role Status should succeed.'
+  $compactTask = @($compactStatus.Json.data.active_tasks | Where-Object { $_.task_id -eq $taskId })[0]
+  Assert-True ($null -eq $compactTask.PSObject.Properties['read_refs']) 'Role Status should return compact task summaries without full read references.'
+  Assert-True ($null -eq $compactTask.PSObject.Properties['acceptance_criteria']) 'Role Status should omit acceptance detail until a task is selected.'
+  $fullTaskStatus = Invoke-State -Arguments @('-Action', 'Status', '-ProjectRoot', $project, '-TaskId', $taskId)
+  Assert-True ($fullTaskStatus.ExitCode -eq 0) 'Task-specific Status should succeed.'
+  Assert-True ($fullTaskStatus.Json.data.task.read_refs[0].path -eq 'docs/PRD/prd.md') 'Task-specific Status should return the complete envelope.'
+
   $beforeInvalidCount = @(Get-ChildItem -LiteralPath (Join-Path $project '.jingyuan\state\records\tasks\active') -Filter '*.json').Count
   $invalidPath = Invoke-State -Arguments @(
     '-Action', 'CreateTask',
@@ -175,6 +203,8 @@ try {
   Assert-True ($claimedRecord.status -eq 'in_progress') 'Claim should transition task to in_progress.'
   Assert-True ($claimedRecord.owner_session -eq $designSessionId) 'Claim should record the owner session.'
   Assert-True ($claimedRecord.base_head -match '^[0-9a-f]{40}$') 'Claim should snapshot Git HEAD.'
+  Assert-True ($claim.Json.data.task.read_refs[0].path -eq 'docs/PRD/prd.md') 'Claim should return the complete task envelope for downstream execution.'
+  Assert-True ($claim.Json.data.task.write_scopes[0] -eq 'docs/design/design.md') 'Claim should expose the exclusive write scope without another broad status read.'
   Assert-True (@(Get-ChildItem -LiteralPath (Join-Path $project '.jingyuan\state\locks') -Directory).Count -eq 1) 'Claim should acquire one resource lock.'
 
   $secondTask = Invoke-State -Arguments @(
