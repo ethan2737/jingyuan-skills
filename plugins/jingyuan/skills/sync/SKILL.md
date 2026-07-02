@@ -24,10 +24,10 @@ description: 景元同步对齐工作流。Use when Codex or Claude Code needs t
     - 本技能本地 `references/sync-matrix.md`。
 
     可选：
-    - `docs/PRD/prd.md`、`docs/PRD/changelog.md`。
-    - `docs/design/design.md`、`docs/design/mockup.md`、`docs/design/ui-design.pen`。
-    - `docs/development/plan.md`、`docs/changes/*/tasks.md`。
-    - `docs/context.md`、`docs/adr/*.md`、`docs/out-of-scope/*.md`。
+    - `docs/PRD/prd.md`。
+    - `docs/design/design.md`、`docs/design/ui-design.pen`。
+    - `docs/development/plan.md`、`docs/changes/*.md`。
+    - 长期记忆 frontmatter 和当前 scopes/tags 匹配的正文；元数据非法时返回 `needs_context`。
     - README.md、AGENTS.md、CLAUDE.md。
     - 设计工具 MCP。
 
@@ -42,27 +42,25 @@ description: 景元同步对齐工作流。Use when Codex or Claude Code needs t
 [同步对象]
     产品层：
     - `docs/PRD/prd.md`
-    - `docs/PRD/changelog.md`
     - `docs/context.md`
     - `docs/adr/*.md`
     - `docs/out-of-scope/*.md`
 
     设计层：
     - `docs/design/design.md`
-    - `docs/design/mockup.md`
     - `docs/design/ui-design.pen`
     - 设计工具中的页面、组件、变量和状态变体
 
     开发层：
     - `docs/development/plan.md`
-    - `docs/changes/*/proposal.md|spec.md|design.md|tasks.md`
+    - `docs/changes/<change-id>.md`
     - package.json、配置、入口、路由、核心代码、测试和部署配置
 
     交接层：
     - README.md
     - AGENTS.md
     - CLAUDE.md
-    - `docs/feedback/` 和 `docs/feedback/index.md`
+    - `docs/feedback/*.md`
 
 [差异判断]
     可直接同步：
@@ -108,7 +106,7 @@ description: 景元同步对齐工作流。Use when Codex or Claude Code needs t
     3. 检查分支、工作区、最近提交和未提交 diff。
     4. 枚举并读取 [同步对象] 中实际存在的文件。
     5. 扫描代码结构、入口、路由、配置、依赖、核心业务和测试。
-    6. 如设计工具可用，读取页面、组件、变量和状态变体；Pencil 优先读取 `docs/design/ui-design.pen`，Figma 按 `docs/design/mockup.md` 定位。
+    6. 如设计工具可用，读取页面、组件、变量和状态变体；Pencil 优先读取 `docs/design/ui-design.pen`，Figma 按 design.md 的 `Design Artifacts` 定位。
     7. 建立代码事实、文档事实、设计稿事实和 Git 变更事实。
     8. — [CHECKPOINT: 同步方向确认] —
     9. 按 [禁止同步为事实（反例清单）] 过滤，按 [差异判断] 分类：可同步、待确认。
@@ -118,7 +116,7 @@ description: 景元同步对齐工作流。Use when Codex or Claude Code needs t
 
 [设计稿同步]
     - 若设计工具 MCP 可用且差异明确，优先修改设计稿并截图/导出验证。
-    - 工具不可用或风险过高时，更新 `docs/design/mockup.md` 的待处理清单。
+    - 工具不可用或风险过高时，更新 design.md 的 `Design Artifacts` 待处理清单。
     - 不把设计工具失败伪装成设计稿已同步。
 
 [输出格式]

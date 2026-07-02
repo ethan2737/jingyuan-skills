@@ -11,18 +11,12 @@
 | 语义 | 标准路径 |
 |---|---|
 | PRD | `docs/PRD/prd.md` |
-| PRD 变更记录 | `docs/PRD/changelog.md` |
 | 设计规范 | `docs/design/design.md` |
-| 设计稿说明/索引 | `docs/design/mockup.md` |
 | Pencil 设计稿本体 | `docs/design/ui-design.pen` |
 | 开发总览计划 | `docs/development/plan.md` |
-| 较大变更提案 | `docs/changes/<change-id>/proposal.md` |
-| 较大变更需求 delta | `docs/changes/<change-id>/spec.md` |
-| 较大变更设计约束 | `docs/changes/<change-id>/design.md` |
-| 较大变更任务清单 | `docs/changes/<change-id>/tasks.md` |
+| 较大变更 | `docs/changes/<change-id>.md` |
 | 代码审查报告 | `docs/review/review-<task-id>.md` |
 | Bug 修复报告 | `docs/bug-fix/fix-<task-id>.md` |
-| 反馈索引 | `docs/feedback/index.md` |
 | 反馈记录 | `docs/feedback/*.md` |
 | 项目术语和长期上下文 | `docs/context.md` |
 | 架构决策记录 | `docs/adr/*.md` |
@@ -51,10 +45,10 @@
 ## 使用规则
 
 - `docs/design/ui-design.pen` 只在用户选择 Pencil 时生成或更新。
-- Figma 设计稿只在 `docs/design/mockup.md` 记录文件 URL、file key、页面 ID 和节点 ID。
-- `docs/changes/<change-id>/` 用于跨模块、跨会话、改变用户行为或需要独立验证矩阵的较大变更；小改动可以只更新 `docs/development/plan.md`。
-- `docs/context.md`、`docs/adr/`、`docs/out-of-scope/` 是长期记忆，后续技能必须读取并尊重。
-- 新建项目建议先运行 `$jingyuan:setup` 初始化目录和长期记忆骨架。
+- Figma 设计稿只在 design.md 的 Design Artifacts 记录文件 URL、file key、页面 ID 和节点 ID。
+- `docs/changes/<change-id>.md` 用于跨模块、跨会话、改变用户行为或需要独立验证矩阵的较大变更；小改动只更新 `docs/development/plan.md`。
+- `docs/context.md`、`docs/adr/`、`docs/out-of-scope/` 全部懒创建；后续技能按 scopes/tags 选择性读取并尊重。
+- 新建项目建议先运行 `$jingyuan:setup` 初始化 version 3 配置和本机状态；正式文档由对应 Skill 懒创建。
 
 ## 文档最小化原则
 
@@ -73,9 +67,8 @@
 |---|---|---|
 | 保留 | PRD、开发计划、context、ADR、out-of-scope | 各自承担需求、执行或长期决策事实；存在内容时持续维护 |
 | 保留 | review/fix 报告 | 每个 task 各一份当前快照；不得按轮次新增文件或累计完整正文 |
-| 条件生成 | PRD changelog、design、mockup、Pencil、release、feedback、evolution | 仅在对应行为真实发生或下游确实需要时生成，不创建空壳 |
-| 条件生成 | `docs/changes/<change-id>/` 四件套 | 仅用于跨模块、跨会话、改变用户行为或需要独立验证矩阵的较大变更 |
-| 可合并候选 | 小改动的 proposal/spec/design/tasks | 优先合并到 `docs/development/plan.md` 的单个 slice，不为形式完整拆成四份文档 |
+| 条件生成 | design、Pencil、release、feedback、evolution | 仅在对应行为真实发生或下游确实需要时生成，不创建空壳 |
+| 条件生成 | `docs/changes/<change-id>.md` | 仅用于跨模块、跨会话、改变用户行为或需要独立验证矩阵的较大变更 |
 
 本分类只约束后续生成和更新，本次不删除既有标准路径或历史文档。删除或迁移必须另行评估引用关系并获得用户确认。
 

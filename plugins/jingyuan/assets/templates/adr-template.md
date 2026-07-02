@@ -1,8 +1,16 @@
-﻿# ADR-0000: <决策标题>
+﻿---
+type: adr
+status: proposed
+scopes: [global]
+tags: []
+updated: YYYY-MM-DD
+---
+
+# ADR-0000: <决策标题>
 
 ## 状态
 
-<提议 / 已接受 / 已废弃 / 已取代>
+<proposed / accepted / superseded>
 
 ## 背景
 

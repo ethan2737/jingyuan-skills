@@ -1,6 +1,6 @@
 ---
 name: evolution
-description: 景元进化引擎工作流。Use when Codex or Claude Code should scan docs/feedback/ and docs/feedback/index.md for repeated patterns and propose workflow, rule, out-of-scope, or skill improvements.
+description: 景元进化引擎工作流。Use when Codex or Claude Code should scan scoped feedback topic files and propose workflow, rule, out-of-scope, or skill improvements.
 ---
 
 # JingYuan Evolution
@@ -25,9 +25,8 @@ description: 景元进化引擎工作流。Use when Codex or Claude Code should 
     - `<JINGYUAN_PLUGIN_ROOT>/references/workflow/project-memory.md`。
 
     可选：
-    - `docs/feedback/index.md` → 缺失时扫描 `docs/feedback/`；两者都缺失则返回"无进化建议"，不报错。
     - `docs/feedback/` → 缺失时返回"无进化建议"。
-    - `docs/out-of-scope/` → 缺失时仍可提出候选，但建议先运行 `$jingyuan:setup`。
+    - `docs/out-of-scope/` → 缺失时仍可提出候选；用户确认长期边界后再懒创建。
     - 目标 `SKILL.md` 或 workflow reference → 只在用户确认执行进化时读取并修改。
 
     启动读取：
@@ -61,7 +60,7 @@ description: 景元进化引擎工作流。Use when Codex or Claude Code should 
 
 [工作流程]
     1. 执行 [依赖检测]。
-    2. 读取 `docs/feedback/index.md`；缺失时扫描 `docs/feedback/*.md`；没有反馈则返回"无进化建议"。
+    2. 扫描 `docs/feedback/*.md` frontmatter，只选择 `status: open` 且 scopes/tags 与当前主题匹配的记录；没有反馈则返回"无进化建议"。
        → 若扫描到的有效反馈记录不足 3 条，返回"反馈积累不足（仅 N 条有效记录），暂无法提出可靠的进化建议"。
     3. 读取候选 feedback frontmatter 和正文摘要。
     4. 按 [扫描规则] 分组：规则毕业、Skill 优化、新 Skill、Out-of-scope。
@@ -88,7 +87,7 @@ description: 景元进化引擎工作流。Use when Codex or Claude Code should 
 [返回格式]
     - 有建议：按"规则毕业 / Skill 优化 / 新 Skill / Out-of-scope 沉淀"分组列出。
     - 无建议：`无进化建议`
-    - 数据缺失：`未发现 docs/feedback/ 或 docs/feedback/index.md，无进化建议`
+    - 数据缺失：`未发现 docs/feedback/，无进化建议`
 
 [初始化]
     执行 [依赖检测]，然后进入 [工作流程]。

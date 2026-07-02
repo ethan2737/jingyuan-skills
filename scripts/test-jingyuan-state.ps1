@@ -478,6 +478,8 @@ try {
   [IO.File]::WriteAllText((Join-Path $legacyProject 'docs\changes\auth\tasks.md'), "# Tasks`r`n", [Text.UTF8Encoding]::new($true))
   [IO.File]::WriteAllText((Join-Path $legacyProject 'docs\feedback\auth.md'), "---`r`ntype: feedback`r`nstatus: open`r`nscopes: [auth]`r`ntags: [login]`r`nupdated: 2026-07-02`r`n---`r`n# Auth feedback`r`n", [Text.UTF8Encoding]::new($true))
   [IO.File]::WriteAllText((Join-Path $legacyProject 'docs\feedback\index.md'), "# Feedback Index`r`n`r`n- [Auth](auth.md) - login`r`n", [Text.UTF8Encoding]::new($true))
+  $contextTemplate = Get-Content -LiteralPath (Join-Path $root 'plugins\jingyuan\assets\templates\context-template.md') -Raw -Encoding UTF8
+  [IO.File]::WriteAllText((Join-Path $legacyProject 'docs\context.md'), $contextTemplate, [Text.UTF8Encoding]::new($true))
   & git -C $legacyProject add .
   & git -C $legacyProject -c user.name='JingYuan Test' -c user.email='jingyuan-test@example.invalid' commit --quiet -m 'legacy baseline'
   Assert-True ($LASTEXITCODE -eq 0) 'Legacy migration fixture should have a clean Git baseline.'
@@ -513,6 +515,7 @@ try {
   Assert-True (Test-Path -LiteralPath (Join-Path $legacyProject 'docs\changes\auth.md')) 'Migration should create one change document.'
   Assert-True (-not (Test-Path -LiteralPath (Join-Path $legacyProject 'docs\changes\auth'))) 'Migration should remove the legacy change directory.'
   Assert-True (-not (Test-Path -LiteralPath (Join-Path $legacyProject 'docs\feedback\index.md'))) 'Migration should remove a fully mapped feedback index.'
+  Assert-True (-not (Test-Path -LiteralPath (Join-Path $legacyProject 'docs\context.md'))) 'Migration should remove a template-equivalent context file.'
 
   $repeatMigration = Invoke-State -Arguments @('-Action', 'Migrate', '-ProjectRoot', $legacyProject, '-Preview')
   Assert-True ($repeatMigration.ExitCode -eq 0 -and $repeatMigration.Json.code -eq 'ALREADY_CURRENT') 'Migration should be idempotent for version 3 projects.'
@@ -578,6 +581,18 @@ try {
   Assert-True ($conflictMigration.ExitCode -eq 3 -and $conflictMigration.Json.code -eq 'MIGRATION_CONFLICT') 'Migration should reject an existing change target.'
   Assert-True ((Get-Content -LiteralPath (Join-Path $conflictMigrationProject '.jingyuan\config.json') -Raw -Encoding UTF8 | ConvertFrom-Json).version -eq 2) 'Conflict rejection should not change config.'
   Assert-True (Test-Path -LiteralPath (Join-Path $conflictMigrationProject 'docs\changes\auth\proposal.md')) 'Conflict rejection should preserve source files.'
+
+  $feedbackConflictProject = New-TestProject
+  $projects.Add($feedbackConflictProject)
+  New-Item -ItemType Directory -Path (Join-Path $feedbackConflictProject '.jingyuan') | Out-Null
+  New-Item -ItemType Directory -Path (Join-Path $feedbackConflictProject 'docs\feedback') -Force | Out-Null
+  [IO.File]::WriteAllText((Join-Path $feedbackConflictProject '.jingyuan\config.json'), '{"version":2}', [Text.UTF8Encoding]::new($false))
+  [IO.File]::WriteAllText((Join-Path $feedbackConflictProject 'docs\feedback\index.md'), "# Feedback Index`r`n`r`n- [Missing](missing.md) - absent`r`n", [Text.UTF8Encoding]::new($true))
+  & git -C $feedbackConflictProject add .
+  & git -C $feedbackConflictProject -c user.name='JingYuan Test' -c user.email='jingyuan-test@example.invalid' commit --quiet -m 'feedback conflict baseline'
+  $feedbackConflict = Invoke-State -Arguments @('-Action', 'Migrate', '-ProjectRoot', $feedbackConflictProject, '-ConfirmDestructiveMigration')
+  Assert-True ($feedbackConflict.ExitCode -eq 3 -and $feedbackConflict.Json.code -eq 'MIGRATION_CONFLICT') 'Migration should reject feedback index entries without topic files.'
+  Assert-True (Test-Path -LiteralPath (Join-Path $feedbackConflictProject 'docs\feedback\index.md')) 'Feedback conflict should preserve the index.'
 
   $workflowProject = New-TestProject
   $projects.Add($workflowProject)

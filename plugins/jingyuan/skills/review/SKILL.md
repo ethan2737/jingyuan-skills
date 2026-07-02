@@ -15,7 +15,7 @@ description: 景元代码审查工作流。Use when Codex or Claude Code needs t
 
 ## 多 Agent 状态协议
 
-读取 `<JINGYUAN_PLUGIN_ROOT>/references/workflow/agent-collaboration-state.md`。配置版本 2 且状态已启用时，以 `review` 角色执行 `StartSession → Status → Claim`。提交 review 报告前调用 `CheckCommit`；按 active finding 的 `route` 为 dev-builder、fix、pm、design、sync 或 human 分别创建单接收方任务，只引用 `docs/review/review-<task-id>.md`、匹配的 finding ID 和验证要求，不复制报告正文，然后调用 `Complete`。状态不存在时保持现有 task-scoped 报告流程。
+读取 `<JINGYUAN_PLUGIN_ROOT>/references/workflow/agent-collaboration-state.md`。配置版本 3 且状态已启用时，以 `review` 角色执行 `StartSession → Status → Claim`。提交 review 报告前调用 `CheckCommit`；按 active finding 的 `route` 为 dev-builder、fix、pm、design、sync 或 human 分别创建单接收方任务，只引用 `docs/review/review-<task-id>.md`、匹配的 finding ID 和验证要求，不复制报告正文，然后调用 `Complete`。状态不存在时保持现有 task-scoped 报告流程。
 
 
 [任务]
@@ -32,7 +32,7 @@ description: 景元代码审查工作流。Use when Codex or Claude Code needs t
     可选（增强审查能力）：
     - docs/development/plan.md → 有则可对照 Phase 交付清单检查
     - docs/design/design.md → 有则可对照视觉规范
-    - 设计工具 MCP（Pencil / Figma 等）→ 有则可提取设计数值与代码对比；Pencil 优先读取 docs/design/ui-design.pen，Figma 按 docs/design/mockup.md 记录的文件定位信息读取
+    - 设计工具 MCP（Pencil / Figma 等）→ 有则可提取设计数值与代码对比；Pencil 优先读取 docs/design/ui-design.pen，Figma 按 design.md 的 Design Artifacts 定位
     - Playwright plugin → 有则可自动化 UI 交互测试
     - git → 有则可用 git diff 追溯变更范围
     - docs/bug-fix/ 最新修复报告 → 存在时只读取 source_review_report、fix_rounds、pending_verification_findings、remaining_findings 和当前验证要求，并优先验证待复审项。
@@ -105,7 +105,7 @@ description: 景元代码审查工作流。Use when Codex or Claude Code needs t
     对照设计稿检查 UI 实现：
     - 如有设计工具 MCP → 提取设计数值，与代码中的 Tailwind class / style 逐项比对
     - Pencil 设计稿 → 打开 docs/design/ui-design.pen 定位页面、组件和状态变体
-    - Figma 设计稿 → 从 docs/design/mockup.md 读取文件 URL / file key / 页面 ID / 节点 ID 后定位
+    - Figma 设计稿 → 从 design.md 的 Design Artifacts 读取文件 URL / file key / 页面 ID / 节点 ID 后定位
     - 查看设计稿视觉效果作为参考
         - 对比：布局、组件、颜色、间距、交互状态
         - 如有 docs/design/design.md → 对照色彩方向、信息密度、交互风格
@@ -256,8 +256,8 @@ description: 景元代码审查工作流。Use when Codex or Claude Code needs t
         读取 docs/PRD/prd.md → 提取审查范围内涉及的功能需求，编号列出
         读取 docs/development/plan.md → 读取当前 Phase 或 Task 的交付清单和关键文件
         如有 docs/design/design.md → 读取审查范围内涉及的视觉方向和页面备注
-        如有 docs/context.md、docs/adr/、docs/out-of-scope/ → 读取术语、架构决策和明确不做事项
-        如有变更包 / delta spec / proposal / tasks → 读取变更意图、行为契约和执行清单
+        从审查 scope 提取 scopes/tags，只读取匹配的 context、有效 ADR 和 active out-of-scope；元数据非法则返回 `needs_context`
+        如有相关 `docs/changes/<change-id>.md` → 读取 Intent、Behavior Contract、Design Constraints 和 Tasks
         如有同 task_id 的 docs/bug-fix/ 修复报告 → 只读取 frontmatter、`pending_verification_findings`、`remaining_findings` 和当前验证要求；本轮先验证 pending 项，不加载旧轮次正文或 Closure Ledger 详情。
         如 review/fix 报告缺少快照字段但含旧版 `Review Round` / `Fix Round` → 仅把最后一轮作为当前快照读取；fresh review 成功后重写为新格式。非 Git 项目不得压缩旧正文，必须标记 `blocked`。
         如有设计工具 MCP → 通过设计工具找到审查范围对应的设计页面，读取这些页面及其组件的精确数值，作为 UI 一致性比对的基准

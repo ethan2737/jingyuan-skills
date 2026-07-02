@@ -25,7 +25,7 @@ description: 景元横纵调研工作流。Use when Codex or Claude Code needs t
     - 网络检索能力。涉及现代产品、公司、人物、技术生态、价格、融资、版本、竞品或当前趋势时必须联网确认。
 
     可选：
-    - `docs/context.md`、`docs/adr/`、`docs/out-of-scope/` → 存在则作为项目术语、业务边界和已有决策背景。
+    - 长期记忆 → 先从当前 task/slice/finding 提取 scopes/tags；context 仅在相关时读取，ADR/out-of-scope 只读取状态有效且 `scopes: [global]` 或 scope/tag 匹配的正文。元数据非法时返回 `needs_context`，不得静默忽略或全量加载。
     - 用户提供的资料、链接、访谈、论文、产品文档或竞品名单 → 优先纳入研究材料。
     - `docs/research/` 既有报告 → 存在则先判断是更新旧报告还是新建报告。
 

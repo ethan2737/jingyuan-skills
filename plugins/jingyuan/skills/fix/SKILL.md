@@ -15,7 +15,7 @@ description: 景元 Bug 修复工作流。Use when Codex or Claude Code needs to
 
 ## 多 Agent 状态协议
 
-读取 `<JINGYUAN_PLUGIN_ROOT>/references/workflow/agent-collaboration-state.md`。配置版本 2 且状态已启用时，以 `fix` 角色执行 `StartSession → Status → Claim`。本地提交前调用 `CheckCommit`；修复、报告和 commit 完成后为 review 创建单接收方任务，只引用修复报告、commit 和 pending verification finding ID，再调用 `Complete`。状态不存在时保持现有 task-scoped 修复流程。
+读取 `<JINGYUAN_PLUGIN_ROOT>/references/workflow/agent-collaboration-state.md`。配置版本 3 且状态已启用时，以 `fix` 角色执行 `StartSession → Status → Claim`。本地提交前调用 `CheckCommit`；修复、报告和 commit 完成后为 review 创建单接收方任务，只引用修复报告、commit 和 pending verification finding ID，再调用 `Complete`。状态不存在时保持现有 task-scoped 修复流程。
 
 
 [任务]
@@ -39,7 +39,7 @@ description: 景元 Bug 修复工作流。Use when Codex or Claude Code needs to
     - docs/review/ 最新未关闭报告 → 未指定 review 报告时读取最新 `status != passed/closed` 的 `review-<task-id>.md`
     - docs/PRD/prd.md → 有则可对照预期行为判断是 bug 还是 feature
     - docs/development/plan.md → 有则可定位相关 Phase 和文件
-    - 设计工具 MCP（Pencil / Figma 等）→ 有则可对照设计判断 UI 是否正确；Pencil 优先读取 docs/design/ui-design.pen，Figma 按 docs/design/mockup.md 记录的文件定位信息读取
+    - 设计工具 MCP（Pencil / Figma 等）→ 有则可对照设计判断 UI 是否正确；Pencil 优先读取 docs/design/ui-design.pen，Figma 按 design.md 的 Design Artifacts 定位
     - Playwright plugin → 有则可自动化复现和验证
     - git → 有则可用 git log/diff/blame 追溯变更
 
@@ -252,7 +252,7 @@ description: 景元 Bug 修复工作流。Use when Codex or Claude Code needs to
         第三步：加载上下文
             如有 docs/PRD/prd.md → 读取相关功能的预期行为
             如有 docs/development/plan.md → 定位相关 Phase 和文件
-            如有设计工具 MCP → 对照 UI 预期。Pencil 打开 docs/design/ui-design.pen；Figma 按 docs/design/mockup.md 记录的文件 URL / file key / 页面 ID 定位
+            如有设计工具 MCP → 对照 UI 预期。Pencil 打开 docs/design/ui-design.pen；Figma 按 design.md 的 Design Artifacts 中 URL / file key / 页面 ID 定位
             扫描项目代码 → 了解相关模块结构
 
     [调试阶段]

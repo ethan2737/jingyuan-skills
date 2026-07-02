@@ -240,7 +240,13 @@ $setupSkillPath = Join-Path $pluginRoot 'skills\setup\SKILL.md'
 $reviewSkillPath = Join-Path $pluginRoot 'skills\review\SKILL.md'
 $fixSkillPath = Join-Path $pluginRoot 'skills\fix\SKILL.md'
 $devBuilderSkillPath = Join-Path $pluginRoot 'skills\dev-builder\SKILL.md'
+$pmSkillPath = Join-Path $pluginRoot 'skills\pm\SKILL.md'
+$mockupSkillPath = Join-Path $pluginRoot 'skills\mockup\SKILL.md'
+$devPlanSkillPath = Join-Path $pluginRoot 'skills\dev-plan\SKILL.md'
+$feedbackSkillPath = Join-Path $pluginRoot 'skills\feedback\SKILL.md'
 $reviewReadinessPath = Join-Path $pluginRoot 'references\workflow\review-readiness.md'
+$projectMemoryPath = Join-Path $pluginRoot 'references\workflow\project-memory.md'
+$changeTemplatePath = Join-Path $pluginRoot 'assets\templates\change-template.md'
 $handoffSkillPath = Join-Path $pluginRoot 'skills\handoff\SKILL.md'
 $stateReferencePath = Join-Path $pluginRoot 'references\workflow\agent-collaboration-state.md'
 $stateScriptPath = Join-Path $pluginRoot 'scripts\jingyuan-state.ps1'
@@ -260,7 +266,37 @@ $contentChecks = @(
   @{
     Path = $setupSkillPath
     Label = 'setup skill'
-    Patterns = @('docs/review', 'docs/bug-fix', 'reviewDir', 'bugFixDir')
+    Patterns = @('"version": 3', 'feedbackDir', 'Migrate -Preview', 'ConfirmDestructiveMigration', 'reviewDir', 'bugFixDir')
+  },
+  @{
+    Path = $pmSkillPath
+    Label = 'pm skill'
+    Patterns = @('docs/PRD/prd.md', 'Git diff')
+  },
+  @{
+    Path = $mockupSkillPath
+    Label = 'mockup skill'
+    Patterns = @('Design Artifacts', 'docs/design/design.md')
+  },
+  @{
+    Path = $devPlanSkillPath
+    Label = 'dev-plan skill'
+    Patterns = @('docs/changes/<change-id>.md', 'Behavior Contract', 'change-template.md')
+  },
+  @{
+    Path = $feedbackSkillPath
+    Label = 'feedback skill'
+    Patterns = @('docs/feedback/*.md', 'status: open', 'scopes', 'tags')
+  },
+  @{
+    Path = $projectMemoryPath
+    Label = 'project-memory.md'
+    Patterns = @('scopes', 'tags', 'needs_context', 'proposed | accepted | superseded', 'active | retired')
+  },
+  @{
+    Path = $changeTemplatePath
+    Label = 'change-template.md'
+    Patterns = @('## Intent', '## Behavior Contract', '## Design Constraints', '## Tasks')
   },
   @{
     Path = $reviewSkillPath
@@ -326,6 +362,12 @@ foreach ($reportSkillPath in @($reviewSkillPath, $fixSkillPath)) {
     if ($reportSkillContent.Contains($marker)) {
       Add-Error "Snapshot report skill must not contain append-only marker ${marker}: $reportSkillPath"
     }
+  }
+}
+
+foreach ($removedTemplate in @('prd-changelog-template.md', 'feedback-index-template.md')) {
+  if (Test-Path -LiteralPath (Join-Path $pluginRoot "assets\templates\$removedTemplate")) {
+    Add-Error "Removed version 3 template still exists: $removedTemplate"
   }
 }
 
@@ -426,12 +468,23 @@ $blockedPatterns = @(
   'chmod',
   'sudo'
 )
+$deprecatedDocumentPatterns = @(
+  'docs/PRD/changelog\.md',
+  'docs/design/mockup\.md',
+  'docs/feedback/index\.md',
+  'docs/changes/<change-id>/'
+)
 
 foreach ($file in $scanFiles) {
   $content = Get-Content -Raw -Encoding UTF8 -LiteralPath $file.FullName
   foreach ($pattern in $blockedPatterns) {
     if ($content -match $pattern) {
       Add-Error "Blocked Unix command pattern '$pattern' found in $($file.FullName)."
+    }
+  }
+  foreach ($pattern in $deprecatedDocumentPatterns) {
+    if ($content -match $pattern) {
+      Add-Error "Deprecated version 2 document pattern '$pattern' found in $($file.FullName)."
     }
   }
 }

@@ -11,7 +11,7 @@ description: 景元开发实现工作流。Use when Codex or Claude Code needs t
 - Claude Code 入口：`/jingyuan:dev-builder`。
 - `<JINGYUAN_PLUGIN_ROOT>` 解析规则：Claude Code 使用 `${CLAUDE_PLUGIN_ROOT}`；Codex 优先使用 `$env:CODEX_HOME\plugins\jingyuan`，否则使用 `$HOME\.codex\plugins\jingyuan`。
 
-`$jingyuan:dev-builder` 按 `docs/development/plan.md` 和可选 `docs/changes/<change-id>/tasks.md` 执行开发。核心职责是把每个 vertical slice 做成可运行、可测试、可审查、可恢复的增量，而不是批量写代码后再补验证。
+`$jingyuan:dev-builder` 按 `docs/development/plan.md` 和可选 `docs/changes/<change-id>.md` 的 Tasks 区块执行开发。核心职责是把每个 vertical slice 做成可运行、可测试、可审查、可恢复的增量，而不是批量写代码后再补验证。
 
 ## 启动读取
 
@@ -20,9 +20,9 @@ description: 景元开发实现工作流。Use when Codex or Claude Code needs t
 启动后读取：
 - `docs/PRD/prd.md`。缺失则提示先调用 `$jingyuan:pm`。
 - `docs/development/plan.md`。缺失则提示先调用 `$jingyuan:dev-plan`。
-- `docs/changes/*/tasks.md`，存在则优先按未完成 checkbox 执行。
-- `docs/design/design.md`、`docs/design/mockup.md`、`docs/design/ui-design.pen`，存在则作为 UI 约束。
-- `docs/context.md`、`docs/adr/`、`docs/out-of-scope/`，存在则作为术语、架构和范围边界。
+- 相关 `docs/changes/<change-id>.md`，存在则优先按 Tasks 区块的未完成 checkbox 执行。
+- `docs/design/design.md`、`docs/design/ui-design.pen`，存在则作为 UI 约束；Figma 定位从 design.md 的 Design Artifacts 读取。
+- 长期记忆：先从当前 task/slice/finding 提取 scopes/tags；context 仅在相关时读取，ADR/out-of-scope 只读取状态有效且 `scopes: [global]` 或 scope/tag 匹配的正文。元数据非法时返回 `needs_context`，不得静默忽略或全量加载。
 - `<JINGYUAN_PLUGIN_ROOT>/references/workflow/document-conventions.md`
 - `<JINGYUAN_PLUGIN_ROOT>/references/workflow/dependency-policy.md`
 - `<JINGYUAN_PLUGIN_ROOT>/references/workflow/project-memory.md`
@@ -38,12 +38,12 @@ description: 景元开发实现工作流。Use when Codex or Claude Code needs t
 
 ## 多 Agent 状态协议
 
-读取 `<JINGYUAN_PLUGIN_ROOT>/references/workflow/agent-collaboration-state.md`。配置版本 2 且状态已启用时，以 `dev-builder` 角色执行 `StartSession → Status → Claim`；依赖、来源哈希、未知工作区修改或文件锁不通过时不得编码。提交前必须调用 `CheckCommit`，完成验证后创建 review 任务并调用 `Complete`。状态不存在时保持原流程并提示运行 `$jingyuan:setup`。
+读取 `<JINGYUAN_PLUGIN_ROOT>/references/workflow/agent-collaboration-state.md`。配置版本 3 且状态已启用时，以 `dev-builder` 角色执行 `StartSession → Status → Claim`；依赖、来源哈希、未知工作区修改或文件锁不通过时不得编码。提交前必须调用 `CheckCommit`，完成验证后创建 review 任务并调用 `Complete`。状态不存在时保持原流程并提示运行 `$jingyuan:setup`。
 
 ## 模式选择
 
 - **初始化模式**：无项目代码 + 有 `docs/development/plan.md`。搭建项目骨架后立刻完成第一个可验证 tracer 行为。
-- **持续开发模式**：已有项目代码 + 有计划。按 `docs/changes/*/tasks.md` 或 plan 中第一个未完成 checkbox 执行。
+- **持续开发模式**：已有项目代码 + 有计划。按 change 文档 Tasks 区块或 plan 中第一个未完成 checkbox 执行。
 - **恢复模式**：存在未完成 change artifact、`[!]` 阻塞项或上次未完成验证时，从未完成 checkbox 和最近验证证据恢复。
 
 ## 硬性原则

@@ -15,10 +15,10 @@ JingYuan 是面向 Codex 与 Claude Code 的 Windows-first 工作流插件，把
 
 Codex 补全列表中显示为 `jingyuan:<skill>`，输入 `$jingyuan` 可看到以下子技能；Claude Code 安装插件后使用 `/jingyuan:<skill>` 调用同一组技能：
 
-- `$jingyuan:setup` / `/jingyuan:setup`：初始化 JingYuan 项目目录、长期记忆和 `.jingyuan/config.json`
+- `$jingyuan:setup` / `/jingyuan:setup`：初始化 version 3 配置和本机状态，不创建 docs 空壳
 - `$jingyuan:pm` / `/jingyuan:pm`：澄清产品问题、术语、场景、范围和风险，生成或更新 `docs/PRD/prd.md`
 - `$jingyuan:design` / `/jingyuan:design`：生成或更新 `docs/design/design.md`
-- `$jingyuan:mockup` / `/jingyuan:mockup`：生成设计稿说明 `docs/design/mockup.md`；如用户选择 Pencil，同步生成 `docs/design/ui-design.pen`
+- `$jingyuan:mockup` / `/jingyuan:mockup`：更新 design.md 的 Design Artifacts；如用户选择 Pencil，同步生成 `docs/design/ui-design.pen`
 - `$jingyuan:dev-plan` / `/jingyuan:dev-plan`：生成或更新 `docs/development/plan.md`
 - `$jingyuan:dev-builder` / `/jingyuan:dev-builder`：按开发计划实现项目
 - `$jingyuan:review` / `/jingyuan:review`：审查代码、文档一致性、质量、安全、性能和测试覆盖
@@ -39,19 +39,13 @@ Codex 补全列表中显示为 `jingyuan:<skill>`，输入 `$jingyuan` 可看到
 
 ```text
 <target-project>/docs/PRD/prd.md
-<target-project>/docs/PRD/changelog.md
 <target-project>/docs/design/design.md
-<target-project>/docs/design/mockup.md
 <target-project>/docs/design/ui-design.pen
 <target-project>/docs/development/plan.md
-<target-project>/docs/changes/<change-id>/proposal.md
-<target-project>/docs/changes/<change-id>/spec.md
-<target-project>/docs/changes/<change-id>/design.md
-<target-project>/docs/changes/<change-id>/tasks.md
+<target-project>/docs/changes/<change-id>.md
 <target-project>/docs/review/
 <target-project>/docs/bug-fix/
 <target-project>/docs/research/<research-id>.md
-<target-project>/docs/feedback/index.md
 <target-project>/docs/feedback/
 <target-project>/docs/context.md
 <target-project>/docs/adr/
@@ -65,7 +59,7 @@ Codex 补全列表中显示为 `jingyuan:<skill>`，输入 `$jingyuan` 可看到
 <target-project>/.jingyuan/state/handoff.md
 ```
 
-其中 `docs/context.md`、`docs/adr/`、`docs/out-of-scope/` 是项目长期记忆，用来固定术语、记录关键取舍和保存明确不做的范围。`docs/changes/<change-id>/` 用于较大开发变更的 proposal/spec/design/tasks 生命周期，`docs/development/plan.md` 继续作为开发总览。
+其中 `docs/context.md`、`docs/adr/`、`docs/out-of-scope/` 是按需创建、按 scopes/tags 选择性加载的长期记忆。`docs/changes/<change-id>.md` 用于较大开发变更，`docs/development/plan.md` 继续作为开发总览。
 
 `.jingyuan/state/records/` 保存本机短期协作 JSON，五个 Markdown 文件由状态工具生成，仅供阅读。`$jingyuan:setup` 默认把 `/.jingyuan/state/` 写入仓库本地 `.git/info/exclude`，不会污染提交；状态迁移和交接统一通过 `$jingyuan:handoff` 或各角色 Skill 调用状态工具完成。
 

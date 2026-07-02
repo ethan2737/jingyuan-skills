@@ -1,6 +1,6 @@
 ---
 name: pm
-description: 景元产品经理需求澄清闸门。Use when Codex or Claude Code needs to collect, challenge, reverse-engineer, generate, or update product requirements for new ideas, existing PRDs, or old projects/codebases; clarify problem, audience, scenarios, scope, risks, and write outputs to docs/PRD/prd.md and docs/PRD/changelog.md.
+description: 景元产品经理需求澄清闸门。Use when Codex or Claude Code needs to collect, challenge, reverse-engineer, generate, or update product requirements and write docs/PRD/prd.md.
 ---
 
 # JingYuan PM
@@ -12,7 +12,7 @@ description: 景元产品经理需求澄清闸门。Use when Codex or Claude Cod
 - `<JINGYUAN_PLUGIN_ROOT>` 解析规则：Claude Code 使用 `${CLAUDE_PLUGIN_ROOT}`；Codex 优先使用 `$env:CODEX_HOME\plugins\jingyuan`，否则使用 `$HOME\.codex\plugins\jingyuan`。
 
 - 本 Skill 面向 Codex 与 Claude Code。
-- 所有产物写入目标项目 `docs/` 目录；标准输出为 `docs/PRD/prd.md` 与 `docs/PRD/changelog.md`。
+- 标准输出只有 `docs/PRD/prd.md`；历史变化由 Git 追溯，不创建独立 changelog。
 - 读取旧项目时兼容 `docs/PRD/PRD.md`、`docs/PRD/PRD-CHANGELOG.md`、`docs/PRD.md`，但新建或重构时收口到标准路径。
 - 启动后优先读取共享参考：`<JINGYUAN_PLUGIN_ROOT>/references/workflow/document-conventions.md`、`<JINGYUAN_PLUGIN_ROOT>/references/workflow/dependency-policy.md`、`<JINGYUAN_PLUGIN_ROOT>/references/workflow/project-memory.md`、`<JINGYUAN_PLUGIN_ROOT>/references/workflow/windows-powershell.md`。
 - PM 细则按需读取本目录 `references/`：`clarifying-questions.md`、`context-rules.md`、`prd-readiness-gate.md`、`out-of-scope-rules.md`、`reverse-engineering.md`、`pm-frameworks.md`。
@@ -20,7 +20,7 @@ description: 景元产品经理需求澄清闸门。Use when Codex or Claude Cod
 
 ## 多 Agent 状态协议
 
-读取 `<JINGYUAN_PLUGIN_ROOT>/references/workflow/agent-collaboration-state.md`。配置版本 2 且状态已启用时，以 `pm` 角色执行 `StartSession → Status → Claim`；只有领取成功后才修改任务写入范围。完成 PRD 变更后，为 design、dev-plan 等每个下游角色分别创建任务并共享 `change_id`，再调用 `Complete`。状态不存在时保持原流程并提示运行 `$jingyuan:setup`；禁止直接编辑状态 JSON 或 Markdown 视图。
+读取 `<JINGYUAN_PLUGIN_ROOT>/references/workflow/agent-collaboration-state.md`。配置版本 3 且状态已启用时，以 `pm` 角色执行 `StartSession → Status → Claim`；只有领取成功后才修改任务写入范围。完成 PRD 变更后，为 design、dev-plan 等每个下游角色分别创建任务并共享 `change_id`，再调用 `Complete`。状态不存在时保持原流程并提示运行 `$jingyuan:setup`；禁止直接编辑状态 JSON 或 Markdown 视图。
 
 # 核心任务
 
@@ -46,7 +46,7 @@ description: 景元产品经理需求澄清闸门。Use when Codex or Claude Cod
 
 1. 检查项目内是否存在 PRD，按顺序读取：`docs/PRD/prd.md`、`docs/PRD/PRD.md`、`docs/PRD.md`。
 2. 若不存在，再扫描 `*spec*.md`、`*prd*.md`、`*PRD*.md`、`*需求*.md`、`*product*.md` 作为候选文档。
-3. 读取 `docs/context.md`、`docs/adr/`、`docs/out-of-scope/`（存在则使用，不存在不阻塞）。
+3. 提取当前需求 scopes/tags，context 仅在术语相关时读取；ADR/out-of-scope 只读取状态有效且 global 或匹配的正文，元数据非法则返回 `needs_context`。
 4. 若找到明确 PRD 或用户明确要修改现有需求文档，进入 **迭代模式**。
 5. 若没有 PRD，但用户给了旧项目路径、代码库、页面、仓库、README、功能现状描述，进入 **逆向模式**。
 6. 其余情况进入 **0-1 模式**。
@@ -97,7 +97,7 @@ description: 景元产品经理需求澄清闸门。Use when Codex or Claude Cod
 5. 输出 PRD：
    - CHECKPOINT: 先展示 PRD 摘要（核心场景、MVP 范围、关键风险、本期不做概要），经用户确认内容方向和完整性后再写入。
    - 加载 `<JINGYUAN_PLUGIN_ROOT>/assets/templates/prd-template.md`，写入 `docs/PRD/prd.md`。
-6. 输出变更记录：首次建档写入 `docs/PRD/changelog.md`。
+6. 完成后报告 PRD 路径和 Git diff 摘要，不创建额外变更记录。
 
 # 迭代模式
 
@@ -114,7 +114,7 @@ description: 景元产品经理需求澄清闸门。Use when Codex or Claude Cod
 3. 做影响分析：检查现有 PRD、`docs/context.md`、ADR、out-of-scope 是否冲突。
 4. 通过必要闸门：重度变更必须重新通过 5 个闸门；中度至少通过场景压实和范围裁剪；轻度确认理解即可。
 5. 更新文档：基于现有结构改受影响章节，不强行重排整份 PRD。
-6. 更新变更记录：加载 `prd-changelog-template.md`，追加到 `docs/PRD/changelog.md`。
+6. 用 Git diff 说明本次实际变化，不双写变更日志。
 
 # 逆向模式
 
@@ -140,14 +140,6 @@ description: 景元产品经理需求澄清闸门。Use when Codex or Claude Cod
 - 需求很多时使用轻量 MoSCoW 或 RICE；需要具体格式时读取 `references/pm-frameworks.md`。
 - 不清楚的内容标记 `[待确认]`，不要编。
 - 明确不做的内容写入 PRD 的“本期不做”；反复出现或容易被后续技能误加的内容写入 `docs/out-of-scope/`。
-
-# 变更记录规则
-
-更新 `docs/PRD/changelog.md` 时：
-
-- 分类使用：`新增`、`修改`、`删除`、`重构澄清`、`待确认关闭`、`范围裁剪`、`逆向建档`。
-- 只记录实际变化，不记录没动的部分。
-- 涉及 AI 能力、风险、边界条件、核心流程、本期不做、术语定义变化时，单独成条。
 
 # 反例清单
 
