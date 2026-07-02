@@ -19,8 +19,8 @@ description: 景元开发计划工作流。Use when Codex or Claude Code needs t
 
 启动后读取：
 - `docs/PRD/prd.md`。缺失则提示先调用 `$jingyuan:pm`。
-- `docs/design/design.md`、`docs/design/mockup.md`、`docs/design/ui-design.pen`，存在则作为界面和交互约束。
-- `docs/context.md`、`docs/adr/`、`docs/out-of-scope/`，存在则作为术语、架构决策和范围边界。
+- `docs/design/design.md`、`docs/design/ui-design.pen`，存在则作为界面和交互约束。
+- 长期记忆：先从当前 task/slice/finding 提取 scopes/tags；context 仅在相关时读取，ADR/out-of-scope 只读取状态有效且 `scopes: [global]` 或 scope/tag 匹配的正文。元数据非法时返回 `needs_context`，不得静默忽略或全量加载。
 - 现有项目代码，存在则进入迭代规划，计划必须贴合现有结构。
 - `<JINGYUAN_PLUGIN_ROOT>/references/workflow/document-conventions.md`
 - `<JINGYUAN_PLUGIN_ROOT>/references/workflow/dependency-policy.md`
@@ -33,20 +33,16 @@ description: 景元开发计划工作流。Use when Codex or Claude Code needs t
 
 ## 多 Agent 状态协议
 
-读取 `<JINGYUAN_PLUGIN_ROOT>/references/workflow/agent-collaboration-state.md`。配置版本 2 且状态已启用时，以 `dev-plan` 角色执行 `StartSession → Status → Claim`，只加载任务指向的 PRD/design/change 章节。完成计划后创建单接收方 dev-builder 任务，写清 plan/change task、写入范围、依赖和验收标准，再调用 `Complete`。状态不存在时保持原流程并提示运行 `$jingyuan:setup`。
+读取 `<JINGYUAN_PLUGIN_ROOT>/references/workflow/agent-collaboration-state.md`。配置版本 3 且状态已启用时，以 `dev-plan` 角色执行 `StartSession → Status → Claim`，只加载任务指向的 PRD/design/change 章节。完成计划后创建单接收方 dev-builder 任务，写清 plan/change task、写入范围、依赖和验收标准，再调用 `Complete`。状态不存在时保持原流程并提示运行 `$jingyuan:setup`。
 
 ## 输出目标
 
 默认输出总览计划：
 - `docs/development/plan.md`
 
-较大变更必须额外输出 change artifact：
-- `docs/changes/<change-id>/proposal.md`
-- `docs/changes/<change-id>/spec.md`
-- `docs/changes/<change-id>/design.md`
-- `docs/changes/<change-id>/tasks.md`
+较大变更只额外输出一个 change artifact：`docs/changes/<change-id>.md`，固定包含 Intent、Behavior Contract、Design Constraints、Tasks。
 
-小改动可只更新 `docs/development/plan.md`。如果变更影响多个能力、跨模块、改变用户行为、改变架构决策、引入新依赖或需要多次恢复执行，必须生成 `docs/changes/<change-id>/`。
+小改动可只更新 `docs/development/plan.md`。如果变更影响多个能力、跨模块、改变用户行为、改变架构决策、引入新依赖或需要多次恢复执行，必须生成 `docs/changes/<change-id>.md`。
 
 ## 第一性原则
 
@@ -75,13 +71,13 @@ description: 景元开发计划工作流。Use when Codex or Claude Code needs t
 9. 自检：核心需求覆盖、依赖顺序、语言边界、文件路径、verify checklist、out-of-scope、无占位符。
 10. 输出前确认：
     - CHECKPOINT: 展示计划概览（Phase/Slice 数量、依赖图拓扑顺序、HITL/Spike 项分布、关键风险），经用户确认后再落盘。
-11. 写入 `docs/development/plan.md`；如触发 change artifact 条件，同时写入 `docs/changes/<change-id>/`。
+11. 写入 `docs/development/plan.md`；如触发 change artifact 条件，使用 `change-template.md` 同时写入 `docs/changes/<change-id>.md`。
 
 ## 迭代模式
 
 用于 PRD、设计或现有代码发生变化后更新计划。
 
-1. 读取现有 `docs/development/plan.md`、`docs/changes/*/tasks.md`、PRD changelog、设计和代码状态。
+1. 读取现有 `docs/development/plan.md`、相关 `docs/changes/<change-id>.md`、PRD、设计和代码状态。
 2. 判断是更新现有 change 还是新开 change：同一 intent 且 scope 高重叠则更新；intent 改变、范围扩大或影响多个独立能力则新开。
    - CHECKPOINT: 输出变更影响分析摘要（受影响 Phase/Slice、变更范围判断、现有完成度），经用户确认后再开始修改。
 3. 已完成并验证的 Phase/Slice 不静默重写；如必须返工，说明原因和影响。

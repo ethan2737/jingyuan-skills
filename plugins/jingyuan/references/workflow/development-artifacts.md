@@ -1,10 +1,10 @@
 ﻿# Development Artifacts
 
-JingYuan 使用两层开发制品：`docs/development/plan.md` 保存总览，`docs/changes/<change-id>/` 保存较大变更的可执行细节。
+JingYuan 使用两层开发制品：`docs/development/plan.md` 保存总览，`docs/changes/<change-id>.md` 保存较大变更的可执行细节。
 
 ## 何时创建 change artifact
 
-满足任一条件时创建 `docs/changes/<change-id>/`：
+满足任一条件时创建 `docs/changes/<change-id>.md`：
 - 变更跨多个能力或多个模块。
 - 改变用户可见行为、数据结构、权限、安全边界或架构决策。
 - 需要多次会话恢复执行。
@@ -15,18 +15,12 @@ JingYuan 使用两层开发制品：`docs/development/plan.md` 保存总览，`d
 
 ## 文件约定
 
-```text
-docs/changes/<change-id>/
-  proposal.md
-  spec.md
-  design.md
-  tasks.md
-```
+单一 change 文档固定包含：
 
-- `proposal.md`：为什么做、目标、范围、NOT in scope、成功标准。
-- `spec.md`：需求 delta，按 `ADDED`、`MODIFIED`、`REMOVED`、`RENAMED` 记录用户可见行为。
-- `design.md`：实现约束、接口/seam、数据、错误路径、性能和安全考虑。
-- `tasks.md`：可恢复 checkbox 清单，每项对应一个 vertical slice 或验证任务。
+- `Intent`：为什么做、目标、范围、NOT in scope、成功标准。
+- `Behavior Contract`：新增、修改、删除、重命名及保持不变的用户可见行为。
+- `Design Constraints`：接口/seam、数据、错误路径、性能、安全和兼容性。
+- `Tasks`：可恢复 checkbox 清单，每项对应一个 vertical slice 或验证任务。
 
 ## 状态规则
 
@@ -34,7 +28,7 @@ docs/changes/<change-id>/
 - `[x]` 已完成，并有验证证据。
 - `[!]` 阻塞或需要人工判断，必须写明原因和需要的上下文。
 
-`dev-builder` 每完成一个 task 就更新状态，不等整个 Phase 结束。未完成 task 或关键验证失败时，不得把 change 归档为完成。
+`dev-builder` 每完成一个 task 就更新 change 文档的 Tasks 区块，不等整个 Phase 结束。未完成 task 或关键验证失败时，不得把 change 标记为完成。
 
 ## Apply / Verify / Sync / Archive
 

@@ -15,18 +15,18 @@ JingYuan 是面向 Codex 与 Claude Code 的 Windows-first 工作流插件，把
 
 Codex 补全列表中显示为 `jingyuan:<skill>`，输入 `$jingyuan` 可看到以下子技能；Claude Code 安装插件后使用 `/jingyuan:<skill>` 调用同一组技能：
 
-- `$jingyuan:setup` / `/jingyuan:setup`：初始化 JingYuan 项目目录、长期记忆和 `.jingyuan/config.json`
+- `$jingyuan:setup` / `/jingyuan:setup`：初始化 version 3 配置和本机状态，不创建 docs 空壳
 - `$jingyuan:pm` / `/jingyuan:pm`：澄清产品问题、术语、场景、范围和风险，生成或更新 `docs/PRD/prd.md`
-- `$jingyuan:design` / `/jingyuan:design`：生成或更新 `docs/design/design.md`
-- `$jingyuan:mockup` / `/jingyuan:mockup`：生成设计稿说明 `docs/design/mockup.md`；如用户选择 Pencil，同步生成 `docs/design/ui-design.pen`
-- `$jingyuan:dev-plan` / `/jingyuan:dev-plan`：生成或更新 `docs/development/plan.md`
+- `$jingyuan:design` / `/jingyuan:design`：仅在存在 UI/UX 或明确设计约束时生成或更新 `docs/design/design.md`
+- `$jingyuan:mockup` / `/jingyuan:mockup`：更新 design.md 的 Design Artifacts；如用户选择 Pencil，同步生成 `docs/design/ui-design.pen`
+- `$jingyuan:dev-plan` / `/jingyuan:dev-plan`：生成或更新 `docs/development/plan.md`；大型变更使用单一 `docs/changes/<change-id>.md`
 - `$jingyuan:dev-builder` / `/jingyuan:dev-builder`：按开发计划实现项目
 - `$jingyuan:review` / `/jingyuan:review`：审查代码、文档一致性、质量、安全、性能和测试覆盖
 - `$jingyuan:fix` / `/jingyuan:fix`：建立复现/验证循环后修复 Bug
 - `$jingyuan:release` / `/jingyuan:release`：构建、打包和发布检查
 - `$jingyuan:research` / `/jingyuan:research`：使用横纵分析法产出产品、公司、技术概念或人物的深度调研报告
 - `$jingyuan:spider` / `/jingyuan:spider`：判断 Python 爬虫路线，结合笔记和案例处理普通采集、Scrapy、Selenium、JS 逆向和补环境问题
-- `$jingyuan:feedback` / `/jingyuan:feedback`：记录反馈到 `docs/feedback/`
+- `$jingyuan:feedback` / `/jingyuan:feedback`：按 topic 记录反馈到 `docs/feedback/`，不维护重复索引
 - `$jingyuan:humanizer` / `/jingyuan:humanizer`：去除文本中的 AI 生成痕迹，检测 24 种 AI 写作模式并人性化改写
 - `$jingyuan:evolution` / `/jingyuan:evolution`：扫描反馈并提出进化建议
 - `$jingyuan:sync` / `/jingyuan:sync`：同步代码、PRD、设计、设计稿、开发计划和交接文档
@@ -39,19 +39,13 @@ Codex 补全列表中显示为 `jingyuan:<skill>`，输入 `$jingyuan` 可看到
 
 ```text
 <target-project>/docs/PRD/prd.md
-<target-project>/docs/PRD/changelog.md
 <target-project>/docs/design/design.md
-<target-project>/docs/design/mockup.md
 <target-project>/docs/design/ui-design.pen
 <target-project>/docs/development/plan.md
-<target-project>/docs/changes/<change-id>/proposal.md
-<target-project>/docs/changes/<change-id>/spec.md
-<target-project>/docs/changes/<change-id>/design.md
-<target-project>/docs/changes/<change-id>/tasks.md
+<target-project>/docs/changes/<change-id>.md
 <target-project>/docs/review/
 <target-project>/docs/bug-fix/
 <target-project>/docs/research/<research-id>.md
-<target-project>/docs/feedback/index.md
 <target-project>/docs/feedback/
 <target-project>/docs/context.md
 <target-project>/docs/adr/
@@ -65,7 +59,27 @@ Codex 补全列表中显示为 `jingyuan:<skill>`，输入 `$jingyuan` 可看到
 <target-project>/.jingyuan/state/handoff.md
 ```
 
-其中 `docs/context.md`、`docs/adr/`、`docs/out-of-scope/` 是项目长期记忆，用来固定术语、记录关键取舍和保存明确不做的范围。`docs/changes/<change-id>/` 用于较大开发变更的 proposal/spec/design/tasks 生命周期，`docs/development/plan.md` 继续作为开发总览。
+其中 `docs/context.md`、`docs/adr/`、`docs/out-of-scope/` 是按需创建、按 scopes/tags 选择性加载的长期记忆。`docs/changes/<change-id>.md` 用于较大开发变更，`docs/development/plan.md` 继续作为开发总览。
+
+ADR、out-of-scope 和 feedback 使用轻量 frontmatter。ADR 状态为 `proposed | accepted | superseded`，out-of-scope 为 `active | retired`，feedback 为 `open | graduated | closed`。只有 `scopes: [global]` 或与当前任务 scopes/tags 匹配的正文才会进入 Agent 上下文。
+
+## 从 version 1/2 迁移到 version 3
+
+version 3 停止生成 PRD changelog、`design/mockup.md`、feedback index 和 change 四件套。迁移会合并或删除这些旧产物，因此只允许在干净 Git 仓库中显式执行。
+
+先预览，不写文件：
+
+```powershell
+.\plugins\jingyuan\scripts\jingyuan-state.ps1 -Action Migrate -ProjectRoot <目标项目> -Preview
+```
+
+确认预览中的合并、删除和配置变化后执行：
+
+```powershell
+.\plugins\jingyuan\scripts\jingyuan-state.ps1 -Action Migrate -ProjectRoot <目标项目> -ConfirmDestructiveMigration
+```
+
+迁移拒绝非 Git 项目、dirty working tree、缺失 feedback topic 或已存在的 change 目标，不会做部分迁移。完成后检查 Git diff，再重新运行 `$jingyuan:setup` 或 `/jingyuan:setup` 初始化 v3 状态。
 
 `.jingyuan/state/records/` 保存本机短期协作 JSON，五个 Markdown 文件由状态工具生成，仅供阅读。`$jingyuan:setup` 默认把 `/.jingyuan/state/` 写入仓库本地 `.git/info/exclude`，不会污染提交；状态迁移和交接统一通过 `$jingyuan:handoff` 或各角色 Skill 调用状态工具完成。
 

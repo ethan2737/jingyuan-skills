@@ -9,7 +9,7 @@
 | 原 Hook | 原触发 | 原作用 | Codex 适配 |
 |---|---|---|---|
 | detect-feedback-signal.sh | UserPromptSubmit | 检测用户修正、质疑、不满、改进建议 | 对话前置检查；检测到信号后，请求处理完毕后自动进入 `feedback`，写入 `docs/feedback/` |
-| check-evolution.sh | SessionStart | 检查反馈索引是否有待处理 feedback | 会话初始化或项目进入时检查 `docs/feedback/index.md`；可自动扫描，但规则/skill 变更必须用户确认 |
+| check-evolution.sh | SessionStart | 检查是否有待处理 feedback | 扫描 `docs/feedback/*.md` frontmatter 中的 open 记录；规则/skill 变更必须用户确认 |
 | mark-review-needed.sh | PostToolUse 编辑代码后 | 代码变更后标记需要 review | 代码文件变更后写入 `.jingyuan/needs-review`；文档和配置类变更不触发 |
 | stop-gate.sh | Stop | 有代码变更但未 review 时阻止停止 | 最终回复前检查 `.jingyuan/needs-review`；如为 `needs_review`，不得声明 Phase 完成，必须提示运行 `review` |
 | pre-commit-check.sh | git commit 前 | 自动运行 `npx tsc --noEmit`，失败阻止 commit | Codex 执行 commit 前必须先运行编译检查；无 `tsconfig.json` 时跳过 |
@@ -19,7 +19,6 @@
 
 - review 状态：`.jingyuan/needs-review`
 - feedback：`docs/feedback/`
-- feedback 索引：`docs/feedback/index.md`
 
 ## 安全规则
 

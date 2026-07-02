@@ -31,7 +31,7 @@ description: 景元发布构建工作流。Use when Codex or Claude Code needs t
 
     可选：
     - `docs/PRD/prd.md` → 用于核心功能冒烟测试。
-    - `docs/context.md`、`docs/adr/`、`docs/out-of-scope/` → 用于确认发布边界。
+    - 长期记忆 → 先从当前 task/slice/finding 提取 scopes/tags；context 仅在相关时读取，ADR/out-of-scope 只读取状态有效且 `scopes: [global]` 或 scope/tag 匹配的正文。元数据非法时返回 `needs_context`，不得静默忽略或全量加载。
 
 [第一性原则]
     **dev 测通不等于发布可用**：必须测试打包、安装或部署后的真实运行环境。

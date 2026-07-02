@@ -15,7 +15,7 @@ description: 景元代码审查工作流。Use when Codex or Claude Code needs t
 
 ## 多 Agent 状态协议
 
-读取 `<JINGYUAN_PLUGIN_ROOT>/references/workflow/agent-collaboration-state.md`。配置版本 2 且状态已启用时，以 `review` 角色执行 `StartSession → Status → Claim`。提交 review 报告前调用 `CheckCommit`；发现 finding 时为 fix 创建单接收方任务，只引用 `docs/review/review-<task-id>.md`、finding ID 和验证要求，不复制报告正文，然后调用 `Complete`。状态不存在时保持现有 task-scoped 报告流程。
+读取 `<JINGYUAN_PLUGIN_ROOT>/references/workflow/agent-collaboration-state.md`。配置版本 3 且状态已启用时，以 `review` 角色执行 `StartSession → Status → Claim`。提交 review 报告前调用 `CheckCommit`；按 active finding 的 `route` 为 dev-builder、fix、pm、design、sync 或 human 分别创建单接收方任务，只引用 `docs/review/review-<task-id>.md`、匹配的 finding ID 和验证要求，不复制报告正文，然后调用 `Complete`。状态不存在时保持现有 task-scoped 报告流程。
 
 
 [任务]
@@ -32,10 +32,10 @@ description: 景元代码审查工作流。Use when Codex or Claude Code needs t
     可选（增强审查能力）：
     - docs/development/plan.md → 有则可对照 Phase 交付清单检查
     - docs/design/design.md → 有则可对照视觉规范
-    - 设计工具 MCP（Pencil / Figma 等）→ 有则可提取设计数值与代码对比；Pencil 优先读取 docs/design/ui-design.pen，Figma 按 docs/design/mockup.md 记录的文件定位信息读取
+    - 设计工具 MCP（Pencil / Figma 等）→ 有则可提取设计数值与代码对比；Pencil 优先读取 docs/design/ui-design.pen，Figma 按 design.md 的 Design Artifacts 定位
     - Playwright plugin → 有则可自动化 UI 交互测试
     - git → 有则可用 git diff 追溯变更范围
-    - docs/bug-fix/ 最新修复报告 → 存在时必须读取 source_review_report、fix_rounds、addressed_findings 和 remaining_findings，并在本轮审查中验证已修复项是否真正消除。
+    - docs/bug-fix/ 最新修复报告 → 存在时只读取 source_review_report、fix_rounds、pending_verification_findings、remaining_findings 和当前验证要求，并优先验证待复审项。
 
 [第一性原则]
     **不信任声明**：不接受"已实现"、"大致匹配"这种模糊结论。每个功能要么有代码实现（附文件路径和行号），要么没有。
@@ -105,7 +105,7 @@ description: 景元代码审查工作流。Use when Codex or Claude Code needs t
     对照设计稿检查 UI 实现：
     - 如有设计工具 MCP → 提取设计数值，与代码中的 Tailwind class / style 逐项比对
     - Pencil 设计稿 → 打开 docs/design/ui-design.pen 定位页面、组件和状态变体
-    - Figma 设计稿 → 从 docs/design/mockup.md 读取文件 URL / file key / 页面 ID / 节点 ID 后定位
+    - Figma 设计稿 → 从 design.md 的 Design Artifacts 读取文件 URL / file key / 页面 ID / 节点 ID 后定位
     - 查看设计稿视觉效果作为参考
         - 对比：布局、组件、颜色、间距、交互状态
         - 如有 docs/design/design.md → 对照色彩方向、信息密度、交互风格
@@ -167,13 +167,18 @@ description: 景元代码审查工作流。Use when Codex or Claude Code needs t
     **报告文件协议**
     - 每个审查任务只维护一份报告：`docs/review/review-<task-id>.md`；目录不存在则创建。
     - `task_id` 来自 Phase、Task、change-id、diff scope 或用户指定范围，必须稳定且适合作为文件名。
-    - 同 scope 存在未关闭报告（`status: open` 或 `status: needs-fix`）时，追加 `## Review Round N`；scope 变化或旧报告已 `closed` / `passed` 后再次审查时，新建报告。
-    - `review_rounds` 是同一报告内累计轮次；首轮为 `1`。轮次只写在正文标题中，不写进文件名。
-    - 报告 frontmatter 必须包含：`type: review-report`、`workflow_id`、`task_id`、`scope`、`status`、`review_rounds`、`fix_rounds_seen`、`latest_head`、`source_fix_report`、`latest_report_commit`、`created`、`updated`。
+    - `SNAPSHOT_REWRITE_NO_FULL_ROUND_APPEND`：同 scope 报告未关闭时，必须重写当前快照，禁止追加完整轮次正文；`review_rounds` 只累计轮次数值。
+    - 报告正文固定为 `Current Decision`、`Active Findings`、`Current Verification`、`Stage Gate Summary`、`Closure Ledger`、`Round Summary`，不得改变顺序。
+    - 报告 frontmatter 必须包含：`type: review-report`、`workflow_id`、`task_id`、`scope`、`status`、`current_stage`、`stage_1_status`、`stage_2_status`、`review_rounds`、`fix_rounds_seen`、`active_findings`、`next_role`、`next_action`、`latest_head`、`source_fix_report`、`latest_report_commit`、`created`、`updated`。
     - `status` 只能使用 `open`、`needs-fix`、`blocked`、`passed`、`closed`、`stale`。Stage 1 未通过也必须落盘，通常为 `needs-fix`；无法继续审查时为 `blocked`；全部通过后标记 `passed` 或 `closed`。
+    - `current_stage` 只能使用 `stage-1`、`stage-2`、`complete`；Stage 1 未通过时 `stage_2_status` 必须为 `not-run`。
     - 每个问题必须有稳定 ID，格式为 `R<round>-PRIORITY-XXX`，例如 `R2-HIGH-001`；同一报告内不得复用 ID。
     - 每个问题必须写明：`priority`、`stage`、`route`、`file:line`、`evidence`、`minimal_fix`。无法定位行号时写明原因。
-    - 如果上一轮存在修复报告，本轮必须逐项验证 `addressed_findings`，报告中单独列出 `Verified fixes`，不能只重新扫代码。
+    - `active_findings` 和 `Active Findings` 只包含当前未解决问题；已验证问题移入 `Closure Ledger`，每项仅保留 `ID | stage | route | verified | verified round | fix commit`。
+    - `Round Summary` 每轮只追加一行 `R<N> | <stage/status> | opened <N> | verified <N> | next: <role>`，不得复制证据正文。
+    - 如果修复报告存在 `pending_verification_findings`，本轮必须先逐项验证；通过后移入 Closure Ledger，失败则以原 ID 返回 Active Findings。
+    - Stage 1 通过后只保留门禁结论、HEAD、验证命令和关键证据引用；不得继续保留逐项通过清单。Stage 2 通过后同样只保留最终门禁摘要。
+    - Git 历史是完整轮次证据的权威载体；当前报告只承担当前执行与交接。
     - 报告正文和最终回复都必须给出报告路径，作为后续 `$jingyuan:fix` 的输入。
     - 报告写完后必须执行本地 `git commit`，commit 范围只包含本次 review 报告和必要目录变更，commit message 使用 `docs(review): update <task-id> review report`。提交后把 commit hash 写回报告的 `latest_report_commit`；如果目标项目不是 git 仓库或 git 身份未配置，报告状态改为 `blocked` 并说明。
 
@@ -227,7 +232,8 @@ description: 景元代码审查工作流。Use when Codex or Claude Code needs t
     - 影响：为什么重要，可能破坏什么用户行为、数据、安全或性能
     - 修复建议：推荐的最小修复路径
     - 证据：Spec 原文、diff、命令输出、截图、API 响应或测试结果
-    - 路由：dev-builder、fix、pm、design、sync 或人工决策
+    - 路由：Stage 1 实现缺失/行为偏差到 `dev-builder`，需求/范围冲突到 `pm`，设计契约不明确到 `design`，文档不同步到 `sync`；Stage 2 质量/安全/性能/测试问题到 `fix`；外部权限或产品裁决到 `human`。
+    - 报告级 `next_role` 取最高优先级 active finding 的接收角色；修复后待复审为 `review`，全部通过为 `none`。同轮多角色问题仍按各 finding 的 route 分别建任务，任务只引用报告路径、匹配的 active finding IDs 和验证要求，不复制报告正文。
 
     **验证证据矩阵法**
     审查报告必须分开列出证据，不能互相替代：
@@ -239,7 +245,7 @@ description: 景元代码审查工作流。Use when Codex or Claude Code needs t
     - Performance：baseline、前后对比或不适用理由
 
     **报告提交门禁**
-    - 写入或追加 review 报告后，必须运行 `git status --short`。
+    - 重写 review 当前快照后，必须运行 `git status --short`。
     - 只允许暂存本次 `docs/review/review-<task-id>.md` 和必要的 `docs/review/` 目录变更；review 不得提交业务代码、测试或配置改动。
     - 如果工作区存在无关改动，必须只 stage review 报告；无法区分时停止并说明，不能提交。
     - 执行 `git commit -m "docs(review): update <task-id> review report"`。
@@ -250,9 +256,10 @@ description: 景元代码审查工作流。Use when Codex or Claude Code needs t
         读取 docs/PRD/prd.md → 提取审查范围内涉及的功能需求，编号列出
         读取 docs/development/plan.md → 读取当前 Phase 或 Task 的交付清单和关键文件
         如有 docs/design/design.md → 读取审查范围内涉及的视觉方向和页面备注
-        如有 docs/context.md、docs/adr/、docs/out-of-scope/ → 读取术语、架构决策和明确不做事项
-        如有变更包 / delta spec / proposal / tasks → 读取变更意图、行为契约和执行清单
-        如有同 task_id 的 docs/bug-fix/ 修复报告 → 读取并记录 `source_fix_report`、`fix_rounds_seen`、`addressed_findings`，本轮审查必须验证这些 finding。
+        从审查 scope 提取 scopes/tags，只读取匹配的 context、有效 ADR 和 active out-of-scope；元数据非法则返回 `needs_context`
+        如有相关 `docs/changes/<change-id>.md` → 读取 Intent、Behavior Contract、Design Constraints 和 Tasks
+        如有同 task_id 的 docs/bug-fix/ 修复报告 → 只读取 frontmatter、`pending_verification_findings`、`remaining_findings` 和当前验证要求；本轮先验证 pending 项，不加载旧轮次正文或 Closure Ledger 详情。
+        如 review/fix 报告缺少快照字段但含旧版 `Review Round` / `Fix Round` → 仅把最后一轮作为当前快照读取；fresh review 成功后重写为新格式。非 Git 项目不得压缩旧正文，必须标记 `blocked`。
         如有设计工具 MCP → 通过设计工具找到审查范围对应的设计页面，读取这些页面及其组件的精确数值，作为 UI 一致性比对的基准
         确定审查范围：
         - 全量审查（$jingyuan:review）→ Spec 所有功能
@@ -290,7 +297,7 @@ description: 景元代码审查工作流。Use when Codex or Claude Code needs t
 
     [第五步：输出审查报告]
         先确定 `task_id` 和报告路径：`docs/review/review-<task-id>.md`。
-        如果报告已存在且未关闭，保留旧内容并追加本轮 `## Review Round N`；如果不存在或已关闭，创建新报告。
+        如果报告已存在且未关闭，增加 `review_rounds` 后重写当前快照；如果不存在或已关闭，创建新报告。不得追加完整轮次正文。
         报告文件必须包含如下 frontmatter：
         ```yaml
         ---
@@ -299,8 +306,14 @@ description: 景元代码审查工作流。Use when Codex or Claude Code needs t
         task_id: [phase1 | task-auth-login | change-id | diff-short-hash]
         scope: [full | phase | task | diff | 用户指定范围]
         status: [open | needs-fix | blocked | passed | closed | stale]
+        current_stage: [stage-1 | stage-2 | complete]
+        stage_1_status: [pending | needs-fix | blocked | passed | stale]
+        stage_2_status: [not-run | needs-fix | blocked | passed | stale]
         review_rounds: [N]
         fix_rounds_seen: [N 或 0]
+        active_findings: [R<round>-PRIORITY-XXX]
+        next_role: [review | dev-builder | fix | pm | design | sync | human | none]
+        next_action: [一句可执行指令]
         latest_head: [当前 HEAD hash 或 unknown]
         source_fix_report: [docs/bug-fix/fix-<task-id>.md 或 null]
         latest_report_commit: [commit hash 或 null]
@@ -308,77 +321,47 @@ description: 景元代码审查工作流。Use when Codex or Claude Code needs t
         updated: YYYY-MM-DD
         ---
         ```
-        格式：
-        "📋 **代码审查报告**
+        正文格式严格如下：
+        "# Review: <task-id>
 
-         **对照文档**：docs/PRD/prd.md [+ docs/development/plan.md Phase N]
+         ## Current Decision
+         - Current stage: [stage-1 | stage-2 | complete]
+         - Status: [status]
+         - Next role: [next_role]
+         - Next action: [next_action]
 
-         ---
-
-         **✅ 完整实现（X 项）**
-         - [功能名]：[代码位置] — [验证方式]
-
-         **⚠️ 部分实现（X 项）**
-         - [功能名]：[缺失内容] — Spec 原文：'...'
-
-         **❌ 未实现（X 项）**
-         - [功能名]：Spec 原文：'...'
-
-         **⚡ Spec 漂移（X 项）**
-         - [描述]：代码位置 — Spec 中无对应需求
-
-         **🧩 Findings（X 项）**
+         ## Active Findings
          - R1-HIGH-001
            priority: High
            stage: Stage 1
-           route: fix
+           route: dev-builder
            file: src/example.ts:12
            evidence: [Spec / diff / 命令输出 / 截图]
            minimal_fix: [最小修复路径]
 
-         **🔁 Verified fixes（X 项）**
-         - [来自 source_fix_report 的 finding ID]：[已验证通过/仍失败] — [证据]
-
-         **🔴 安全问题（X 项）**
-         - [描述]：[文件:行号]
-
-         **🧪 测试质量**
-         - 行为覆盖：[通过/缺口]
-         - 错误路径：[通过/缺口]
-         - 回归测试：[通过/缺口]
-         - 测试 seam 风险：[无/说明]
-
-         **📊 代码质量**
-         - 超大文件：[列出 >300 行的文件]
-         - 类型问题：[any/ts-ignore 的使用]
-         - 编译结果：tsc --noEmit [输出]
-
-         **🧾 验证证据矩阵**
+         ## Current Verification
          - Spec compliance：[证据]
          - Test status：[命令 + exit code + 关键输出]
          - Build/type/lint：[命令 + exit code + 关键输出]
          - Security：[扫描范围/结果]
          - UI/interaction：[截图/步骤/未运行原因]
          - Performance：[baseline/不适用理由]
+         - Report commit: [latest_report_commit]
 
-         ---
+         ## Stage Gate Summary
+         - Stage 1: [status] — HEAD [hash] — [命令/关键证据引用]
+         - Stage 2: [status] — HEAD [hash] — [命令/关键证据引用]
 
-         **Priority 分级**
-         ⛔ Critical：[阻塞合并：数据损坏、安全边界、竞态、契约破坏]
-         🔴 High：[核心功能缺失、安全问题]
-         🟡 Medium：[辅助功能、UI 细节、代码质量]
-         🟢 Low：[增强建议、可选优化]
+         ## Closure Ledger
+         - R1-HIGH-001 | Stage 1 | dev-builder | verified | R2 | fix commit abc123
 
-         **Ready to merge?**
-         - No / With fixes / Yes
-         - 原因：[一句话说明阻塞项或剩余风险]
+         ## Round Summary
+         - R1 | Stage 1 needs-fix | opened 1 | verified 0 | next: dev-builder"
 
-         **Git commit**
-         - commit: [latest_report_commit]
-         - message: docs(review): update <task-id> review report"
+        最终回复只汇报当前结论、`active_findings`、`next_role` / `next_action`、本轮验证摘要和报告路径；不得复制 Closure Ledger、Round Summary 或已通过项详情。
 
     注意：本 Skill 范围到输出报告为止。修复由主 Agent 拿到报告后路由执行：
-    - Stage 1 失败（功能缺失/不符合 Spec）→ 主 Agent 把 `docs/review/review-<task-id>.md` 路径交给 dev-builder 或 fix 补实现
+    - Stage 1 失败 → 按每个 finding 的 `route` 交给 dev-builder、pm、design、sync 或 human
     - Stage 2 失败（代码质量/安全问题）→ 主 Agent 把 `docs/review/review-<task-id>.md` 路径交给 fix 修复
     - 修复完成后主 Agent 重新派发 review，从 Stage 1 开始审查
     - 如果 HEAD、目标文件、PRD/design/ADR/out-of-scope、测试命令、依赖或 source_fix_report 发生变化，旧 review 视为 stale，必须重新审查

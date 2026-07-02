@@ -11,7 +11,7 @@ description: 景元开发实现工作流。Use when Codex or Claude Code needs t
 - Claude Code 入口：`/jingyuan:dev-builder`。
 - `<JINGYUAN_PLUGIN_ROOT>` 解析规则：Claude Code 使用 `${CLAUDE_PLUGIN_ROOT}`；Codex 优先使用 `$env:CODEX_HOME\plugins\jingyuan`，否则使用 `$HOME\.codex\plugins\jingyuan`。
 
-`$jingyuan:dev-builder` 按 `docs/development/plan.md` 和可选 `docs/changes/<change-id>/tasks.md` 执行开发。核心职责是把每个 vertical slice 做成可运行、可测试、可审查、可恢复的增量，而不是批量写代码后再补验证。
+`$jingyuan:dev-builder` 按 `docs/development/plan.md` 和可选 `docs/changes/<change-id>.md` 的 Tasks 区块执行开发。核心职责是把每个 vertical slice 做成可运行、可测试、可审查、可恢复的增量，而不是批量写代码后再补验证。
 
 ## 启动读取
 
@@ -20,9 +20,9 @@ description: 景元开发实现工作流。Use when Codex or Claude Code needs t
 启动后读取：
 - `docs/PRD/prd.md`。缺失则提示先调用 `$jingyuan:pm`。
 - `docs/development/plan.md`。缺失则提示先调用 `$jingyuan:dev-plan`。
-- `docs/changes/*/tasks.md`，存在则优先按未完成 checkbox 执行。
-- `docs/design/design.md`、`docs/design/mockup.md`、`docs/design/ui-design.pen`，存在则作为 UI 约束。
-- `docs/context.md`、`docs/adr/`、`docs/out-of-scope/`，存在则作为术语、架构和范围边界。
+- 相关 `docs/changes/<change-id>.md`，存在则优先按 Tasks 区块的未完成 checkbox 执行。
+- `docs/design/design.md`、`docs/design/ui-design.pen`，存在则作为 UI 约束；Figma 定位从 design.md 的 Design Artifacts 读取。
+- 长期记忆：先从当前 task/slice/finding 提取 scopes/tags；context 仅在相关时读取，ADR/out-of-scope 只读取状态有效且 `scopes: [global]` 或 scope/tag 匹配的正文。元数据非法时返回 `needs_context`，不得静默忽略或全量加载。
 - `<JINGYUAN_PLUGIN_ROOT>/references/workflow/document-conventions.md`
 - `<JINGYUAN_PLUGIN_ROOT>/references/workflow/dependency-policy.md`
 - `<JINGYUAN_PLUGIN_ROOT>/references/workflow/project-memory.md`
@@ -38,12 +38,12 @@ description: 景元开发实现工作流。Use when Codex or Claude Code needs t
 
 ## 多 Agent 状态协议
 
-读取 `<JINGYUAN_PLUGIN_ROOT>/references/workflow/agent-collaboration-state.md`。配置版本 2 且状态已启用时，以 `dev-builder` 角色执行 `StartSession → Status → Claim`；依赖、来源哈希、未知工作区修改或文件锁不通过时不得编码。提交前必须调用 `CheckCommit`，完成验证后创建 review 任务并调用 `Complete`。状态不存在时保持原流程并提示运行 `$jingyuan:setup`。
+读取 `<JINGYUAN_PLUGIN_ROOT>/references/workflow/agent-collaboration-state.md`。配置版本 3 且状态已启用时，以 `dev-builder` 角色执行 `StartSession → Status → Claim`；依赖、来源哈希、未知工作区修改或文件锁不通过时不得编码。提交前必须调用 `CheckCommit`，完成验证后创建 review 任务并调用 `Complete`。状态不存在时保持原流程并提示运行 `$jingyuan:setup`。
 
 ## 模式选择
 
 - **初始化模式**：无项目代码 + 有 `docs/development/plan.md`。搭建项目骨架后立刻完成第一个可验证 tracer 行为。
-- **持续开发模式**：已有项目代码 + 有计划。按 `docs/changes/*/tasks.md` 或 plan 中第一个未完成 checkbox 执行。
+- **持续开发模式**：已有项目代码 + 有计划。按 change 文档 Tasks 区块或 plan 中第一个未完成 checkbox 执行。
 - **恢复模式**：存在未完成 change artifact、`[!]` 阻塞项或上次未完成验证时，从未完成 checkbox 和最近验证证据恢复。
 
 ## 硬性原则
@@ -97,7 +97,7 @@ description: 景元开发实现工作流。Use when Codex or Claude Code needs t
 dev-builder 遇到 bug、测试失败、性能异常或回归失败时，只负责判断是否进入专项修复流程：
 
 - 没有可重复失败信号，不允许猜修；先转入 `$jingyuan:fix` 建立复现/验证循环。
-- `$jingyuan:fix` 返回后，dev-builder 读取 `docs/bug-fix/fix-<task-id>.md` 修复报告和 latest report commit，回到当前 slice，重新执行目标验证、review 和 completion protocol。
+- `$jingyuan:fix` 返回后，dev-builder 只读取 `docs/bug-fix/fix-<task-id>.md` 的 frontmatter、`Pending Verification`、`Remaining Findings` 和 `Current Verification`，不加载 Closure Ledger 或旧轮次正文；随后回到当前 slice，重新执行目标验证、review 和 completion protocol。
 - 连续 3 个假设失败、修复触及超过 5 个文件、或安全敏感但无法验证时，状态改为 `BLOCKED` 或 `NEEDS_CONTEXT`。
 - 性能问题必须由 `$jingyuan:fix` 或等价诊断流程先建立 baseline；dev-builder 只接受带 baseline、优化后数据和测量命令的修复结果。
 - 临时日志统一使用 `[DEBUG-xxxx]` 前缀，完成前用 `Select-String` 搜索并清理。
@@ -112,7 +112,7 @@ Phase/Slice 完成前必须通过：
 - **Fresh verification gate**：重新运行目标验证命令，附 exit code 和关键输出。
 - **Smoke gate**：用户可见功能需要浏览器、接口或手动 smoke；高风险 CLI/工作流需要可重复 smoke harness。
 
-`$jingyuan:review` 失败时，dev-builder 只负责编排返工：必须记录 `docs/review/review-<task-id>.md` 路径，并把该路径交给 `$jingyuan:fix` 或实现返工流程。Stage 1 失败回到规格补齐，Stage 2 失败回到质量修复；返工后必须先写入或追加 `docs/bug-fix/fix-<task-id>.md` 修复报告并完成本地 commit，再重新调用 `$jingyuan:review`，不能由实现者自称已修复即通过。
+`$jingyuan:review` 失败时，dev-builder 只读取报告 frontmatter、`Active Findings` 和 `Current Verification`，仅处理 `route: dev-builder` 的 finding；不得加载已通过的 Stage Gate、Closure Ledger 详情或旧轮次正文。没有匹配 finding 时停止并报告路由不匹配。Stage 1 的其他问题按 route 交给 pm、design、sync 或 human，Stage 2 交给 fix；返工后重写 `docs/bug-fix/fix-<task-id>.md` 当前快照并完成本地 commit，再调用 `$jingyuan:review`，不能由实现者自称已修复即通过。
 
 Review/Fix 闭环必须显示轮次：
 - `Review rounds: N`

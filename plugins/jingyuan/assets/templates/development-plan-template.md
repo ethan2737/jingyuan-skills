@@ -5,12 +5,12 @@ description: docs/development/plan.md 输出模板。用于生成可验证、可
 
 # Development Plan 模板
 
-`$jingyuan:dev-plan` 按此结构生成 `docs/development/plan.md`。较大变更还应在 `docs/changes/<change-id>/` 生成 `proposal.md`、`spec.md`、`design.md`、`tasks.md`。
+`$jingyuan:dev-plan` 按此结构生成 `docs/development/plan.md`。较大变更还应生成单一 `docs/changes/<change-id>.md`。
 
 ```markdown
 # Development Plan - {项目名}
 
-> 本文档是开发总览。具体变更可拆到 `docs/changes/<change-id>/`。
+> 本文档是开发总览。具体大型变更可拆到 `docs/changes/<change-id>.md`。
 > `$jingyuan:dev-builder` 从第一个未完成 checkbox 开始执行。
 
 ## Plan Metadata

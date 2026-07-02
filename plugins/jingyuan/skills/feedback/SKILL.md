@@ -1,6 +1,6 @@
 ---
 name: feedback
-description: 景元反馈记录工作流。Use when Codex or Claude Code detects user correction, dissatisfaction, workflow feedback, scope-boundary signals, or improvement signals and should write docs/feedback/ plus docs/feedback/index.md.
+description: 景元反馈记录工作流。Use when Codex or Claude Code detects user correction, dissatisfaction, workflow feedback, scope-boundary signals, or improvement signals and should write scoped topic files under docs/feedback/.
 ---
 
 # JingYuan Feedback
@@ -15,20 +15,18 @@ description: 景元反馈记录工作流。Use when Codex or Claude Code detects
 
 [任务]
     判断当前对话或工作结果是否出现 feedback 信号。
-    有信号则写入或更新 `docs/feedback/` 和 `docs/feedback/index.md`。
+    有信号则写入或更新 `docs/feedback/<topic>.md`。
     无信号则返回"无新 feedback"。
 
 [依赖检测]
     必需：
     - 可写目标项目目录。
-    - `<JINGYUAN_PLUGIN_ROOT>/assets/templates/feedback-index-template.md`。
     - `<JINGYUAN_PLUGIN_ROOT>/assets/templates/feedback-topic-template.md`。
 
     可选：
-    - `docs/feedback/index.md` → 缺失时用模板创建。
     - `docs/feedback/` → 缺失时创建。
-    - `docs/out-of-scope/` → 缺失时降级，不阻塞反馈记录；如出现范围边界信号，建议先运行 `$jingyuan:setup` 或创建目录。
-    - `docs/context.md`、`docs/adr/` → 存在时用于判断术语、决策和范围背景。
+    - `docs/out-of-scope/` → 缺失时不阻塞；用户确认长期边界后由 feedback 懒创建目录和记录。
+    - 长期记忆 → 先按 feedback scopes/tags 筛选 frontmatter，只读取匹配正文；非法元数据返回 `needs_context`。
 
     启动读取：
     - `<JINGYUAN_PLUGIN_ROOT>/references/workflow/document-conventions.md`
@@ -52,19 +50,18 @@ description: 景元反馈记录工作流。Use when Codex or Claude Code detects
     - Out-of-scope 信号：用户明确拒绝某能力、方案、范围或反复说不是本期内容。
 
 [写入流程]
-    1. 执行 [依赖检测]，确保 `docs/feedback/` 和 `docs/feedback/index.md` 可用。
+    1. 执行 [依赖检测]；仅在确认有反馈需要落盘时创建 `docs/feedback/`。
     2. 判断是否有项目相关 feedback 信号；无则返回"无新 feedback"。
        → 如无法判断是否项目相关，记录为"待分类"并提示用户下次确认。
     3. 🔴 CHECKPOINT：向用户确认反馈分类和主题是否准确，避免归类错误。
        提取主题、source_skill、触发语境、问题类型、建议处理方式和是否 out-of-scope 候选。
        🛑 STOP：如反馈内容涉及敏感信息（密钥、账号、私有路径），在提取前过滤脱敏，不写入原始内容。
-    4. 读取 `docs/feedback/index.md` 查找同主题记录。
-       → 如 `docs/feedback/index.md` 不存在，用模板创建。
+    4. 先扫描 `docs/feedback/*.md` frontmatter 的 scopes、tags、status 和 description 查找同主题记录，不读取无关正文。
     5. 已存在则更新文件内容、occurrences 和 updated。
        → 如同主题但内容矛盾，暂停并请用户判断是更新还是新建。
-    6. 不存在则用 `feedback-topic-template.md` 创建 kebab-case 文件，并更新索引。
+    6. 不存在则用 `feedback-topic-template.md` 创建 kebab-case 文件；必须填写 `status: open`、scopes、tags 和 updated。
     7. 如果属于长期范围边界，检查 `docs/out-of-scope/` 是否已有同主题记录。
-       → 如 `docs/out-of-scope/` 不存在，不阻塞反馈记录，建议先运行 `$jingyuan:setup`。
+       → 如 `docs/out-of-scope/` 不存在，不阻塞反馈记录；用户确认后再创建目录和记录。
        没有已有记录则建议用户确认后用 `out-of-scope-template.md` 创建，不把一次性偏好直接永久化。
 
 [返回格式]

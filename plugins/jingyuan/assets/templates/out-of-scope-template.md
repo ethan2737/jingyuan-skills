@@ -1,4 +1,12 @@
-﻿# <不做事项>
+﻿---
+type: out-of-scope
+status: active
+scopes: [global]
+tags: []
+updated: YYYY-MM-DD
+---
+
+# <不做事项>
 
 ## 结论
 

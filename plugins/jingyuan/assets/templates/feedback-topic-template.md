@@ -1,10 +1,12 @@
 ﻿---
 type: feedback
-description: [一句话摘要——用于索引快速扫描]
+status: open
+scopes: [global]
+tags: []
+description: [一句话摘要——用于 frontmatter 快速筛选]
 created: YYYY-MM-DD
 updated: YYYY-MM-DD
 occurrences: 1
-graduated: false
 source_skill: [skill-name 或 N/A]
 scores:                        # 可选——仅 Skill 执行后才填
   accuracy: [1-5]

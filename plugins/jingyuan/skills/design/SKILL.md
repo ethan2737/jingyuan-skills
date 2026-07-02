@@ -13,9 +13,11 @@ description: 景元设计规范工作流。Use when Codex or Claude Code needs t
 
 `$jingyuan:design` 基于 PRD、长期记忆和必要的设计取向访谈，输出可供 `$jingyuan:mockup` 和 `$jingyuan:dev-builder` 使用的 `docs/design/design.md`。
 
+只有 PRD 包含 UI/UX、交互流程或明确设计约束时才创建该文件；纯后端、CLI 或无设计决策空间的任务直接说明“不需要设计文档”并路由到 `$jingyuan:dev-plan`。
+
 ## 多 Agent 状态协议
 
-读取 `<JINGYUAN_PLUGIN_ROOT>/references/workflow/agent-collaboration-state.md`。配置版本 2 且状态已启用时，以 `design` 角色执行 `StartSession → Status → Claim`，按任务 `read_refs` 读取 PRD，只修改 `write_scopes`。完成后需要开发评估时创建单接收方 dev-plan 任务，再调用 `Complete`；暂停或缺少决策时调用 `Release`/`Block`。状态不存在时保持原流程并提示运行 `$jingyuan:setup`。
+读取 `<JINGYUAN_PLUGIN_ROOT>/references/workflow/agent-collaboration-state.md`。配置版本 3 且状态已启用时，以 `design` 角色执行 `StartSession → Status → Claim`，按任务 `read_refs` 读取 PRD，只修改 `write_scopes`。完成后需要开发评估时创建单接收方 dev-plan 任务，再调用 `Complete`；暂停或缺少决策时调用 `Release`/`Block`。状态不存在时保持原流程并提示运行 `$jingyuan:setup`。
 
 [任务]
     把产品需求转成设计规范：视觉方向、信息架构、页面密度、设计系统、交互原则、状态规则、可用性护栏和实现注意事项。
@@ -26,7 +28,7 @@ description: 景元设计规范工作流。Use when Codex or Claude Code needs t
     - `<JINGYUAN_PLUGIN_ROOT>/assets/templates/design-document-template.md`。
 
     可选：
-    - `docs/context.md`、`docs/adr/`、`docs/out-of-scope/` → 存在时必须读取并尊重。
+    - 长期记忆 → 先从当前 task/slice/finding 提取 scopes/tags；context 仅在相关时读取，ADR/out-of-scope 只读取状态有效且 `scopes: [global]` 或 scope/tag 匹配的正文。元数据非法时返回 `needs_context`，不得静默忽略或全量加载。
     - 设计工具 MCP → 可用于读取或验证设计素材；缺失不阻塞生成 `docs/design/design.md`。
     - 竞品、参考产品、设计趋势 → 涉及实时信息时 WebSearch。
 
@@ -76,7 +78,7 @@ description: 景元设计规范工作流。Use when Codex or Claude Code needs t
     5. 生成设计规范，覆盖 [设计维度]。
        → 设计范围不明确：缩小到 MVP 核心页面和组件，其余标记为"扩展阶段留待迭代"。
        🔴 CHECKPOINT：展示设计方向摘要（产品气质、配色方向、信息架构概要、关键设计决策），用户确认后再写入文件。
-    6. 使用 `design-document-template.md` 写入或更新 `docs/design/design.md`。
+    6. 确认存在真实设计约束后，使用 `design-document-template.md` 写入或更新 `docs/design/design.md`；首次写入时才创建 `docs/design/`。
        → 写入失败或文件冲突：保留内容到临时缓存，提示用户手动写入，记录目标文件路径。
     7. 输出下一步建议：需要设计稿时调用 `$jingyuan:mockup`；已有设计后调用 `$jingyuan:dev-plan`。
 
@@ -100,6 +102,7 @@ description: 景元设计规范工作流。Use when Codex or Claude Code needs t
     - 交互和动效原则。
     - 响应式、无障碍、性能和安全错误处理护栏。
     - 对 `$jingyuan:mockup` 和 `$jingyuan:dev-builder` 的实现备注。
+    - Design Artifacts：设计工具、文件定位、页面/节点、覆盖范围、验证证据和未覆盖项。
 
 [初始化]
     执行 [依赖检测]，然后进入 [工作流程]。

@@ -69,9 +69,14 @@ try {
   $configPath = Join-Path $project '.jingyuan\config.json'
   Assert-True (Test-Path -LiteralPath $configPath -PathType Leaf) 'Init should create config.json.'
   $config = Get-Content -LiteralPath $configPath -Raw -Encoding UTF8 | ConvertFrom-Json
-  Assert-True ($config.version -eq 2) 'New config should use version 2.'
+  Assert-True ($config.version -eq 3) 'New config should use version 3.'
   Assert-True ($config.state.enabled -eq $true) 'State should be enabled for new projects.'
   Assert-True ($config.state.mode -eq 'local') 'State mode should default to local.'
+  Assert-True ($config.docs.feedbackDir -eq 'docs/feedback') 'Version 3 config should expose feedbackDir.'
+  Assert-True ($null -eq $config.docs.PSObject.Properties['prdChangelog']) 'Version 3 config should omit prdChangelog.'
+  Assert-True ($null -eq $config.docs.PSObject.Properties['mockup']) 'Version 3 config should omit mockup.'
+  Assert-True ($null -eq $config.docs.PSObject.Properties['feedbackIndex']) 'Version 3 config should omit feedbackIndex.'
+  Assert-True (-not (Test-Path -LiteralPath (Join-Path $project 'docs'))) 'State initialization should not create docs scaffolding.'
   $configBytes = [IO.File]::ReadAllBytes($configPath)
   Assert-True ($configBytes[0] -eq 0x7B) 'Generated JSON should be UTF-8 without BOM.'
 
@@ -445,6 +450,10 @@ try {
   $legacyProject = New-TestProject
   $projects.Add($legacyProject)
   New-Item -ItemType Directory -Path (Join-Path $legacyProject '.jingyuan') | Out-Null
+  New-Item -ItemType Directory -Path (Join-Path $legacyProject 'docs\PRD') -Force | Out-Null
+  New-Item -ItemType Directory -Path (Join-Path $legacyProject 'docs\design') -Force | Out-Null
+  New-Item -ItemType Directory -Path (Join-Path $legacyProject 'docs\changes\auth') -Force | Out-Null
+  New-Item -ItemType Directory -Path (Join-Path $legacyProject 'docs\feedback') -Force | Out-Null
   $legacyConfig = @'
 {
   "version": 1,
@@ -460,18 +469,56 @@ try {
     $legacyConfig,
     [Text.UTF8Encoding]::new($false)
   )
+  [IO.File]::WriteAllText((Join-Path $legacyProject 'docs\PRD\changelog.md'), "# PRD changes`r`n", [Text.UTF8Encoding]::new($true))
+  [IO.File]::WriteAllText((Join-Path $legacyProject 'docs\design\design.md'), "# Design`r`n", [Text.UTF8Encoding]::new($true))
+  [IO.File]::WriteAllText((Join-Path $legacyProject 'docs\design\mockup.md'), "# Mockup`r`n`r`nFigma: file-1`r`n", [Text.UTF8Encoding]::new($true))
+  [IO.File]::WriteAllText((Join-Path $legacyProject 'docs\changes\auth\proposal.md'), "# Proposal`r`n", [Text.UTF8Encoding]::new($true))
+  [IO.File]::WriteAllText((Join-Path $legacyProject 'docs\changes\auth\spec.md'), "# Spec`r`n", [Text.UTF8Encoding]::new($true))
+  [IO.File]::WriteAllText((Join-Path $legacyProject 'docs\changes\auth\design.md'), "# Change Design`r`n", [Text.UTF8Encoding]::new($true))
+  [IO.File]::WriteAllText((Join-Path $legacyProject 'docs\changes\auth\tasks.md'), "# Tasks`r`n", [Text.UTF8Encoding]::new($true))
+  [IO.File]::WriteAllText((Join-Path $legacyProject 'docs\feedback\auth.md'), "---`r`ntype: feedback`r`nstatus: open`r`nscopes: [auth]`r`ntags: [login]`r`nupdated: 2026-07-02`r`n---`r`n# Auth feedback`r`n", [Text.UTF8Encoding]::new($true))
+  [IO.File]::WriteAllText((Join-Path $legacyProject 'docs\feedback\index.md'), "# Feedback Index`r`n`r`n- [Auth](auth.md) - login`r`n", [Text.UTF8Encoding]::new($true))
+  $contextTemplate = Get-Content -LiteralPath (Join-Path $root 'plugins\jingyuan\assets\templates\context-template.md') -Raw -Encoding UTF8
+  [IO.File]::WriteAllText((Join-Path $legacyProject 'docs\context.md'), $contextTemplate, [Text.UTF8Encoding]::new($true))
+  & git -C $legacyProject add .
+  & git -C $legacyProject -c user.name='JingYuan Test' -c user.email='jingyuan-test@example.invalid' commit --quiet -m 'legacy baseline'
+  Assert-True ($LASTEXITCODE -eq 0) 'Legacy migration fixture should have a clean Git baseline.'
 
   $withoutMigration = Invoke-State -Arguments @('-Action', 'Init', '-ProjectRoot', $legacyProject)
   Assert-True ($withoutMigration.ExitCode -eq 2) 'Version 1 config should require explicit migration.'
   $unchangedConfig = Get-Content -LiteralPath (Join-Path $legacyProject '.jingyuan\config.json') -Raw -Encoding UTF8 | ConvertFrom-Json
   Assert-True ($unchangedConfig.version -eq 1) 'Rejected migration should not change config version.'
 
-  $withMigration = Invoke-State -Arguments @('-Action', 'Init', '-ProjectRoot', $legacyProject, '-Migrate')
-  Assert-True ($withMigration.ExitCode -eq 0) 'Explicit migration should succeed.'
+  $deprecatedMigration = Invoke-State -Arguments @('-Action', 'Init', '-ProjectRoot', $legacyProject, '-Migrate')
+  Assert-True ($deprecatedMigration.ExitCode -eq 2) 'Init -Migrate should direct callers to the explicit migration action.'
+
+  $previewMigration = Invoke-State -Arguments @('-Action', 'Migrate', '-ProjectRoot', $legacyProject, '-Preview')
+  Assert-True ($previewMigration.ExitCode -eq 0) 'Migration preview should succeed without writing files.'
+  Assert-True ($previewMigration.Json.code -eq 'MIGRATION_PREVIEW') 'Migration preview should return a stable code.'
+  $previewConfig = Get-Content -LiteralPath (Join-Path $legacyProject '.jingyuan\config.json') -Raw -Encoding UTF8 | ConvertFrom-Json
+  Assert-True ($previewConfig.version -eq 1) 'Migration preview should not change config version.'
+  Assert-True (Test-Path -LiteralPath (Join-Path $legacyProject 'docs\design\mockup.md')) 'Migration preview should not delete legacy files.'
+
+  $withoutConfirmation = Invoke-State -Arguments @('-Action', 'Migrate', '-ProjectRoot', $legacyProject)
+  Assert-True ($withoutConfirmation.ExitCode -eq 2) 'Destructive migration should require explicit confirmation.'
+
+  $withMigration = Invoke-State -Arguments @('-Action', 'Migrate', '-ProjectRoot', $legacyProject, '-ConfirmDestructiveMigration')
+  Assert-True ($withMigration.ExitCode -eq 0) 'Confirmed migration should succeed.'
   $migratedConfig = Get-Content -LiteralPath (Join-Path $legacyProject '.jingyuan\config.json') -Raw -Encoding UTF8 | ConvertFrom-Json
-  Assert-True ($migratedConfig.version -eq 2) 'Explicit migration should update config version.'
+  Assert-True ($migratedConfig.version -eq 3) 'Explicit migration should update config version.'
   Assert-True ($migratedConfig.docs.prd -eq 'custom/prd.md') 'Migration should preserve custom docs paths.'
+  Assert-True ($migratedConfig.docs.feedbackDir -eq 'docs/feedback') 'Migration should add the version 3 feedback directory.'
   Assert-True ($migratedConfig.createdBy -eq 'legacy') 'Migration should preserve existing fields.'
+  Assert-True (-not (Test-Path -LiteralPath (Join-Path $legacyProject 'docs\PRD\changelog.md'))) 'Migration should remove PRD changelog.'
+  Assert-True (-not (Test-Path -LiteralPath (Join-Path $legacyProject 'docs\design\mockup.md'))) 'Migration should remove mockup.md.'
+  Assert-True ((Get-Content -LiteralPath (Join-Path $legacyProject 'docs\design\design.md') -Raw -Encoding UTF8) -match '## Design Artifacts') 'Migration should merge mockup details into design.md.'
+  Assert-True (Test-Path -LiteralPath (Join-Path $legacyProject 'docs\changes\auth.md')) 'Migration should create one change document.'
+  Assert-True (-not (Test-Path -LiteralPath (Join-Path $legacyProject 'docs\changes\auth'))) 'Migration should remove the legacy change directory.'
+  Assert-True (-not (Test-Path -LiteralPath (Join-Path $legacyProject 'docs\feedback\index.md'))) 'Migration should remove a fully mapped feedback index.'
+  Assert-True (-not (Test-Path -LiteralPath (Join-Path $legacyProject 'docs\context.md'))) 'Migration should remove a template-equivalent context file.'
+
+  $repeatMigration = Invoke-State -Arguments @('-Action', 'Migrate', '-ProjectRoot', $legacyProject, '-Preview')
+  Assert-True ($repeatMigration.ExitCode -eq 0 -and $repeatMigration.Json.code -eq 'ALREADY_CURRENT') 'Migration should be idempotent for version 3 projects.'
 
   $partialProject = New-TestProject
   $projects.Add($partialProject)
@@ -490,13 +537,62 @@ try {
 }
 '@
   [IO.File]::WriteAllText((Join-Path $partialProject '.jingyuan\config.json'), $partialConfig, [Text.UTF8Encoding]::new($false))
+  & git -C $partialProject add .
+  & git -C $partialProject -c user.name='JingYuan Test' -c user.email='jingyuan-test@example.invalid' commit --quiet -m 'partial config baseline'
+  $partialMigration = Invoke-State -Arguments @('-Action', 'Migrate', '-ProjectRoot', $partialProject, '-ConfirmDestructiveMigration')
+  Assert-True ($partialMigration.ExitCode -eq 0) 'Version 2 config should migrate directly to version 3.'
   $partialInit = Invoke-State -Arguments @('-Action', 'Init', '-ProjectRoot', $partialProject)
-  Assert-True ($partialInit.ExitCode -eq 0) 'Version 2 config should receive missing state defaults idempotently.'
+  Assert-True ($partialInit.ExitCode -eq 0) 'Version 3 config should receive missing state defaults idempotently.'
   $completedConfig = Get-Content -LiteralPath (Join-Path $partialProject '.jingyuan\config.json') -Raw -Encoding UTF8 | ConvertFrom-Json
   Assert-True ($completedConfig.state.root -eq '.jingyuan/state') 'Init should fill missing state root.'
   Assert-True ($completedConfig.state.leaseMinutes -eq 120) 'Init should fill missing lease default.'
-  Assert-True ($completedConfig.docs.prd -eq 'kept/prd.md') 'Init should preserve version 2 custom docs paths.'
-  Assert-True ($completedConfig.customField -eq 'keep-me') 'Init should preserve unrelated version 2 fields.'
+  Assert-True ($completedConfig.docs.prd -eq 'kept/prd.md') 'Migration should preserve custom docs paths.'
+  Assert-True ($completedConfig.customField -eq 'keep-me') 'Migration should preserve unrelated fields.'
+
+  $noGitMigrationProject = Join-Path $env:TEMP ("jingyuan-state-migrate-nogit-" + [guid]::NewGuid().ToString('N'))
+  New-Item -ItemType Directory -Path (Join-Path $noGitMigrationProject '.jingyuan') -Force | Out-Null
+  $projects.Add($noGitMigrationProject)
+  [IO.File]::WriteAllText((Join-Path $noGitMigrationProject '.jingyuan\config.json'), '{"version":2}', [Text.UTF8Encoding]::new($false))
+  $noGitMigration = Invoke-State -Arguments @('-Action', 'Migrate', '-ProjectRoot', $noGitMigrationProject, '-ConfirmDestructiveMigration')
+  Assert-True ($noGitMigration.ExitCode -eq 2 -and $noGitMigration.Json.code -eq 'MIGRATION_REQUIRES_GIT') 'Migration should reject non-Git projects.'
+  Assert-True ((Get-Content -LiteralPath (Join-Path $noGitMigrationProject '.jingyuan\config.json') -Raw -Encoding UTF8 | ConvertFrom-Json).version -eq 2) 'Rejected non-Git migration should not change config.'
+
+  $dirtyMigrationProject = New-TestProject
+  $projects.Add($dirtyMigrationProject)
+  New-Item -ItemType Directory -Path (Join-Path $dirtyMigrationProject '.jingyuan') | Out-Null
+  [IO.File]::WriteAllText((Join-Path $dirtyMigrationProject '.jingyuan\config.json'), '{"version":2}', [Text.UTF8Encoding]::new($false))
+  & git -C $dirtyMigrationProject add .
+  & git -C $dirtyMigrationProject -c user.name='JingYuan Test' -c user.email='jingyuan-test@example.invalid' commit --quiet -m 'dirty migration baseline'
+  [IO.File]::WriteAllText((Join-Path $dirtyMigrationProject 'dirty.txt'), 'dirty', [Text.UTF8Encoding]::new($false))
+  $dirtyMigration = Invoke-State -Arguments @('-Action', 'Migrate', '-ProjectRoot', $dirtyMigrationProject, '-ConfirmDestructiveMigration')
+  Assert-True ($dirtyMigration.ExitCode -eq 3 -and $dirtyMigration.Json.code -eq 'MIGRATION_REQUIRES_CLEAN_GIT') 'Migration should reject a dirty working tree.'
+  Assert-True ((Get-Content -LiteralPath (Join-Path $dirtyMigrationProject '.jingyuan\config.json') -Raw -Encoding UTF8 | ConvertFrom-Json).version -eq 2) 'Rejected dirty migration should not change config.'
+
+  $conflictMigrationProject = New-TestProject
+  $projects.Add($conflictMigrationProject)
+  New-Item -ItemType Directory -Path (Join-Path $conflictMigrationProject '.jingyuan') | Out-Null
+  New-Item -ItemType Directory -Path (Join-Path $conflictMigrationProject 'docs\changes\auth') -Force | Out-Null
+  [IO.File]::WriteAllText((Join-Path $conflictMigrationProject '.jingyuan\config.json'), '{"version":2}', [Text.UTF8Encoding]::new($false))
+  [IO.File]::WriteAllText((Join-Path $conflictMigrationProject 'docs\changes\auth\proposal.md'), '# Proposal', [Text.UTF8Encoding]::new($true))
+  [IO.File]::WriteAllText((Join-Path $conflictMigrationProject 'docs\changes\auth.md'), '# Existing target', [Text.UTF8Encoding]::new($true))
+  & git -C $conflictMigrationProject add .
+  & git -C $conflictMigrationProject -c user.name='JingYuan Test' -c user.email='jingyuan-test@example.invalid' commit --quiet -m 'conflict migration baseline'
+  $conflictMigration = Invoke-State -Arguments @('-Action', 'Migrate', '-ProjectRoot', $conflictMigrationProject, '-ConfirmDestructiveMigration')
+  Assert-True ($conflictMigration.ExitCode -eq 3 -and $conflictMigration.Json.code -eq 'MIGRATION_CONFLICT') 'Migration should reject an existing change target.'
+  Assert-True ((Get-Content -LiteralPath (Join-Path $conflictMigrationProject '.jingyuan\config.json') -Raw -Encoding UTF8 | ConvertFrom-Json).version -eq 2) 'Conflict rejection should not change config.'
+  Assert-True (Test-Path -LiteralPath (Join-Path $conflictMigrationProject 'docs\changes\auth\proposal.md')) 'Conflict rejection should preserve source files.'
+
+  $feedbackConflictProject = New-TestProject
+  $projects.Add($feedbackConflictProject)
+  New-Item -ItemType Directory -Path (Join-Path $feedbackConflictProject '.jingyuan') | Out-Null
+  New-Item -ItemType Directory -Path (Join-Path $feedbackConflictProject 'docs\feedback') -Force | Out-Null
+  [IO.File]::WriteAllText((Join-Path $feedbackConflictProject '.jingyuan\config.json'), '{"version":2}', [Text.UTF8Encoding]::new($false))
+  [IO.File]::WriteAllText((Join-Path $feedbackConflictProject 'docs\feedback\index.md'), "# Feedback Index`r`n`r`n- [Missing](missing.md) - absent`r`n", [Text.UTF8Encoding]::new($true))
+  & git -C $feedbackConflictProject add .
+  & git -C $feedbackConflictProject -c user.name='JingYuan Test' -c user.email='jingyuan-test@example.invalid' commit --quiet -m 'feedback conflict baseline'
+  $feedbackConflict = Invoke-State -Arguments @('-Action', 'Migrate', '-ProjectRoot', $feedbackConflictProject, '-ConfirmDestructiveMigration')
+  Assert-True ($feedbackConflict.ExitCode -eq 3 -and $feedbackConflict.Json.code -eq 'MIGRATION_CONFLICT') 'Migration should reject feedback index entries without topic files.'
+  Assert-True (Test-Path -LiteralPath (Join-Path $feedbackConflictProject 'docs\feedback\index.md')) 'Feedback conflict should preserve the index.'
 
   $workflowProject = New-TestProject
   $projects.Add($workflowProject)

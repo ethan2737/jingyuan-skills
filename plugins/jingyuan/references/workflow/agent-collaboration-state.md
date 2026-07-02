@@ -38,8 +38,8 @@
 | design | 需要实现评估时创建 dev-plan 任务 |
 | dev-plan | 创建 dev-builder 任务，并指向具体 plan/change task |
 | dev-builder | 创建 review 任务，附验证证据和变更范围 |
-| review | 有 finding 时创建 fix 任务，只引用 `docs/review/review-<task-id>.md` 和 finding ID |
-| fix | 修复并提交后创建 review 任务，只引用修复报告、commit 和 addressed finding ID |
+| review | 按 active finding 的 route 为 dev-builder、fix、pm、design、sync 或 human 分别创建单接收方任务，只引用 `docs/review/review-<task-id>.md`、匹配 finding ID 和验证要求 |
+| fix | 修复并提交后创建 review 任务，只引用修复报告、commit 和 pending verification finding ID |
 
 ## 并发与恢复
 
