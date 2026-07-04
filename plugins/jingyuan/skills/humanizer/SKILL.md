@@ -11,6 +11,8 @@ description: 景元人性化编辑工作流。去除文本中的 AI 生成痕迹
 - Claude Code 入口：`/jingyuan:humanizer`。
 - `<JINGYUAN_PLUGIN_ROOT>` 解析规则：Claude Code 使用 `${CLAUDE_PLUGIN_ROOT}`；Codex 优先使用 `$env:CODEX_HOME\plugins\jingyuan`，否则使用 `$HOME\.codex\plugins\jingyuan`。
 
+启动时先读取 `<JINGYUAN_PLUGIN_ROOT>/references/workflow/core-workflow.md` 的共享执行契约。
+
 `$jingyuan:humanizer` 基于维基百科的"AI 写作特征"综合指南，识别 24 种 AI 生成痕迹并进行人性化改写。参考自 blader/humanizer 与 hardikpandya/stop-slop。
 
 [任务]

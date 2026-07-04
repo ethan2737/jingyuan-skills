@@ -611,22 +611,20 @@ try {
     $workflowSessions[$workflowRole] = [string]$started.Json.data.session_id
   }
 
-  $workflowSteps = @(
+  # DEFAULT_DEVELOPMENT_ENDS_AT_DEV_BUILDER
+  $developmentSteps = @(
     [pscustomobject]@{ Role = 'pm'; Path = 'docs/PRD/prd.md'; NextRole = 'design'; NextPath = 'docs/design/design.md' },
     [pscustomobject]@{ Role = 'design'; Path = 'docs/design/design.md'; NextRole = 'dev-plan'; NextPath = 'docs/development/plan.md' },
     [pscustomobject]@{ Role = 'dev-plan'; Path = 'docs/development/plan.md'; NextRole = 'dev-builder'; NextPath = 'src/feature.txt' },
-    [pscustomobject]@{ Role = 'dev-builder'; Path = 'src/feature.txt'; NextRole = 'review'; NextPath = 'docs/review/review-chain.md' },
-    [pscustomobject]@{ Role = 'review'; Path = 'docs/review/review-chain.md'; NextRole = 'fix'; NextPath = 'docs/bug-fix/fix-chain.md' },
-    [pscustomobject]@{ Role = 'fix'; Path = 'docs/bug-fix/fix-chain.md'; NextRole = 'review'; NextPath = 'docs/review/review-chain-final.md' },
-    [pscustomobject]@{ Role = 'review'; Path = 'docs/review/review-chain-final.md'; NextRole = $null; NextPath = $null }
+    [pscustomobject]@{ Role = 'dev-builder'; Path = 'src/feature.txt'; NextRole = $null; NextPath = $null }
   )
   $firstWorkflowTask = Invoke-State -Arguments @(
     '-Action', 'CreateTask', '-ProjectRoot', $workflowProject, '-SessionId', $workflowSessions['coordinator'],
     '-ChangeId', 'change-workflow-chain', '-Title', 'PM defines requirement',
-    '-FromRole', 'coordinator', '-ToRole', 'pm', '-WriteScope', $workflowSteps[0].Path
+    '-FromRole', 'coordinator', '-ToRole', 'pm', '-WriteScope', $developmentSteps[0].Path
   )
   $currentWorkflowTaskId = [string]$firstWorkflowTask.Json.data.task_id
-  foreach ($step in $workflowSteps) {
+  foreach ($step in $developmentSteps) {
     $claimStep = Invoke-State -Arguments @(
       '-Action', 'Claim', '-ProjectRoot', $workflowProject,
       '-SessionId', $workflowSessions[$step.Role], '-TaskId', $currentWorkflowTaskId
@@ -657,8 +655,52 @@ try {
     Assert-True ($completeStep.ExitCode -eq 0) "Workflow role $($step.Role) should complete its task."
     $currentWorkflowTaskId = $nextTaskId
   }
+
+  # EXPLICIT_REVIEW_FIX_CHAIN
+  $reviewSteps = @(
+    [pscustomobject]@{ Role = 'review'; Path = 'docs/review/review-chain.md'; NextRole = 'fix'; NextPath = 'docs/bug-fix/fix-chain.md' },
+    [pscustomobject]@{ Role = 'fix'; Path = 'docs/bug-fix/fix-chain.md'; NextRole = 'review'; NextPath = 'docs/review/review-chain-final.md' },
+    [pscustomobject]@{ Role = 'review'; Path = 'docs/review/review-chain-final.md'; NextRole = $null; NextPath = $null }
+  )
+  $firstReviewTask = Invoke-State -Arguments @(
+    '-Action', 'CreateTask', '-ProjectRoot', $workflowProject, '-SessionId', $workflowSessions['coordinator'],
+    '-ChangeId', 'change-explicit-review', '-Title', 'Explicit review request',
+    '-FromRole', 'coordinator', '-ToRole', 'review', '-WriteScope', $reviewSteps[0].Path
+  )
+  $currentReviewTaskId = [string]$firstReviewTask.Json.data.task_id
+  foreach ($step in $reviewSteps) {
+    $claimStep = Invoke-State -Arguments @(
+      '-Action', 'Claim', '-ProjectRoot', $workflowProject,
+      '-SessionId', $workflowSessions[$step.Role], '-TaskId', $currentReviewTaskId
+    )
+    Assert-True ($claimStep.ExitCode -eq 0) "Explicit review role $($step.Role) should claim its task."
+    $absoluteOutput = Join-Path $workflowProject $step.Path.Replace('/', '\')
+    New-Item -ItemType Directory -Path (Split-Path -Parent $absoluteOutput) -Force | Out-Null
+    [IO.File]::WriteAllText($absoluteOutput, "$($step.Role) output", [Text.UTF8Encoding]::new($true))
+
+    $nextTaskId = $null
+    if ($null -ne $step.NextRole) {
+      $nextTask = Invoke-State -Arguments @(
+        '-Action', 'CreateTask', '-ProjectRoot', $workflowProject,
+        '-SessionId', $workflowSessions[$step.Role], '-ChangeId', 'change-explicit-review',
+        '-Title', "$($step.NextRole) consumes $($step.Role) output",
+        '-FromRole', $step.Role, '-ToRole', $step.NextRole,
+        '-WriteScope', $step.NextPath, '-DependsOn', $currentReviewTaskId
+      )
+      Assert-True ($nextTask.ExitCode -eq 0) "Explicit review role $($step.Role) should create one downstream task."
+      $nextTaskId = [string]$nextTask.Json.data.task_id
+    }
+    $completeStep = Invoke-State -Arguments @(
+      '-Action', 'Complete', '-ProjectRoot', $workflowProject,
+      '-SessionId', $workflowSessions[$step.Role], '-TaskId', $currentReviewTaskId,
+      '-Summary', "$($step.Role) explicit review step completed", '-ChangedFile', $step.Path,
+      '-Verification', 'fixture verification: passed'
+    )
+    Assert-True ($completeStep.ExitCode -eq 0) "Explicit review role $($step.Role) should complete its task."
+    $currentReviewTaskId = $nextTaskId
+  }
   $workflowStatus = Invoke-State -Arguments @('-Action', 'Status', '-ProjectRoot', $workflowProject)
-  Assert-True ($workflowStatus.Json.data.active_task_count -eq 0) 'PM-to-review/fix workflow should close every active task.'
+  Assert-True ($workflowStatus.Json.data.active_task_count -eq 0) 'Default development and explicit review workflows should close every active task.'
   Assert-True (@(Get-ChildItem -LiteralPath (Join-Path $workflowProject '.jingyuan\state\records\tasks\archive') -Filter '*.json').Count -eq 7) 'Workflow should archive all seven role tasks.'
 
   Write-Host "JingYuan state tests passed: $script:Passed assertions."

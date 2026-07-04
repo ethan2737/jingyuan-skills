@@ -11,6 +11,8 @@ description: 景元多 Agent 任务交接与异常收口工作流。Use when Cod
 - Claude Code 入口：`/jingyuan:handoff`。
 - `<JINGYUAN_PLUGIN_ROOT>` 解析规则：Claude Code 使用 `${CLAUDE_PLUGIN_ROOT}`；Codex 优先使用 `$env:CODEX_HOME\plugins\jingyuan`，否则使用 `$HOME\.codex\plugins\jingyuan`。
 
+启动时先读取 `<JINGYUAN_PLUGIN_ROOT>/references/workflow/core-workflow.md` 的共享执行契约。
+
 `$jingyuan:handoff` 用于阶段完成、上下文即将耗尽、临时暂停、异常退出恢复或多终端交接。它只调用 `<JINGYUAN_PLUGIN_ROOT>/scripts/jingyuan-state.ps1`，不得直接编辑 `.jingyuan/state/` 下的 JSON 或 Markdown。
 
 ## 启动读取

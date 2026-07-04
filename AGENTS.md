@@ -90,7 +90,7 @@ A ~1300-line PowerShell state machine at `plugins/jingyuan/scripts/jingyuan-stat
 
 **Exit codes**: `0` success, `2` input/config error, `3` collaboration conflict, `4` stale source, `5` resource not found, `6` illegal state transition.
 
-**Key protocol**: Tasks flow through roles (`coordinator` 鈫?`pm` 鈫?`design` 鈫?`dev-plan` 鈫?`dev-builder` 鈫?`review` 鈫?`fix`). Each task has one `to_role`. Cross-role changes share a `change_id`. Claims validate dependencies, source hashes, write-scope locks, and working-tree cleanliness before allowing work.
+**Key protocol**: The default delivery flow ends at `dev-builder` after implementation, verification, adversarial review, and a logical-intent commit. `review` is created only when explicitly requested; its findings may route to `fix` and back to `review`. Each task has one `to_role`. Cross-role changes share a `change_id`. Claims validate dependencies, source hashes, write-scope locks, and working-tree cleanliness before allowing work.
 
 ### Workflow Reference Documents
 
@@ -137,7 +137,7 @@ Codex mirror files: flat `skills/jy-<name>/SKILL.md` uses UTF-8 without BOM; `JI
 All skills follow these gates defined in `core-workflow.md`:
 1. Read and respect `docs/context.md`, `docs/adr/`, `docs/out-of-scope/`; degrade gracefully when missing.
 2. Dev slices require fresh verification (command, exit code, key output, unverified items).
-3. Review is two-stage: Stage 1 (spec compliance) must pass before Stage 2 (code quality).
+3. Explicitly requested Review is two-stage: Stage 1 (spec compliance) must pass before Stage 2 (code quality).
 4. Bugs and performance issues require a feedback loop or baseline before fixing 鈥?no guess-fixing.
 5. Unplanned changes must be flagged as scope drift; escalate to `$jingyuan:sync` if needed.
 6. Feedback closure is mandatory: repeated corrections, scope conflicts, and process gaps go into `docs/feedback/`, where evolution decides whether to graduate them into formal rules.

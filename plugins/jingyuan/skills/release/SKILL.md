@@ -11,6 +11,8 @@ description: 景元发布构建工作流。Use when Codex or Claude Code needs t
 - Claude Code 入口：`/jingyuan:release`。
 - `<JINGYUAN_PLUGIN_ROOT>` 解析规则：Claude Code 使用 `${CLAUDE_PLUGIN_ROOT}`；Codex 优先使用 `$env:CODEX_HOME\plugins\jingyuan`，否则使用 `$HOME\.codex\plugins\jingyuan`。
 
+启动时先读取 `<JINGYUAN_PLUGIN_ROOT>/references/workflow/core-workflow.md` 的共享执行契约。
+
 `$jingyuan:release` 在实现和审查之后执行构建、打包、隐私审计、安装/部署验证和发布确认。它的目标是证明发布产物能安全交付，而不是证明 dev 模式能跑。
 
 [任务]

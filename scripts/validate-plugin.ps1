@@ -251,8 +251,20 @@ $handoffSkillPath = Join-Path $pluginRoot 'skills\handoff\SKILL.md'
 $stateReferencePath = Join-Path $pluginRoot 'references\workflow\agent-collaboration-state.md'
 $stateScriptPath = Join-Path $pluginRoot 'scripts\jingyuan-state.ps1'
 $stateSchemaPath = Join-Path $pluginRoot 'assets\schemas\state-task.schema.json'
+$coreWorkflowPath = Join-Path $pluginRoot 'references\workflow\core-workflow.md'
+$stateTestPath = Join-Path $root 'scripts\test-jingyuan-state.ps1'
 
 $contentChecks = @(
+  @{
+    Path = $stateTestPath
+    Label = 'state workflow tests'
+    Patterns = @('DEFAULT_DEVELOPMENT_ENDS_AT_DEV_BUILDER', 'EXPLICIT_REVIEW_FIX_CHAIN')
+  },
+  @{
+    Path = $coreWorkflowPath
+    Label = 'core-workflow.md role execution contract'
+    Patterns = @('FIRST_PRINCIPLES', 'ADVERSARIAL_REVIEW', 'AUTHOR_COMMITS', 'LOGICAL_INTENT_COMMIT')
+  },
   @{
     Path = $documentConventionsPath
     Label = 'document-conventions.md'
@@ -311,7 +323,7 @@ $contentChecks = @(
   @{
     Path = $devBuilderSkillPath
     Label = 'dev-builder skill'
-    Patterns = @('Active Findings', 'Current Verification', 'route: dev-builder', 'Closure Ledger')
+    Patterns = @('review_trigger: explicit', 'current_change_failures: self_fix', 'commit_owner: executing_role')
   },
   @{
     Path = $reviewReadinessPath
@@ -329,6 +341,21 @@ $contentChecks = @(
     Patterns = @('StartSession', 'CreateTask', 'Claim', 'Complete', 'Doctor', 'AdoptDirty', 'active finding', 'pending verification finding')
   }
 )
+
+$skillFiles = Get-ChildItem -LiteralPath (Join-Path $pluginRoot 'skills') -Filter 'SKILL.md' -File -Recurse
+foreach ($skillFile in $skillFiles) {
+  $skillContent = Get-Content -Raw -Encoding UTF8 -LiteralPath $skillFile.FullName
+  if ($skillContent -notmatch [regex]::Escape('core-workflow.md')) {
+    Add-Error "Skill must reference the shared execution contract core-workflow.md: $($skillFile.FullName)"
+  }
+}
+
+$devBuilderContent = Get-Content -Raw -Encoding UTF8 -LiteralPath $devBuilderSkillPath
+foreach ($requiredBuilderMarker in @('review_trigger: explicit', 'current_change_failures: self_fix', 'commit_owner: executing_role')) {
+  if (-not $devBuilderContent.Contains($requiredBuilderMarker)) {
+    Add-Error "dev-builder must declare focused execution behavior: $requiredBuilderMarker"
+  }
+}
 
 foreach ($requiredStateFile in @($stateScriptPath, $stateSchemaPath)) {
   if (-not (Test-Path -LiteralPath $requiredStateFile -PathType Leaf)) {

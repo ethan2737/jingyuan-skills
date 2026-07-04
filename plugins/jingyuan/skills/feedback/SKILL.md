@@ -11,6 +11,8 @@ description: 景元反馈记录工作流。Use when Codex or Claude Code detects
 - Claude Code 入口：`/jingyuan:feedback`。
 - `<JINGYUAN_PLUGIN_ROOT>` 解析规则：Claude Code 使用 `${CLAUDE_PLUGIN_ROOT}`；Codex 优先使用 `$env:CODEX_HOME\plugins\jingyuan`，否则使用 `$HOME\.codex\plugins\jingyuan`。
 
+启动时先读取 `<JINGYUAN_PLUGIN_ROOT>/references/workflow/core-workflow.md` 的共享执行契约。
+
 `$jingyuan:feedback` 把值得长期记住的用户修正、流程缺口、质量问题和范围边界写入 `docs/feedback/`，供 `$jingyuan:evolution` 后续升级规则或优化技能。
 
 [任务]

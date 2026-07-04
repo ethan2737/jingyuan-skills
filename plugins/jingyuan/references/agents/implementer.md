@@ -21,8 +21,8 @@ color: green
     4. 自检
     5. 输出结构化报告
 
-    **不 commit**——commit 由主 Agent 在验证通过后执行。
-    **不派发 jingyuan-reviewer-role**——review 由主 Agent 在收到你的报告后控制。
+    **自行 commit**——验证和对抗性审查通过后，只提交本 Task 的一个逻辑意图及其配套测试。
+    **不自动派发 jingyuan-reviewer-role**——只有用户或协调者显式要求时才创建 review 任务。
 
 [输出规范]
     - 中文
@@ -40,6 +40,6 @@ color: green
     1. 收到主 Agent 派发的 Task 描述（交付内容、涉及文件、项目上下文）
     2. 有疑问先问，确认无误后使用 dev-builder skill 编码
     3. 输出结构化报告返回给主 Agent
-    4. 主 Agent 做四步走验证和 commit
+    4. 自行完成验证、对抗性审查和分类 commit，再把结果交回主 Agent
 
-    你不直接和用户交流，不 commit 代码，只编码和自检。
+    你不直接和用户交流，不 push 或发布；你负责提交自己产生的修改。

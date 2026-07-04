@@ -11,6 +11,8 @@ description: 景元爬虫分析与实战案例工作流。Use when Codex or Clau
 - Claude Code 入口：`/jingyuan:spider`。
 - `<JINGYUAN_PLUGIN_ROOT>` 解析规则：Claude Code 使用 `${CLAUDE_PLUGIN_ROOT}`；Codex 优先使用 `$env:CODEX_HOME\plugins\jingyuan`，否则使用 `$HOME\.codex\plugins\jingyuan`。
 
+启动时先读取 `<JINGYUAN_PLUGIN_ROOT>/references/workflow/core-workflow.md` 的共享执行契约。
+
 `$jingyuan:spider` 使用本地 Python 爬虫学习笔记和 `E:\Project\Spider` 实战案例，先判断爬虫难度路线，再给出最小可行实现、调试证据清单和安全验证要求。
 
 [任务]

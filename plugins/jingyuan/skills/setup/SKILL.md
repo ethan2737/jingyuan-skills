@@ -11,6 +11,8 @@ description: 景元项目初始化工作流。Use when Codex or Claude Code need
 - Claude Code 入口：`/jingyuan:setup`。
 - `<JINGYUAN_PLUGIN_ROOT>` 解析规则：Claude Code 使用 `${CLAUDE_PLUGIN_ROOT}`；Codex 优先使用 `$env:CODEX_HOME\plugins\jingyuan`，否则使用 `$HOME\.codex\plugins\jingyuan`。
 
+启动时先读取 `<JINGYUAN_PLUGIN_ROOT>/references/workflow/core-workflow.md` 的共享执行契约。
+
 `$jingyuan:setup` 只初始化 JingYuan v3 配置和本机协作状态，不预建 `docs/` 空目录或模板文件。
 
 [任务]

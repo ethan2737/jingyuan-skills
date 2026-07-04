@@ -11,6 +11,8 @@ description: 景元横纵调研工作流。Use when Codex or Claude Code needs t
 - Claude Code 入口：`/jingyuan:research`。
 - `<JINGYUAN_PLUGIN_ROOT>` 解析规则：Claude Code 使用 `${CLAUDE_PLUGIN_ROOT}`；Codex 优先使用 `$env:CODEX_HOME\plugins\jingyuan`，否则使用 `$HOME\.codex\plugins\jingyuan`。
 
+启动时先读取 `<JINGYUAN_PLUGIN_ROOT>/references/workflow/core-workflow.md` 的共享执行契约。
+
 `$jingyuan:research` 将《横纵分析法 Deep Research Prompt》编排为 JingYuan Skill。除本 Skill 必需的触发、依赖、落盘、验证和路由规则外，调研能力定义必须按下方原文执行，不改写、不扩写、不替换方法论。
 
 [任务]

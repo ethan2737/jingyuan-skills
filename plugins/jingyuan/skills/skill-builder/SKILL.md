@@ -11,6 +11,8 @@ description: 景元 Skill 创建与维护工作流。Use when Codex or Claude Co
 - Claude Code 入口：`/jingyuan:skill-builder`。
 - `<JINGYUAN_PLUGIN_ROOT>` 解析规则：Claude Code 使用 `${CLAUDE_PLUGIN_ROOT}`；Codex 优先使用 `$env:CODEX_HOME\plugins\jingyuan`，否则使用 `$HOME\.codex\plugins\jingyuan`。
 
+启动时先读取 `<JINGYUAN_PLUGIN_ROOT>/references/workflow/core-workflow.md` 的共享执行契约。
+
 `$jingyuan:skill-builder` 用于创建或维护 JingYuan 技能。新版技能应完整但不冗余：保留触发场景、依赖、输入输出、执行步骤、失败/降级行为、安全与验证要求；公共规则下沉到 workflow references。
 
 [任务]

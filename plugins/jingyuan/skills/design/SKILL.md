@@ -11,6 +11,8 @@ description: 景元设计规范工作流。Use when Codex or Claude Code needs t
 - Claude Code 入口：`/jingyuan:design`。
 - `<JINGYUAN_PLUGIN_ROOT>` 解析规则：Claude Code 使用 `${CLAUDE_PLUGIN_ROOT}`；Codex 优先使用 `$env:CODEX_HOME\plugins\jingyuan`，否则使用 `$HOME\.codex\plugins\jingyuan`。
 
+启动时先读取 `<JINGYUAN_PLUGIN_ROOT>/references/workflow/core-workflow.md` 的共享执行契约。
+
 `$jingyuan:design` 基于 PRD、长期记忆和必要的设计取向访谈，输出可供 `$jingyuan:mockup` 和 `$jingyuan:dev-builder` 使用的 `docs/design/design.md`。
 
 只有 PRD 包含 UI/UX、交互流程或明确设计约束时才创建该文件；纯后端、CLI 或无设计决策空间的任务直接说明“不需要设计文档”并路由到 `$jingyuan:dev-plan`。

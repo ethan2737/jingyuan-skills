@@ -11,6 +11,8 @@ description: 景元产品经理需求澄清闸门。Use when Codex or Claude Cod
 - Claude Code 入口：`/jingyuan:pm`。
 - `<JINGYUAN_PLUGIN_ROOT>` 解析规则：Claude Code 使用 `${CLAUDE_PLUGIN_ROOT}`；Codex 优先使用 `$env:CODEX_HOME\plugins\jingyuan`，否则使用 `$HOME\.codex\plugins\jingyuan`。
 
+启动时先读取 `<JINGYUAN_PLUGIN_ROOT>/references/workflow/core-workflow.md` 的共享执行契约。
+
 - 本 Skill 面向 Codex 与 Claude Code。
 - 标准输出只有 `docs/PRD/prd.md`；历史变化由 Git 追溯，不创建独立 changelog。
 - 读取旧项目时兼容 `docs/PRD/PRD.md`、`docs/PRD/PRD-CHANGELOG.md`、`docs/PRD.md`，但新建或重构时收口到标准路径。

@@ -12,7 +12,7 @@
 ## 启动协议
 
 1. 读取 `.jingyuan/config.json`。
-2. 配置版本为 2 且 `state.enabled=true` 时，调用 `StartSession -Role <role>`，在当前会话内复用返回的 `session_id`。
+2. 配置版本为 3 且 `state.enabled=true` 时，调用 `StartSession -Role <role>`，在当前会话内复用返回的 `session_id`。
 3. 调用 `Status -Role <role>`，只查看分配给当前角色的活跃任务。
 4. 用户已指定 `task_id` 时领取该任务；只有一个匹配任务时可直接领取；多个候选任务必须让用户选择。
 5. 调用 `Claim`。依赖未完成、来源哈希变化、写入范围已有未知修改或锁冲突时，不得编辑目标文件。
@@ -23,7 +23,7 @@
 ## 完成协议
 
 1. 运行任务要求的验证命令并记录 exit code 与关键结果。
-2. 需要提交时，提交前调用 `CheckCommit`；暂存区存在任务范围外文件时停止。
+2. 产生修改的当前角色负责按逻辑意图提交；提交前调用 `CheckCommit`，暂存区存在任务范围外文件时停止。
 3. 为每个下游接收角色分别调用 `CreateTask`。一个任务只允许一个 `to_role`，同一跨角色变更共享 `change_id`，依赖通过 `depends_on` 明示。
 4. 调用 `Complete`，写入短摘要、实际修改文件、验证证据、concerns 和 open questions。正式报告只保存路径或 finding ID，不复制正文。
 5. 暂停但后续可继续时调用 `Release`；需要上游信息时调用 `Block -ReleaseLocks`；来源过期时保留锁并先让用户决定如何同步。
@@ -37,9 +37,9 @@
 | pm | 为 design、dev-plan 分别创建任务；不得创建一个多接收方任务 |
 | design | 需要实现评估时创建 dev-plan 任务 |
 | dev-plan | 创建 dev-builder 任务，并指向具体 plan/change task |
-| dev-builder | 创建 review 任务，附验证证据和变更范围 |
+| dev-builder | 默认在实现、验证和提交后完成；仅在显式要求审查时创建 review 任务 |
 | review | 按 active finding 的 route 为 dev-builder、fix、pm、design、sync 或 human 分别创建单接收方任务，只引用 `docs/review/review-<task-id>.md`、匹配 finding ID 和验证要求 |
-| fix | 修复并提交后创建 review 任务，只引用修复报告、commit 和 pending verification finding ID |
+| fix | 独立 bug 默认在修复、验证和提交后完成；来自 review 的 finding 才创建 review 复验任务，并引用 pending verification finding ID |
 
 ## 并发与恢复
 

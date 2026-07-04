@@ -11,6 +11,8 @@ description: 景元设计稿/原型工作流。Use when Codex or Claude Code nee
 - Claude Code 入口：`/jingyuan:mockup`。
 - `<JINGYUAN_PLUGIN_ROOT>` 解析规则：Claude Code 使用 `${CLAUDE_PLUGIN_ROOT}`；Codex 优先使用 `$env:CODEX_HOME\plugins\jingyuan`，否则使用 `$HOME\.codex\plugins\jingyuan`。
 
+启动时先读取 `<JINGYUAN_PLUGIN_ROOT>/references/workflow/core-workflow.md` 的共享执行契约。
+
 `$jingyuan:mockup` 把 PRD 和设计规范转成设计稿交付物。Pencil 模式生成或更新 `docs/design/ui-design.pen`；Figma 模式记录远端文件定位；任意模式都更新 `docs/design/design.md` 的 `Design Artifacts` 区块。
 
 [任务]

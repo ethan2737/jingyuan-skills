@@ -20,9 +20,9 @@ Codex 补全列表中显示为 `jingyuan:<skill>`，输入 `$jingyuan` 可看到
 - `$jingyuan:design` / `/jingyuan:design`：仅在存在 UI/UX 或明确设计约束时生成或更新 `docs/design/design.md`
 - `$jingyuan:mockup` / `/jingyuan:mockup`：更新 design.md 的 Design Artifacts；如用户选择 Pencil，同步生成 `docs/design/ui-design.pen`
 - `$jingyuan:dev-plan` / `/jingyuan:dev-plan`：生成或更新 `docs/development/plan.md`；大型变更使用单一 `docs/changes/<change-id>.md`
-- `$jingyuan:dev-builder` / `/jingyuan:dev-builder`：按开发计划实现项目
-- `$jingyuan:review` / `/jingyuan:review`：审查代码、文档一致性、质量、安全、性能和测试覆盖
-- `$jingyuan:fix` / `/jingyuan:fix`：建立复现/验证循环后修复 Bug
+- `$jingyuan:dev-builder` / `/jingyuan:dev-builder`：按开发计划实现、验证并提交当前变更；不自动触发 Review/Fix
+- `$jingyuan:review` / `/jingyuan:review`：在用户或协调者显式要求时审查代码、文档一致性、质量、安全、性能和测试覆盖
+- `$jingyuan:fix` / `/jingyuan:fix`：排查并修复独立 Bug 或明确路由的 Review finding
 - `$jingyuan:release` / `/jingyuan:release`：构建、打包和发布检查
 - `$jingyuan:research` / `/jingyuan:research`：使用横纵分析法产出产品、公司、技术概念或人物的深度调研报告
 - `$jingyuan:spider` / `/jingyuan:spider`：判断 Python 爬虫路线，结合笔记和案例处理普通采集、Scrapy、Selenium、JS 逆向和补环境问题

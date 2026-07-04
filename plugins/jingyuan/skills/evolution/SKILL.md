@@ -11,6 +11,8 @@ description: 景元进化引擎工作流。Use when Codex or Claude Code should 
 - Claude Code 入口：`/jingyuan:evolution`。
 - `<JINGYUAN_PLUGIN_ROOT>` 解析规则：Claude Code 使用 `${CLAUDE_PLUGIN_ROOT}`；Codex 优先使用 `$env:CODEX_HOME\plugins\jingyuan`，否则使用 `$HOME\.codex\plugins\jingyuan`。
 
+启动时先读取 `<JINGYUAN_PLUGIN_ROOT>/references/workflow/core-workflow.md` 的共享执行契约。
+
 `$jingyuan:evolution` 扫描 `docs/feedback/` 的重复模式，提出规则毕业、技能优化、新技能和 out-of-scope 沉淀建议。它只提出结构化建议；修改技能、workflow 或长期记忆前必须有用户确认。
 
 [任务]
