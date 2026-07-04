@@ -15,11 +15,14 @@ JingYuan 项目按需使用三类长期记忆。setup 不创建空文件或目�
 
 固定项目术语、角色、核心对象和已澄清歧义。
 
+<!-- ACTIVE_TERMINOLOGY_ALIGNMENT -->
+
 使用规则：
 
-- `$jingyuan:pm` 负责发现和澄清术语。
+- `$jingyuan:pm` 负责首次发现和澄清术语；design、dev-plan、dev-builder、review、fix、sync 在各自阶段发现新冲突时同样负责停止猜测并收敛当前语义。
 - 相关 Skill 在当前任务确实依赖项目术语时读取，不把任务状态、日志或实现细节写入 context。
-- 发现术语冲突时，先提示回到 `$jingyuan:pm` 或 `$jingyuan:sync`，不要继续猜。
+- 发现同义、过载或边界不清的术语时，区分用户说法、代码现状和目标语义，用一个能暴露边界差异的具体场景验证；能够确认且 `docs/context.md` 位于当前任务 `write_scopes` 时立即更新，否则路由有权角色。
+- 冲突涉及产品意图或会改变既有契约时，路由到 `$jingyuan:pm`；仅需同步已确认事实时路由到 `$jingyuan:sync`。确认前不得继续猜测。
 
 ## docs/adr/
 

@@ -247,6 +247,10 @@ $devPlanSkillPath = Join-Path $pluginRoot 'skills\dev-plan\SKILL.md'
 $feedbackSkillPath = Join-Path $pluginRoot 'skills\feedback\SKILL.md'
 $reviewReadinessPath = Join-Path $pluginRoot 'references\workflow\review-readiness.md'
 $projectMemoryPath = Join-Path $pluginRoot 'references\workflow\project-memory.md'
+$testingPolicyPath = Join-Path $pluginRoot 'references\workflow\testing-policy.md'
+$diagnosticsLoopPath = Join-Path $pluginRoot 'references\workflow\diagnostics-loop.md'
+$verticalSlicePath = Join-Path $pluginRoot 'references\workflow\vertical-slice.md'
+$skillBuilderPath = Join-Path $pluginRoot 'skills\skill-builder\SKILL.md'
 $changeTemplatePath = Join-Path $pluginRoot 'assets\templates\change-template.md'
 $handoffSkillPath = Join-Path $pluginRoot 'skills\handoff\SKILL.md'
 $stateReferencePath = Join-Path $pluginRoot 'references\workflow\agent-collaboration-state.md'
@@ -309,7 +313,27 @@ $contentChecks = @(
   @{
     Path = $projectMemoryPath
     Label = 'project-memory.md'
-    Patterns = @('scopes', 'tags', 'needs_context', 'proposed | accepted | superseded', 'active | retired')
+    Patterns = @('scopes', 'tags', 'needs_context', 'proposed | accepted | superseded', 'active | retired', 'ACTIVE_TERMINOLOGY_ALIGNMENT')
+  },
+  @{
+    Path = $testingPolicyPath
+    Label = 'testing-policy.md engineering evidence contract'
+    Patterns = @('PUBLIC_SEAM', 'INDEPENDENT_TEST_ORACLE', 'ANTI_TAUTOLOGICAL_TEST', 'SLICE_LOCAL_REFACTOR')
+  },
+  @{
+    Path = $diagnosticsLoopPath
+    Label = 'diagnostics-loop.md feedback contract'
+    Patterns = @('RED_CAPABLE_SIGNAL', 'REPRO_RATE', 'LOAD_BEARING_REPRO', 'RANKED_HYPOTHESES', 'DOUBLE_GREEN')
+  },
+  @{
+    Path = $verticalSlicePath
+    Label = 'vertical-slice.md spike and architecture contract'
+    Patterns = @('SPIKE_EXIT_CONTRACT', 'PROTOTYPE_PRODUCTION_GATE', 'MODULE_BOUNDARY_CHECK')
+  },
+  @{
+    Path = $skillBuilderPath
+    Label = 'skill-builder skill discipline'
+    Patterns = @('SKILL_BASELINE_FAILURE', 'CHECKABLE_COMPLETION', 'PROGRESSIVE_DISCLOSURE', 'SINGLE_SOURCE_NOOP')
   },
   @{
     Path = $changeTemplatePath
@@ -334,7 +358,7 @@ $contentChecks = @(
   @{
     Path = $reviewReadinessPath
     Label = 'review-readiness.md'
-    Patterns = @('current_stage', 'pending_verification_findings', 'Closure Ledger', 'Git')
+    Patterns = @('current_stage', 'pending_verification_findings', 'Closure Ledger', 'Git', 'REPRODUCIBLE_REVIEW_BASELINE', 'STANDARDS_SOURCE', 'FINDING_BASIS')
   },
   @{
     Path = $handoffSkillPath

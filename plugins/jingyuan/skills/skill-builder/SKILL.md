@@ -35,10 +35,14 @@ description: 景元 Skill 创建与维护工作流。Use when Codex or Claude Co
     - 目标目录已存在且包含旧文件 → 读取现有文件，评估合并或重建策略
 
 [第一性原则]
+    <!-- SKILL_BASELINE_FAILURE CHECKABLE_COMPLETION PROGRESSIVE_DISCLOSURE SINGLE_SOURCE_NOOP -->
     **完整但不冗余**：技能必须能让另一个 Agent 独立执行，但不复制共享规则和迁移历史。
     **引用优先**：跨技能共用的路径、测试、验证、review、debug、子 Agent、Windows 规则写入 workflow references。
     **交互模式优先**：参照同类交互模式的技能，不按领域机械复制。
     **最小必要**：只保留真实影响执行的 Section、门禁和输出格式。
+    **失败驱动**：维护 Skill 时先证明现有规则在代表性场景中会产生可观察失败；新建 Skill 时先证明缺少该能力会导致可观察失败。没有基线失败或明确能力增量，不添加规则。
+    **可验证完成**：关键步骤必须有可检查的完成条件，不能用“充分分析”“确保正确”等不可证伪表述代替。
+    **按需披露**：只在可观察条件命中时加载对应分支和重型参考，不让未来步骤提前占用上下文或诱发过早完成。
     **联网优先**：涉及不熟悉领域或外部生态时先 WebSearch，再写规则。
 
 [新版技能结构]
@@ -70,7 +74,7 @@ description: 景元 Skill 创建与维护工作流。Use when Codex or Claude Co
        - 诊断修复型：参考 `fix`
        - 长期记忆型：参考 `feedback`、`evolution`
     3. 先查是否已有 workflow reference 可复用；没有且会被多个技能共用，再新增 reference。
-    4. 写正文时保留决策关键点，删除长示例和迁移噪音。
+    4. 根据失败形态选择表达：违反纪律用明确边界，输出缺字段用结构契约，行为分支用可观察条件；写正文时保留决策关键点，删除长示例和迁移噪音。
     5. 如技能依赖模板，明确模板路径和缺失时行为。
     6. 如技能会被 README 或 core workflow 发现，更新对应文档。
 
@@ -80,6 +84,7 @@ description: 景元 Skill 创建与维护工作流。Use when Codex or Claude Co
     - 同一规则在多个技能中的重复展开。
     - 只解释为什么、不影响怎么做的长段落。
     - 已由 reference 覆盖的 Windows、验证、测试、review 细节。
+    - 删除后不改变任何决策、产物或失败行为的无效规则。
 
     不可删除：
     - 触发场景。
@@ -107,7 +112,7 @@ description: 景元 Skill 创建与维护工作流。Use when Codex or Claude Co
         → 应使用引用链接而非复制内容
 
 [工作流程]
-    1. 读取需求、evolution 建议或 feedback 背景。
+    1. 读取需求、evolution 建议或 feedback 背景，构造能复现目标缺口的代表性场景；维护已有 Skill 时记录当前输出如何失败，新建 Skill 时记录没有该能力时如何失败。
 
         🔴 CHECKPOINT：向用户确认以下信息后再继续：
             - skill 名称和路径：`plugins/jingyuan/skills/<skill-name>/`
@@ -121,7 +126,7 @@ description: 景元 Skill 创建与维护工作流。Use when Codex or Claude Co
             - 模板文件不存在 → 使用 [新版技能结构] 中的最小结构直接创建
             - 相似技能文件不存在 → 跳过参考，仅使用通用模板和 [新版技能结构]
 
-    3. 确定技能结构、依赖、产物和路由关系。
+    3. 确定技能结构、依赖、产物、路由关系和每个关键步骤的可检查完成条件；仅对实际命中的分支加载额外参考。
         🔴 CHECKPOINT：如果目标目录 `plugins/jingyuan/skills/<skill-name>/` 已存在：
             - 警告用户即将覆盖已有技能
             - 展示已有技能的名称、描述和现有文件清单
@@ -131,7 +136,7 @@ description: 景元 Skill 创建与维护工作流。Use when Codex or Claude Co
     4. 编辑 `plugins/jingyuan/skills/<skill-name>/SKILL.md`。
     5. 如新增模板或 reference，放入 `plugins/jingyuan/assets/templates/` 或 `plugins/jingyuan/references/workflow/`。
     6. 更新 README、core workflow 或 validation report（如适用）。
-    7. 运行 `scripts/validate-plugin.ps1` 和一致性搜索。
+    7. 先用原场景确认失败行为已被最小规则修正，再运行 `scripts/validate-plugin.ps1` 和一致性搜索；若没有改变失败行为，撤销无效规则而不是继续加字。
 
         ⚠️ Fallback — 验证失败时的处理：
             - 验证脚本报错 → 检查输出信息，修复具体问题后重新运行

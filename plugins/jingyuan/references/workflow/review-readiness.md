@@ -2,6 +2,8 @@
 
 Review 不是最后的礼节，而是完成门禁。
 
+<!-- REPRODUCIBLE_REVIEW_BASELINE STANDARDS_SOURCE FINDING_BASIS -->
+
 ## 计划阶段
 
 `dev-plan` 应为每个 slice 写出 review 对照清单：
@@ -13,7 +15,11 @@ Review 不是最后的礼节，而是完成门禁。
 
 ## 实现阶段
 
-`dev-builder` 按两阶段 review：
+审查开始先固定可复现基线：记录当前 HEAD、目标分支或比较点、merge-base、实际 diff 范围和提交列表。比较点缺失、diff 为空或 scope 与 diff 不一致时先停止澄清，不能凭工作区印象审查。
+
+Stage 2 开始前识别当前 scope 适用的 `AGENTS.md`、`CLAUDE.md`、`CONTRIBUTING`、项目规范和自动化检查。仓库硬规则优先于通用启发式；finding 标明依据是 documented rule 还是 engineering judgment。格式化、lint 等工具已可靠覆盖的问题不重复人工报告。
+
+显式 review 任务由 `review` 角色按两阶段执行；`dev-builder` 只准备当前实现与验证证据：
 1. **Spec compliance review**：是否按计划做完，是否少做、多做或偏离范围。
 2. **Code quality review**：只在规格通过后检查架构、测试、安全、性能、类型和维护性。
 

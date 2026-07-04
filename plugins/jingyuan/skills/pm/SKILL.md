@@ -39,7 +39,7 @@ description: 景元产品经理需求澄清闸门。Use when Codex or Claude Cod
 <!-- METHOD: RISK_WEIGHTED_ASSUMPTION -->
 
 - **问题优先**：先验证问题和价值，再定义功能和页面。
-- **术语优先**：模糊词先澄清并沉淀到 `docs/context.md`，不要让后续技能猜。
+- **术语优先**：模糊词先用具体边界场景澄清并沉淀到 `docs/context.md`；后续角色发现新冲突时按 `project-memory.md` 就地收敛或路由 PM，不继续猜测。
 - **场景优先**：每个核心需求必须落到角色、触发场景、输入、系统响应、结果和异常。
 - **范围优先**：明确本期做什么和不做什么；不做的内容写入 PRD 或 `docs/out-of-scope/`。
 - **证据优先**：旧项目逆向、竞品、外部服务、框架、API、行业数据不靠记忆拍脑袋。

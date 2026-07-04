@@ -39,6 +39,8 @@ description: 景元设计规范工作流。Use when Codex or Claude Code needs t
     - `<JINGYUAN_PLUGIN_ROOT>/references/workflow/project-memory.md`
     - `<JINGYUAN_PLUGIN_ROOT>/references/workflow/windows-powershell.md`
 
+    设计阶段发现术语冲突、概念过载或代码现状与目标语义不一致时，按 `project-memory.md` 用具体边界场景收敛语义；确认后仅在 `write_scopes` 允许时更新现有 `docs/context.md`，否则路由 PM 或 sync，不继续猜测。
+
 [第一性原则]
     <!-- METHOD: DIVERGENT_LOW_COST_VALIDATION -->
     **选择题优先**：给用户 2-3 个具体设计方向，不问空泛开放题。
