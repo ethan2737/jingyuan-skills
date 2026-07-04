@@ -241,6 +241,7 @@ $reviewSkillPath = Join-Path $pluginRoot 'skills\review\SKILL.md'
 $fixSkillPath = Join-Path $pluginRoot 'skills\fix\SKILL.md'
 $devBuilderSkillPath = Join-Path $pluginRoot 'skills\dev-builder\SKILL.md'
 $pmSkillPath = Join-Path $pluginRoot 'skills\pm\SKILL.md'
+$designSkillPath = Join-Path $pluginRoot 'skills\design\SKILL.md'
 $mockupSkillPath = Join-Path $pluginRoot 'skills\mockup\SKILL.md'
 $devPlanSkillPath = Join-Path $pluginRoot 'skills\dev-plan\SKILL.md'
 $feedbackSkillPath = Join-Path $pluginRoot 'skills\feedback\SKILL.md'
@@ -263,7 +264,7 @@ $contentChecks = @(
   @{
     Path = $coreWorkflowPath
     Label = 'core-workflow.md role execution contract'
-    Patterns = @('FIRST_PRINCIPLES', 'ADVERSARIAL_REVIEW', 'AUTHOR_COMMITS', 'LOGICAL_INTENT_COMMIT')
+    Patterns = @('FIRST_PRINCIPLES', 'ADVERSARIAL_REVIEW', 'AUTHOR_COMMITS', 'LOGICAL_INTENT_COMMIT', 'PARSIMONY', 'FALSIFIABILITY', 'SMALL_BATCH_FEEDBACK', 'DUAL_VALIDATION', 'UNTRUSTED_EVIDENCE')
   },
   @{
     Path = $documentConventionsPath
@@ -283,7 +284,12 @@ $contentChecks = @(
   @{
     Path = $pmSkillPath
     Label = 'pm skill'
-    Patterns = @('docs/PRD/prd.md', 'Git diff')
+    Patterns = @('docs/PRD/prd.md', 'Git diff', 'METHOD: RISK_WEIGHTED_ASSUMPTION')
+  },
+  @{
+    Path = $designSkillPath
+    Label = 'design skill'
+    Patterns = @('METHOD: DIVERGENT_LOW_COST_VALIDATION')
   },
   @{
     Path = $mockupSkillPath
@@ -293,7 +299,7 @@ $contentChecks = @(
   @{
     Path = $devPlanSkillPath
     Label = 'dev-plan skill'
-    Patterns = @('docs/changes/<change-id>.md', 'Behavior Contract', 'change-template.md')
+    Patterns = @('docs/changes/<change-id>.md', 'Behavior Contract', 'change-template.md', 'METHOD: RISK_ORDERED_TRACEABILITY')
   },
   @{
     Path = $feedbackSkillPath
@@ -313,17 +319,17 @@ $contentChecks = @(
   @{
     Path = $reviewSkillPath
     Label = 'review skill'
-    Patterns = @('docs/review/review-<task-id>.md', 'current_stage', 'active_findings', 'next_role', 'next_action', 'Closure Ledger', 'Round Summary', 'SNAPSHOT_REWRITE_NO_FULL_ROUND_APPEND', 'task_id', 'review_rounds', 'source_fix_report', 'git commit', 'commit hash')
+    Patterns = @('docs/review/review-<task-id>.md', 'current_stage', 'active_findings', 'next_role', 'next_action', 'Closure Ledger', 'Round Summary', 'SNAPSHOT_REWRITE_NO_FULL_ROUND_APPEND', 'task_id', 'review_rounds', 'source_fix_report', 'git commit', 'commit hash', 'METHOD: CODE_HEALTH_FINDING_SEVERITY')
   },
   @{
     Path = $fixSkillPath
     Label = 'fix skill'
-    Patterns = @('docs/review/', 'docs/bug-fix/fix-<task-id>.md', 'pending_verification_findings', 'remaining_findings', 'Closure Ledger', 'SNAPSHOT_REWRITE_NO_FULL_ROUND_APPEND', 'task_id', 'fix_rounds', 'source_review_report', 'git commit', 'commit hash')
+    Patterns = @('docs/review/', 'docs/bug-fix/fix-<task-id>.md', 'pending_verification_findings', 'remaining_findings', 'Closure Ledger', 'SNAPSHOT_REWRITE_NO_FULL_ROUND_APPEND', 'task_id', 'fix_rounds', 'source_review_report', 'git commit', 'commit hash', 'METHOD: DISCRIMINATING_HYPOTHESIS')
   },
   @{
     Path = $devBuilderSkillPath
     Label = 'dev-builder skill'
-    Patterns = @('review_trigger: explicit', 'current_change_failures: self_fix', 'commit_owner: executing_role')
+    Patterns = @('review_trigger: explicit', 'current_change_failures: self_fix', 'commit_owner: executing_role', 'METHOD: UNTRUSTED_AI_SMALL_BATCH')
   },
   @{
     Path = $reviewReadinessPath

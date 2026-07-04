@@ -14,6 +14,7 @@ description: 景元代码审查工作流。Use when Codex or Claude Code is expl
 启动时先读取 `<JINGYUAN_PLUGIN_ROOT>/references/workflow/core-workflow.md` 的共享执行契约。
 
 <!-- review_trigger: explicit -->
+<!-- METHOD: CODE_HEALTH_FINDING_SEVERITY -->
 
 ## 触发与职责
 
@@ -22,7 +23,7 @@ Review 只响应用户或协调者显式创建的审查任务，不由 dev-build
 审查分两阶段：
 
 1. Stage 1：规格符合度，判断是否做对、做全且未越界。
-2. Stage 2：代码质量，只在 Stage 1 通过后检查架构、类型、错误处理、安全、性能、测试和可维护性。
+2. Stage 2：代码质量，只在 Stage 1 通过后按正确性、设计、复杂度、测试与文档、局部风格的顺序检查；目标是改善整体代码健康，不追求无关范围内的完美。
 
 ## 输入与按需读取
 
@@ -42,9 +43,9 @@ Review 只响应用户或协调者显式创建的审查任务，不由 dev-build
 1. 固定审查基线：scope、HEAD、diff、PRD/design/ADR/out-of-scope、验证命令和依赖状态。
 2. 若基线相对旧报告变化，将旧结论标记 stale，不复用旧通过声明。
 3. 优先复验 `source_fix_report` 中的 pending finding。
-4. 执行 Stage 1；每个失败项引用意图、实现证据、影响和最小修复方向。存在阻塞项时 Stage 2 为 `not-run`。
-5. Stage 1 通过后执行 Stage 2；只报告影响正确性、安全、性能、测试可信度或维护成本的实质问题，不堆积风格偏好。
-6. 对全部“通过”和 finding 做对抗性审查，运行能直接证明结论的验证。
+4. 执行 Stage 1；独立读取代码或运行验证，不复用作者、AI 或旧报告的结论。每个失败项引用意图、触发条件、实现证据、影响和最小修复方向；存在阻塞项时 Stage 2 为 `not-run`。
+5. Stage 1 通过后执行 Stage 2；区分阻塞问题、应修问题和非阻塞建议。只有会违反契约、降低代码健康或造成实质风险的问题才能阻塞，个人偏好不得成为 finding。
+6. 对全部“通过”和 finding 做对抗性审查，重点检查隐藏假设、虚构接口、过度抽象、异常吞噬和权限扩大；超出自身能力的安全、并发、隐私、无障碍等范围必须明确标记未覆盖。
 7. 重写当前快照，验证报告结构，分类提交报告；状态启用时先运行 `CheckCommit`。
 
 ## 对抗性审查
@@ -52,7 +53,9 @@ Review 只响应用户或协调者显式创建的审查任务，不由 dev-build
 - 是否只因测试通过就推断功能、安全或设计全部正确？
 - 是否遗漏未覆盖的 PRD 条目、错误路径、极限数据和非默认 UI 状态？
 - finding 能否由具体 actor、输入和可观察影响触发，还是纯风格意见？
+- finding 的严重程度是否与可触发影响匹配；非阻塞建议是否被错误升级为必须修改？
 - 证据是否来自当前 HEAD，是否存在反例能推翻“通过”结论？
+- 关键通过项是否经过独立验证，而不是重复作者或 AI 的说明？
 - minimal_fix 是否越过审查职责或引入不必要重构？
 - 是否把需求歧义错误归类为代码 bug，而非路由给 pm/design/human？
 
@@ -81,7 +84,7 @@ Frontmatter 至少包含：
 5. `Closure Ledger`
 6. `Round Summary`
 
-每个 finding 使用稳定 ID，并包含 priority、stage、route、file:line、evidence、impact、minimal_fix。已验证项移入紧凑 `Closure Ledger`；`Round Summary` 每轮只增加一行摘要，不复制历史证据。
+每个 finding 使用稳定 ID，并包含 priority、stage、route、file:line、触发条件、evidence、impact、minimal_fix。priority 必须反映 blocker、应修或非阻塞建议的实际影响。已验证项移入紧凑 `Closure Ledger`；`Round Summary` 每轮只增加一行摘要，不复制历史证据。
 
 ## 路由与提交
 
